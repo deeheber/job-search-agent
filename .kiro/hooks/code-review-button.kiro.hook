@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Code Review Button",
+  "description": "Manual trigger button to run comprehensive code review on the current file, analyzing code quality, bugs, performance, security, and accessibility",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the current file for: 1. Code quality issues 2. Potential bugs 3. Performance optimizations 4. Security vulnerabilities 5. Accessibility concerns"
+  }
+}

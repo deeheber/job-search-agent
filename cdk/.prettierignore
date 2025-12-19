@@ -1,0 +1,11 @@
+# CDK
+cdk.out/
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Lock files
+package-lock.json

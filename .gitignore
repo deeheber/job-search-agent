@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Node/TypeScript
+node_modules/
+*.tsbuildinfo
+*.js.map
+cdk.out/
+
+# CDK
+cdk/**/*.js
+!cdk/jest.config.js
+cdk/**/*.d.ts
+cdk/.cdk.staging
+cdk/coverage/
+!cdk/lib/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Ruff
+.ruff_cache/
+
+# Mypy
+.mypy_cache/
+# Environment variables
+.env
+.env.local
