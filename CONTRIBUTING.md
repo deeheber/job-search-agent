@@ -1,6 +1,6 @@
-# Contributing to Strands Agent Template
+# Contributing to Job Search Agent
 
-Thank you for your interest in contributing to the Strands Agent Template! This guide will help you get started with development and ensure your contributions align with our project standards.
+Thank you for your interest in contributing to the job search agent! This guide will help you get started with development and ensure your contributions align with our project standards.
 
 ## Getting Started
 
@@ -17,8 +17,8 @@ Thank you for your interest in contributing to the Strands Agent Template! This 
 1. **Fork and clone the repository**
 
    ```bash
-   git clone https://github.com/your-username/strands-agent.git
-   cd strands-agent
+   git clone https://github.com/your-username/job-search-agent.git
+   cd job-search-agent
    ```
 
 2. **Set up the Python environment**

@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Deploy Strands agent to AWS Bedrock AgentCore Runtime.
+Deploy the job search agent to AWS Bedrock AgentCore Runtime.
 
 ## Prerequisites
 
@@ -58,21 +58,20 @@ RUNTIME_ARN="<your-runtime-arn>"
 aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qualifier DEFAULT --payload $(echo '{"prompt": "What is 42 * 137?"}' | base64) response.json
 ```
 
-**AWS Console:** Bedrock AgentCore → Runtimes → `StrandsAgentStack_StrandsAgent` → Test
+**AWS Console:** Bedrock AgentCore → Runtimes → `JobSearchAgentStack_JobSearchAgent` → Test
 
 **Sample queries:**
 
 - `"What is the time right now?"`
-- `"Calculate 3111696 / 74088"`
-- `"How many Rs in strawberry?"`
+- `"Is Panic Inc. hiring software engineers now?"`
 
 ## Monitoring
 
 **CloudWatch Logs:**
 
 ```bash
-aws logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runtimes/StrandsAgentStack
-aws logs tail /aws/bedrock-agentcore/runtimes/StrandsAgentStack_StrandsAgent-<id>-DEFAULT --follow
+aws logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runtimes/JobSearchAgentStack
+aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent-<id>-DEFAULT --follow
 ```
 
 ## Development Workflow

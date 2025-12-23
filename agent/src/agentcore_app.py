@@ -6,9 +6,7 @@ from typing import Any
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
-from strands_tools import calculator, current_time, http_request  # type: ignore[import-untyped]
-
-from tools import letter_counter
+from strands_tools import current_time, http_request  # type: ignore[import-untyped]
 
 # Load environment variables from .env file for local development
 if os.path.exists(".env"):
@@ -55,7 +53,7 @@ def get_model_id() -> str:
 def get_agent() -> Agent:
     """Create and return a Strands agent with configured tools and model."""
     model_id = get_model_id()
-    return Agent(model=model_id, tools=[calculator, current_time, http_request, letter_counter])
+    return Agent(model=model_id, tools=[current_time, http_request])
 
 
 @app.entrypoint

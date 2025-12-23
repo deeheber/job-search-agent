@@ -1,6 +1,6 @@
 # CDK Infrastructure
 
-Deploys Strands agents to Amazon Bedrock AgentCore Runtime.
+Deploys job search agent to Amazon Bedrock AgentCore Runtime.
 
 ## Deploy
 

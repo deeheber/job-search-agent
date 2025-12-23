@@ -1,6 +1,6 @@
 # Strands Agent
 
-Python 3.13 agent with calculator, time, web search, and letter counter tools.
+Python 3.13 agent with time and http_request tools.
 
 ## Quick Start
 
