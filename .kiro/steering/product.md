@@ -18,5 +18,4 @@ Takes company name as input → returns hiring status, position titles, and job 
 ## Roadmap
 
 1. **Phase 1** (Current): Single company lookup
-2. **Phase 2**: Multi-company batch processing
-3. **Phase 3**: EventBridge scheduling + SNS notifications
+2. **Phase 2**: EventBridge scheduling + SNS notifications
