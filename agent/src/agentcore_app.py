@@ -15,24 +15,15 @@ if os.path.exists(".env"):
 
         load_dotenv()
     except ImportError:
-        import warnings
-
-        warnings.warn(
-            ".env file found but python-dotenv not installed. "
-            "Install with: pip install python-dotenv",
-            UserWarning,
-            stacklevel=2,
-        )
+        pass  # Optional dependency for local development
 
 DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+# Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-
 logging.basicConfig(
     level=getattr(logging, log_level),
     format="%(levelname)s | %(name)s | %(message)s",
-    handlers=[logging.StreamHandler()],
 )
-
 logging.getLogger("strands").setLevel(log_level)
 
 app = BedrockAgentCoreApp()
