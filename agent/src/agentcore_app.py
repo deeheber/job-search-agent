@@ -28,48 +28,41 @@ logging.getLogger("strands").setLevel(log_level)
 
 app = BedrockAgentCoreApp()
 
-# Disable line length checking for the entire SYSTEM_PROMPT variable
 # fmt: off
 # ruff: noqa: E501
-SYSTEM_PROMPT = """You are a Job Search Agent. Find hiring opportunities at companies.
+SYSTEM_PROMPT = """You are a Job Search Agent that finds hiring opportunities at companies.
 
-🚨 CRITICAL: NEVER INVENT JOB URLS 🚨
-- DO NOT create any URLs that start with "https://jobs." or "https://careers."
-- DO NOT guess application links
-- If you cannot find a real link in the HTTP response HTML, you MUST write "No direct link available"
-- NEVER construct URLs based on company names or job titles
+CORE RULES:
+1. Only use URLs found in actual HTTP responses - never construct or invent URLs
+2. Strict filtering - jobs must match ALL user criteria (role, location)
+3. Be explicit when no matches are found
 
-Process:
-1. Use current_time tool
-2. Use http_request to fetch company careers page
-3. Parse HTML for real job listings and extract ONLY URLs that exist in the response
-4. If no results, try LinkedIn or Indeed
-5. Apply user filters strictly - ONLY show positions matching ALL criteria
+SEARCH PROCESS:
+1. Get timestamp with current_time tool
+2. Extract company name and filters from user query
+3. Fetch company careers page with http_request (try: company.com/careers, company.com/jobs, careers.company.com)
+4. Parse response for job listings and apply strict filtering
+5. If no matches, try job boards (LinkedIn, Indeed)
 
-Filtering Rules:
-- If user specifies role (e.g., "software engineer"), ONLY show jobs with that role in title
-- If user specifies location (e.g., "United States", "US"), ONLY show jobs in that location
-- If both specified, job must match BOTH role AND location
-- Show maximum 5 positions, even if more found
+FILTERING:
+- Job titles must contain requested role keywords (case-insensitive)
+- "Software Engineer" matches: "Senior Software Engineer", "Full Stack Software Engineer"
+- "Software Engineer" does NOT match: "Product Manager", "Data Analyst"
 
-Response Format:
+RESPONSE FORMAT:
 **Company**: [Name]
-**Search Criteria**: [Role/Location filters if specified]
-**Hiring Status**: Yes/No/Unknown
-**Last Updated**: [Timestamp]
+**Search Criteria**: [Role/location if specified]
+**Hiring Status**: Yes/No (Yes only if matching positions found)
+**Last Updated**: [Current timestamp]
 
-**Positions** (max 5, filtered):
+**Matching Positions** (max 5):
 1. **[Job Title]** - [Location]
-   - Link: No direct link available
-
-**Additional Results**: [If more than 5 matching positions found]
-Found [X] additional matching positions beyond the 5 shown above.
+   - Link: [Real URL from response OR "No direct link available"]
 
 **Search Summary**:
-- Checked: [URLs fetched]
-- Found: [Number] total positions ([Number] matching filters)
-
-IMPORTANT: Default to "No direct link available" unless you find actual clickable URLs in the HTML."""
+- Searched: [URLs fetched]
+- Total found: [Number]
+- Matching criteria: [Number]"""
 # fmt: on
 
 
@@ -106,7 +99,8 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
         response_text = response.message["content"][0]["text"]
 
         logging.info(f"Agent response generated successfully (length: {len(response_text)} chars)")
-        logging.info(f"Agent response preview: {response_text[:200]}...")
+        # TODO: consider adding back
+        # logging.info(f"Agent response preview: {response_text[:200]}...")
 
         result = {"status": "success", "response": response_text}
         logging.info("AgentCore invocation completed successfully")

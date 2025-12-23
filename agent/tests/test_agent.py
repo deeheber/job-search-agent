@@ -19,3 +19,18 @@ def test_get_model_id_fallback() -> None:
     with patch.dict(os.environ, {}, clear=True):
         model_id = get_model_id()
         assert model_id == DEFAULT_MODEL_ID
+
+
+def test_system_prompt_contains_filtering_rules() -> None:
+    """Test that system prompt contains strict filtering instructions."""
+    from src.agentcore_app import SYSTEM_PROMPT
+
+    # Check for key filtering concepts
+    assert "Strict filtering" in SYSTEM_PROMPT
+    assert "match ALL user criteria" in SYSTEM_PROMPT
+    assert "never construct or invent URLs" in SYSTEM_PROMPT
+    assert "No direct link available" in SYSTEM_PROMPT
+
+    # Check for specific role matching examples
+    assert "Software Engineer" in SYSTEM_PROMPT
+    assert "does NOT match" in SYSTEM_PROMPT
