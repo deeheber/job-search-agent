@@ -14,13 +14,22 @@ fileMatchPattern: "agent/**"
 ## Structure
 
 **Main**: `agentcore_app.py` (BedrockAgentCoreApp + @app.entrypoint)
-**Tools**: `tools/custom_tools.py` (@tool decorator), export in `__init__.py`
+**Tools**: Currently using community tools (`http_request`, `current_time`)
+**Future**: Custom job search tools in `tools/` directory when needed
 
-## Patterns
+## Job Search Patterns
 
-**Agent**: `Agent(tools=[calculator, current_time, http_request, custom_tool])`
-**Tool**: `@tool` decorator with Google docstrings (Args, Returns, Raises)
-**Error**: Return `{"status": "success/error", "response/error": "..."}` pattern
+**Agent**: `Agent(tools=[http_request, current_time])` - HTTP requests + timestamp data
+**Response**: Return `{"status": "success/error", "response/error": "...", "jobs": [...]}` pattern
+**Company Analysis**: Use `http_request` to fetch career pages, `current_time` for job posting dates
+
+## Current Implementation
+
+**HTTP-based Search**: Leveraging `http_request` tool for web scraping and API calls
+**Timestamp Tracking**: Using `current_time` for job posting freshness and search timestamps
+**Job Site Integration**: Direct HTTP requests to company career pages and job boards
+**Data Parsing**: Agent processes HTML/JSON responses to extract job information
+**Future Tools**: Will add custom tools for advanced job search features as needed
 
 ## Commands
 

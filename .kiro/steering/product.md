@@ -1,33 +1,47 @@
 # Product Overview
 
-Strands Agent Template - a CDK-based deployment template for Strands AI agents to AWS Bedrock AgentCore Runtime.
+Job Search Agent - an AI-powered agent that monitors company hiring status and provides job opportunity insights.
 
 ## Purpose
 
-This is a template repository for deploying Strands-based AI agents to AWS Bedrock AgentCore Runtime using AWS CDK. It provides infrastructure-as-code for building Python agents that can use tools, process natural language requests, and execute tasks autonomously in a serverless environment.
+This agent takes a company name as input and determines if the company is currently hiring. When hiring opportunities are found, it responds with detailed information including position titles and links to job descriptions when available.
 
-**Target Audience**: Developers familiar with Python, AWS CDK, and AI agent development who want to deploy production-ready agents to AWS.
+**Target Audience**: Job seekers, recruiters, and career professionals who want automated monitoring of hiring opportunities at specific companies.
 
 ## Current State
 
-- Python agent implementation using Strands framework with custom and community tools
+- Python agent implementation using Strands framework with job search capabilities
 - CDK infrastructure specifically designed for AWS Bedrock AgentCore Runtime deployment
-- Single agent implementation (`agentcore_app.py`) that runs locally and deploys to AgentCore
+- Single company lookup functionality (`agentcore_app.py`) that runs locally and deploys to AgentCore
 - Uses `@aws-cdk/aws-bedrock-agentcore-alpha` constructs for AgentCore integration
-- Currently implements multiple tools including calculator, current_time, http_request (community), and letter_counter (custom)
+- Implements web scraping and job board API integration tools for comprehensive job search
 - Full CI/CD pipeline with GitHub Actions for both Python and TypeScript components
 - Enhanced observability with OpenTelemetry integration for distributed tracing
 
-## Deployment
+## Future Roadmap
 
-The agent can be deployed to AWS Bedrock AgentCore Runtime, which provides:
+**Phase 1 (Current)**: Single company job search
 
-- Serverless container hosting
-- Automatic scaling
-- Built-in observability (CloudWatch Logs, OpenTelemetry tracing)
-- Integration with Bedrock foundation models
+- Input: Company name
+- Output: Hiring status, position titles, job description links
 
-**Region**: The deployment region is automatically determined from your AWS CLI configuration. Ensure Bedrock AgentCore is available in your chosen region.
+**Phase 2 (Planned)**: Multi-company batch processing
+
+- Input: Multiple company names
+- Output: Consolidated hiring report across all companies
+
+**Phase 3 (Planned)**: Automated scheduling and notifications
+
+- EventBridge Scheduler integration for periodic job monitoring
+- SNS email notifications when hiring opportunities are detected
+- Customizable monitoring frequency and alert preferences
+
+## Key Features
+
+- **Company Analysis**: Intelligent parsing of company career pages and job boards
+- **Job Details**: Position titles, descriptions, application links, and posting dates
+- **Multi-source Search**: Integration with major job platforms and company career sites
+- **Real-time Results**: Fresh data from live job postings and career pages
 
 ## Prerequisites
 

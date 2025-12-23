@@ -1,12 +1,14 @@
-# Strands Agent
+# Job Search Agent
 
-Python 3.13 agent with time and http_request tools.
+Python 3.13 agent that monitors company hiring status using `http_request` and `current_time` tools.
 
 ## Quick Start
 
 ```bash
 python3.13 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
 python src/agentcore_app.py
+
+# Test with: "Is Panic Inc. hiring software engineers?"
 ```
 
 ## Configuration
@@ -26,28 +28,33 @@ LOG_LEVEL=DEBUG
 
 **Available Models**: See [AWS Bedrock Model IDs documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html)
 
-## Adding Tools
+## Job Search Features
 
-**Community Tools:**
+**Current Tools:**
 
-```python
-from strands_tools import http_request, file_read, browser
-def get_agent() -> Agent:
-    return Agent(tools=[calculator, current_time, http_request, browser])
-```
+- `http_request` - Fetch company career pages and job board APIs
+- `current_time` - Track job posting dates and search timestamps
 
-**Custom Tools:**
+**Sample Queries:**
 
-```python
-# In src/tools/my_tools.py
-@tool
-def my_tool(param: str) -> str:
-    """Tool description."""
-    return f"Result: {param}"
+- "Is [Company Name] hiring software engineers?"
+- "What positions are available at [Company Name]?"
+- "Check if [Company Name] has any open roles"
 
-# Export in src/tools/__init__.py
-from .my_tools import my_tool
-__all__ = ["letter_counter", "my_tool"]
+**Response Format:**
+
+```json
+{
+  "status": "success",
+  "response": "Company hiring status and details",
+  "jobs": [
+    {
+      "title": "Software Engineer",
+      "link": "https://company.com/careers/123",
+      "posted_date": "2024-01-15"
+    }
+  ]
+}
 ```
 
 ## Development

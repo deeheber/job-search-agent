@@ -1,6 +1,6 @@
 # CDK Infrastructure
 
-Deploys job search agent to Amazon Bedrock AgentCore Runtime.
+Deploys the job search agent to Amazon Bedrock AgentCore Runtime.
 
 ## Deploy
 
@@ -8,7 +8,7 @@ Deploys job search agent to Amazon Bedrock AgentCore Runtime.
 npm install && npm run build && cdk deploy
 ```
 
-Creates: AgentCore Runtime (ARM64), IAM role, CloudWatch logging.
+Creates: AgentCore Runtime (ARM64), IAM role, CloudWatch logging for job search operations.
 
 ## Development
 

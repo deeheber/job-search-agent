@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Deploy the job search agent to AWS Bedrock AgentCore Runtime.
+Deploy the job search agent to AWS Bedrock AgentCore Runtime for automated company hiring monitoring.
 
 ## Prerequisites
 
@@ -62,8 +62,10 @@ aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qu
 
 **Sample queries:**
 
-- `"What is the time right now?"`
 - `"Is Panic Inc. hiring software engineers now?"`
+- `"What positions are available at GitHub?"`
+- `"Check if Stripe has any open engineering roles"`
+- `"What is the time right now?"` (for testing)
 
 ## Monitoring
 
@@ -76,26 +78,32 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 
 ## Development Workflow
 
-1. **Edit** `agent/src/agentcore_app.py` or add tools in `agent/src/tools/`
+1. **Edit** `agent/src/agentcore_app.py` for job search logic improvements
 2. **Quality check** `cd agent && ./quality-check.sh`
-3. **Test locally** `python src/agentcore_app.py`
+3. **Test locally** `python src/agentcore_app.py` with job search queries
 4. **Deploy** `cd cdk && npm run build && cdk deploy`
 
-**Adding Tools:**
+**Future Enhancements:**
+
+- **Multi-company search**: Process multiple companies in one request
+- **Scheduled monitoring**: EventBridge integration for periodic checks
+- **Email alerts**: SNS notifications when hiring opportunities are found
+
+**Adding Custom Tools:**
 
 ```python
-# Custom tool in src/tools/my_tools.py
+# Future custom tool in src/tools/job_search_tools.py
 @tool
-def my_tool(param: str) -> str:
-    """Tool description."""
-    return f"Result: {param}"
+def parse_job_board(url: str) -> dict:
+    """Parse job board API for structured job data."""
+    return {"jobs": [...]}
 
 # Export in src/tools/__init__.py
-from .my_tools import my_tool
-__all__ = ["letter_counter", "my_tool"]
+from .job_search_tools import parse_job_board
+__all__ = ["parse_job_board"]
 
-# Community tools
-from strands_tools import http_request, file_read
+# Community tools (currently used)
+from strands_tools import http_request, current_time
 ```
 
 ## Cleanup
