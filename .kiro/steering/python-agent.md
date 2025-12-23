@@ -49,7 +49,7 @@ fileMatchPattern: "agent/**"
 
 ## Model Selection
 
-**Default Model**: See `DEFAULT_MODEL_ID` constant in `agentcore_app.py`
+**Default Model**: `us.anthropic.claude-sonnet-4-5-20250929-v1:0` (see `DEFAULT_MODEL_ID` in `agentcore_app.py`)
 
 ```python
 def get_model_id() -> str:

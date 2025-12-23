@@ -1,49 +1,46 @@
 # Job Search Agent
 
-**🔍 AI-Powered Job Search Agent** - Automatically monitors company hiring status and provides detailed job opportunity insights.
+**🔍 Your AI job hunting sidekick** - Drop in a company name, get the inside scoop on who's hiring.
 
-This agent takes a company name as input and determines if the company is currently hiring. When opportunities are found, it responds with position titles, job descriptions, and application links. Built on AWS Bedrock AgentCore Runtime with enterprise-grade observability and CI/CD.
+No more endless scrolling through job boards or wondering if that dream company has openings. This agent does the detective work for you, surfacing real opportunities with position details and direct application links. Built on AWS with all the enterprise bells and whistles, but simple enough to get running in minutes.
 
-## What You Get
+## What's Inside
 
-✅ **Job search intelligence** - Company hiring status with position details  
-✅ **Multi-source integration** - Career pages and job board APIs  
-✅ **Production-ready infrastructure** - CDK stack with IAM, logging, tracing  
-✅ **Local development environment** - Test job searches before deploying  
-✅ **Automated CI/CD** - GitHub Actions for Python + TypeScript  
-✅ **Built-in observability** - CloudWatch logs, OpenTelemetry tracing
+🎯 **Smart job hunting** - Company hiring status with all the juicy details  
+🌐 **Multi-source magic** - Scrapes career pages and taps job board APIs  
+🏗️ **Production-ready setup** - CDK infrastructure that just works  
+🧪 **Local testing** - Try before you deploy  
+🚀 **Auto-deploy pipeline** - Push code, get infrastructure  
+📊 **Full observability** - See what's happening under the hood
 
-## Current Features
+## Right Now
 
-- **Single Company Search**: Input company name, get hiring status and job details
-- **Real-time Results**: Fresh data from live job postings and career pages
-- **Intelligent Parsing**: AI-powered extraction of position titles and application links
-- **Timestamp Tracking**: Job posting dates and search freshness
+- **Company lookup**: Toss in a company name, get their hiring pulse
+- **Live data**: Fresh intel from job boards and career pages
+- **Smart parsing**: AI extracts the good stuff - titles, links, dates
+- **Timestamp magic**: Know when jobs were posted and data was fetched
 
-## Future Roadmap
+## Coming Soon
 
-- **Multi-company Processing**: Batch search across multiple companies
-- **Automated Scheduling**: EventBridge integration for periodic monitoring
-- **Email Notifications**: SNS alerts when hiring opportunities are detected
+- **Set it and forget it**: Scheduled checks via EventBridge
+- **Instant alerts**: Get pinged when opportunities pop up
 
-## Why Python + TypeScript?
+## The Stack
 
-We chose Python for the agent implementation and TypeScript for infrastructure because each language offers the richest ecosystem for its respective framework. [Strands](https://strandsagents.com) provides first-class Python support with comprehensive documentation and tooling, while [AWS CDK](https://aws.amazon.com/cdk/) delivers the best developer experience through TypeScript. This gives you access to the most mature libraries, examples, and community resources for both domains.
+Python handles the agent smarts, TypeScript manages the infrastructure. Why? Because [Strands](https://strandsagents.com) + Python = 🔥 for AI agents, and [AWS CDK](https://aws.amazon.com/cdk/) + TypeScript = 🔥 for cloud infrastructure. Best tools for each job.
 
-As these frameworks evolve, we may consolidate to a single language for simplicity.
-
-## Quick Start
+## Get Started
 
 ```bash
-# Test job search locally
+# Try it locally first
 cd agent && source .venv/bin/activate && python src/agentcore_app.py
 
-# Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
+# Test with: {"company": "Panic Inc.", "title": "Software Engineer"}
 
-# Deploy to AWS
+# Deploy to AWS when ready
 aws configure && cd cdk && npm install && npm run build && cdk deploy
 ```
 
-**Ready to search?** Deploy the agent to AWS and start monitoring company hiring status in under 10 minutes. ⚡️
+**Ready to hunt?** Get your job search agent running on AWS in under 10 minutes. ⚡️
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete setup instructions.
+Check [DEPLOYMENT.md](DEPLOYMENT.md) for the full setup walkthrough.

@@ -84,7 +84,6 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 
 **Future Enhancements:**
 
-- **Multi-company search**: Process multiple companies in one request
 - **Scheduled monitoring**: EventBridge integration for periodic checks
 - **Email alerts**: SNS notifications when hiring opportunities are found
 
