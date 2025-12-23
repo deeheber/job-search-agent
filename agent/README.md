@@ -8,7 +8,7 @@ Python 3.13 agent that monitors company hiring status using `http_request` and `
 python3.13 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
 python src/agentcore_app.py
 
-# Test with payload: {"company": "Panic Inc.", "title": "Software Engineer"}
+# Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
 ```
 
 ## Configuration
@@ -35,39 +35,13 @@ LOG_LEVEL=DEBUG
 - `http_request` - Fetch company career pages and job board APIs
 - `current_time` - Track job posting dates and search timestamps
 
-**Sample Queries:**
-
-- Company only: `{"company": "Panic Inc."}`
-- With job title: `{"company": "Panic Inc.", "title": "Software Engineer"}`
-- With location: `{"company": "Netflix", "title": "Data Scientist", "location": "remote"}`
-- Full search: `{"company": "Apple", "title": "iOS Developer", "location": "Cupertino, CA"}`
-
-**Response Format:**
+**Input Format:**
 
 ```json
-{
-  "status": "success",
-  "response": "Company hiring status and details",
-  "search_criteria": {
-    "company": "Google",
-    "title": "Software Engineer",
-    "location": "remote"
-  }
-}
+{ "company": "required", "title": "optional", "location": "optional" }
 ```
 
-**Payload Format:**
-
-```json
-{
-  "company": "Google",
-  "title": "Software Engineer",
-  "location": "remote"
-}
-```
-
-**Required**: `company`  
-**Optional**: `title`, `location`
+**Examples:** `{"company": "Panic Inc."}` or `{"company": "Netflix", "title": "Data Scientist", "location": "remote"}`
 
 ## Development
 

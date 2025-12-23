@@ -55,7 +55,7 @@ cd agent
 source .venv/bin/activate
 python src/agentcore_app.py
 
-# Test job search with payload: {"company": "GitHub", "title": "Software Engineer"}
+# Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
 ```
 
 **Quality checks (recommended before committing):**

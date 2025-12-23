@@ -38,7 +38,7 @@ As these frameworks evolve, we may consolidate to a single language for simplici
 # Test job search locally
 cd agent && source .venv/bin/activate && python src/agentcore_app.py
 
-# Test with payload: {"company": "Panic Inc.", "title": "Software Engineer"}
+# Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
 
 # Deploy to AWS
 aws configure && cd cdk && npm install && npm run build && cdk deploy

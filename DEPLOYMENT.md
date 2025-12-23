@@ -35,7 +35,7 @@ cd agent && source .venv/bin/activate && pip install -e ".[dev]"
 python src/agentcore_app.py
 
 # Test in another terminal
-curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"company": "Google", "title": "Software Engineer"}'
+curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"company": "Panic Inc.", "title": "Software Engineer"}'
 ```
 
 ## Deploy
@@ -55,7 +55,7 @@ npm install && npm run build && cdk deploy
 
 ```bash
 RUNTIME_ARN="<your-runtime-arn>"
-aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qualifier DEFAULT --payload $(echo '{"company": "Google", "title": "Software Engineer"}' | base64) response.json
+aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qualifier DEFAULT --payload $(echo '{"company": "stripe", "title": "Software Engineer"}' | base64) response.json
 ```
 
 **AWS Console:** Bedrock AgentCore → Runtimes → `JobSearchAgentStack_JobSearchAgent` → Test
