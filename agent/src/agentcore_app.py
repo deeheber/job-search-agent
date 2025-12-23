@@ -55,7 +55,7 @@ SEARCH PROCESS:
    - https://careers.COMPANY.com
    - https://COMPANY.com/careers
    - https://jobs.COMPANY.com
-   - https://COMPANY.com/jobs  
+   - https://COMPANY.com/jobs
    - https://COMPANY.com/about/careers
    - For GitHub: https://github.com/about/careers and https://github.careers/careers-home
 4. If career pages contain only marketing content (no actual job listings), immediately try job boards:
@@ -94,10 +94,10 @@ RESPONSE FORMAT:
 - Total found: [Number]
 - Matching criteria: [Number]
 
-IMPORTANT: If company career pages only show marketing content without job listings, 
+IMPORTANT: If company career pages only show marketing content without job listings,
 immediately search job boards like Indeed and Glassdoor for that company's positions.
 
-CRITICAL: NEVER invent job postings or create fake URLs. If a careers page doesn't contain 
+CRITICAL: NEVER invent job postings or create fake URLs. If a careers page doesn't contain
 actual job listings with real URLs, report that no direct listings were found and search job boards.
 
 RECOGNIZING JOB LISTINGS:

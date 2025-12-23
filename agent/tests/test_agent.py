@@ -28,7 +28,7 @@ def test_system_prompt_contains_filtering_rules() -> None:
     # Check for key filtering concepts
     assert "Strict filtering" in SYSTEM_PROMPT
     assert "match ALL user criteria" in SYSTEM_PROMPT
-    assert "never construct or invent URLs" in SYSTEM_PROMPT
+    assert "NEVER construct or invent URLs" in SYSTEM_PROMPT
     assert "No direct link available" in SYSTEM_PROMPT
 
     # Check for specific role matching examples
