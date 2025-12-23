@@ -3,7 +3,7 @@
 import os
 from unittest.mock import patch
 
-from src.agentcore_app import DEFAULT_MODEL_ID, get_agent, get_model_id
+from src.agentcore_app import DEFAULT_MODEL_ID, construct_job_search_prompt, get_agent, get_model_id
 
 
 def test_agent_has_tools() -> None:
@@ -34,3 +34,15 @@ def test_system_prompt_contains_filtering_rules() -> None:
     # Check for specific role matching examples
     assert "Software Engineer" in SYSTEM_PROMPT
     assert "does NOT match" in SYSTEM_PROMPT
+
+
+def test_construct_job_search_prompt_company_only() -> None:
+    """Test prompt construction with company name only."""
+    result = construct_job_search_prompt("Google")
+    assert result == "Find jobs at Google."
+
+
+def test_construct_job_search_prompt_with_all_params() -> None:
+    """Test prompt construction with all parameters."""
+    result = construct_job_search_prompt("Microsoft", title="Software Engineer", location="remote")
+    assert result == "Find jobs at Microsoft. Focus on 'Software Engineer' roles in remote."

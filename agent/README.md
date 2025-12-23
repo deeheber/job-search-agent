@@ -8,7 +8,7 @@ Python 3.13 agent that monitors company hiring status using `http_request` and `
 python3.13 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
 python src/agentcore_app.py
 
-# Test with: "Is Panic Inc. hiring software engineers?"
+# Test with payload: {"company": "Panic Inc.", "title": "Software Engineer"}
 ```
 
 ## Configuration
@@ -37,9 +37,10 @@ LOG_LEVEL=DEBUG
 
 **Sample Queries:**
 
-- "Is [Company Name] hiring software engineers?"
-- "What positions are available at [Company Name]?"
-- "Check if [Company Name] has any open roles"
+- Company only: `{"company": "Panic Inc."}`
+- With job title: `{"company": "Panic Inc.", "title": "Software Engineer"}`
+- With location: `{"company": "Netflix", "title": "Data Scientist", "location": "remote"}`
+- Full search: `{"company": "Apple", "title": "iOS Developer", "location": "Cupertino, CA"}`
 
 **Response Format:**
 
@@ -47,15 +48,26 @@ LOG_LEVEL=DEBUG
 {
   "status": "success",
   "response": "Company hiring status and details",
-  "jobs": [
-    {
-      "title": "Software Engineer",
-      "link": "https://company.com/careers/123",
-      "posted_date": "2024-01-15"
-    }
-  ]
+  "search_criteria": {
+    "company": "Google",
+    "title": "Software Engineer",
+    "location": "remote"
+  }
 }
 ```
+
+**Payload Format:**
+
+```json
+{
+  "company": "Google",
+  "title": "Software Engineer",
+  "location": "remote"
+}
+```
+
+**Required**: `company`  
+**Optional**: `title`, `location`
 
 ## Development
 

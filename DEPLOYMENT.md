@@ -35,7 +35,7 @@ cd agent && source .venv/bin/activate && pip install -e ".[dev]"
 python src/agentcore_app.py
 
 # Test in another terminal
-curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"prompt": "What is 42 * 137?"}'
+curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"company": "Google", "title": "Software Engineer"}'
 ```
 
 ## Deploy
@@ -55,17 +55,16 @@ npm install && npm run build && cdk deploy
 
 ```bash
 RUNTIME_ARN="<your-runtime-arn>"
-aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qualifier DEFAULT --payload $(echo '{"prompt": "What is 42 * 137?"}' | base64) response.json
+aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qualifier DEFAULT --payload $(echo '{"company": "Google", "title": "Software Engineer"}' | base64) response.json
 ```
 
 **AWS Console:** Bedrock AgentCore → Runtimes → `JobSearchAgentStack_JobSearchAgent` → Test
 
-**Sample queries:**
+**Sample payloads:**
 
-- `"Is Panic Inc. hiring software engineers now?"`
-- `"What positions are available at GitHub?"`
-- `"Check if Stripe has any open engineering roles"`
-- `"What is the time right now?"` (for testing)
+- `{"company": "Panic Inc.", "title": "Software Engineer"}`
+- `{"company": "Stripe", "title": "Engineering", "location": "remote"}`
+- `{"company": "Netflix", "title": "Data Scientist", "location": "Los Gatos, CA"}`
 
 ## Monitoring
 
@@ -80,7 +79,7 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 
 1. **Edit** `agent/src/agentcore_app.py` for job search logic improvements
 2. **Quality check** `cd agent && ./quality-check.sh`
-3. **Test locally** `python src/agentcore_app.py` with job search queries
+3. **Test locally** `python src/agentcore_app.py` with job search payloads
 4. **Deploy** `cd cdk && npm run build && cdk deploy`
 
 **Future Enhancements:**

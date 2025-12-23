@@ -20,7 +20,7 @@ fileMatchPattern: "agent/**"
 ## Job Search Patterns
 
 **Agent**: `Agent(tools=[http_request, current_time])` - HTTP requests + timestamp data
-**Response**: Return `{"status": "success/error", "response/error": "...", "jobs": [...]}` pattern
+**Response**: Return `{"status": "success/error", "response/error": "...", "search_criteria": {...}}` pattern
 **Company Analysis**: Use `http_request` to fetch career pages, `current_time` for job posting dates
 
 ## Current Implementation
