@@ -2,7 +2,7 @@
 import * as dotenv from 'dotenv'
 import path from 'path'
 import { App } from 'aws-cdk-lib'
-import { StrandsAgentStack } from '../lib/strands-agent-stack'
+import { JobSearchAgentStack } from '../lib/job-search-agent-stack'
 
 dotenv.config({ path: path.join(__dirname, '../.env') })
 
@@ -27,7 +27,7 @@ if (!account || !region) {
 }
 
 const app = new App()
-new StrandsAgentStack(app, 'StrandsAgentStack', {
+new JobSearchAgentStack(app, 'JobSearchAgentStack', {
   description: 'Demo template for strands-agents',
   bedrockModelID,
   env: { account, region },

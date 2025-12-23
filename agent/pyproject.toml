@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "strands-agent"
-version = "1.0.0"
+name = "job-search-agent"
+version = "0.0.1"
 description = "A Strands AI agent"
 readme = "README.md"
 requires-python = ">=3.13"

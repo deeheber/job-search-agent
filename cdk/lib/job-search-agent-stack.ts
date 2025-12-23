@@ -11,12 +11,12 @@ import { Construct } from 'constructs'
 import { Runtime, AgentRuntimeArtifact } from '@aws-cdk/aws-bedrock-agentcore-alpha'
 import * as path from 'path'
 
-interface StrandsAgentStackProps extends StackProps {
+interface AgentStackProps extends StackProps {
   bedrockModelID?: string | undefined
 }
 
-export class StrandsAgentStack extends Stack {
-  constructor(scope: Construct, id: string, props: StrandsAgentStackProps) {
+export class JobSearchAgentStack extends Stack {
+  constructor(scope: Construct, id: string, props: AgentStackProps) {
     super(scope, id, props)
 
     // IAM Role for AgentCore Runtime
@@ -89,11 +89,11 @@ export class StrandsAgentStack extends Stack {
     })
 
     // Create AgentCore Runtime
-    const runtime = new Runtime(this, 'StrandsAgentRuntime', {
-      runtimeName: `${this.stackName.replace(/-/g, '_')}_StrandsAgent`,
+    const runtime = new Runtime(this, 'JobSearchAgentRuntime', {
+      runtimeName: `${this.stackName.replace(/-/g, '_')}_JobSearchAgent`,
       agentRuntimeArtifact: agentArtifact,
       executionRole: agentRole,
-      description: 'Strands agent with calculator, time, and letter counter tools',
+      description: 'Job search agent with time and http_request',
       environmentVariables: {
         AWS_REGION: this.region,
         AWS_DEFAULT_REGION: this.region,

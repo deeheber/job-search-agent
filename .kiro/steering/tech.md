@@ -1,93 +1,37 @@
-# Technology Stack
+# Technology Stack & Development
 
-## Core Stack
+## Stack
 
-- **Python 3.13** (`.python-version`)
-- **Node.js 24** (`.nvmrc`) - For CDK development
-- **strands-agents[otel]** (>=1.19.0) - Agent framework with OpenTelemetry
-- **strands-agents-tools** (>=0.2.17) - Community tools
-- **bedrock-agentcore** (>=1.1.1) - AgentCore SDK
-- **aws-opentelemetry-distro** (>=0.14.0) - AWS OpenTelemetry distribution
-- **boto3** (>=1.42.9) - AWS SDK for Python
-- **pytest, mypy, ruff, black** - Quality assurance tools
+- **Python 3.13** + **Node.js 24**
+- **strands-agents[otel]** (>=1.19.0) with OpenTelemetry
+- **bedrock-agentcore** (>=1.1.1) + **boto3** (>=1.42.9)
+- **CDK 2.232.2** + **aws-bedrock-agentcore-alpha** ~2.232.2-alpha.0
 
-## Community Tools
+## Quick Commands
 
-Available from `strands_tools`: `file_read`, `file_write`, `http_request`, `browser`, `python_repl`, `shell`, `calculator`, `current_time`, `generate_image`, etc.
-
-```python
-from strands_tools import calculator, current_time, http_request
-```
-
-## Commands
-
-**Setup:**
+**Agent Setup & Run:**
 
 ```bash
-cd agent
-python3.13 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+cd agent && python3.13 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
+python src/agentcore_app.py     # Local run
+./quality-check.sh              # All quality checks
 ```
 
-**Development:**
-
-```bash
-python src/agentcore_app.py     # Run locally
-./quality-check.sh              # All quality checks (auto-fixes issues)
-pytest && mypy src/ && ruff check --fix . && black .  # Manual validation with fixes
-```
-
-**Configuration:** All settings in `agent/pyproject.toml` (line length: 100, Python 3.13, strict mode)
-
-## Model Configuration
-
-**BEDROCK_MODEL_ID**: Configure Bedrock model (see `DEFAULT_MODEL_ID` in `agent/src/agentcore_app.py`)
-**Examples**: `us.anthropic.claude-3-5-sonnet-20241022-v2:0`, `us.amazon.titan-text-express-v1`
-**Local**: Set in `.env` file | **Deploy**: CDK environment variables
-
-## AWS Deployment
-
-**Prerequisites:** Docker running, AWS CLI configured, Bedrock access
-
-**Deploy:**
+**CDK Deploy:**
 
 ```bash
 cd cdk && npm install && npm run build && cdk deploy
 ```
 
-**Regions:** Auto-detected from AWS CLI. See [supported regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html)
+## Code Patterns
 
-See `DEPLOYMENT.md` for details.
+- **Agent**: `Agent` class, tools via `tools` parameter, `if __name__ == "__main__"`
+- **AgentCore**: `BedrockAgentCoreApp`, `@app.entrypoint`, returns `status`/`response`
+- **Tools**: `@tool` decorator, export in `__init__.py`, type hints required
+- **CDK**: Explicit imports (avoid wildcards), TypeScript strict mode
 
-## CDK Development
+## Configuration
 
-**Import Best Practice:** Use explicit imports, avoid wildcards
-
-```typescript
-// ✅ Good
-import { Stack, StackProps } from "aws-cdk-lib";
-import { Function, Runtime } from "aws-cdk-lib/aws-lambda";
-
-// ❌ Avoid
-import * as cdk from "aws-cdk-lib";
-```
-
-**Commands:**
-
-```bash
-cd cdk
-npm install && npm run build && npm test    # Build & test
-npm run lint && npm run format              # Quality
-cdk synth && cdk deploy                     # Deploy
-```
-
-**Current Versions:**
-
-- CDK: 2.1033.0
-- aws-bedrock-agentcore-alpha: ^2.230.0-alpha.0
-
-## CI/CD
-
-- **agent-ci.yml** - Python testing (pytest, mypy, ruff, black)
-- **cdk-ci.yml** - TypeScript testing (Jest, ESLint, Prettier)
-- Runs on push/PR to main
+- **Model**: Set `BEDROCK_MODEL_ID` in `.env` (local) or CDK env vars (deploy)
+- **Settings**: `agent/pyproject.toml` (line length: 100, Python 3.13)
+- **Logging**: `LOG_LEVEL` env var (default: INFO)

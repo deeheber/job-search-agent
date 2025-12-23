@@ -1,15 +1,15 @@
 import { App } from 'aws-cdk-lib'
 import { Template, Match } from 'aws-cdk-lib/assertions'
-import { StrandsAgentStack } from '../lib/strands-agent-stack'
+import { JobSearchAgentStack } from '../lib/job-search-agent-stack'
 
-describe('StrandsAgentStack', () => {
+describe('JobSearchAgentStack', () => {
   let app: App
-  let stack: StrandsAgentStack
+  let stack: JobSearchAgentStack
   let template: Template
 
   beforeEach(() => {
     app = new App()
-    stack = new StrandsAgentStack(app, 'TestStrandsAgentStack', {
+    stack = new JobSearchAgentStack(app, 'TestJobSearchAgentStack', {
       env: {
         account: '123456789012',
         region: 'us-west-2',
@@ -142,8 +142,8 @@ describe('StrandsAgentStack', () => {
 
     it('creates AgentCore runtime with proper configuration', () => {
       template.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
-        AgentRuntimeName: 'TestStrandsAgentStack_StrandsAgent',
-        Description: 'Strands agent with calculator, time, and letter counter tools',
+        AgentRuntimeName: 'TestJobSearchAgentStack_JobSearchAgent',
+        Description: 'Job search agent with time and http_request',
         RoleArn: {
           'Fn::GetAtt': [Match.stringLikeRegexp('AgentCoreRole.*'), 'Arn'],
         },
@@ -164,14 +164,14 @@ describe('StrandsAgentStack', () => {
       template.hasOutput('RuntimeId', {
         Description: 'AgentCore Runtime ID',
         Value: {
-          'Fn::GetAtt': [Match.stringLikeRegexp('StrandsAgentRuntime.*'), 'AgentRuntimeId'],
+          'Fn::GetAtt': [Match.stringLikeRegexp('JobSearchAgentRuntime.*'), 'AgentRuntimeId'],
         },
       })
 
       template.hasOutput('RuntimeArn', {
         Description: 'AgentCore Runtime ARN',
         Value: {
-          'Fn::GetAtt': [Match.stringLikeRegexp('StrandsAgentRuntime.*'), 'AgentRuntimeArn'],
+          'Fn::GetAtt': [Match.stringLikeRegexp('JobSearchAgentRuntime.*'), 'AgentRuntimeArn'],
         },
       })
     })

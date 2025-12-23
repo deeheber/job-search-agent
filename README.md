@@ -1,33 +1,46 @@
-# Strands Agent Template
+# Job Search Agent
 
-**🚀 GitHub Template Repository** - Click "Use this template" to create your own production-ready AI agent in minutes, not days.
+**🔍 Your AI job hunting sidekick** - Drop in a company name, get the inside scoop on who's hiring.
 
-Skip the infrastructure setup and focus on what matters: building your agent. This template provides everything you need to deploy Strands AI agents to AWS Bedrock AgentCore Runtime with enterprise-grade observability, security, and CI/CD built-in.
+No more endless scrolling through job boards or wondering if that dream company has openings. This agent does the detective work for you, surfacing real opportunities with position details and direct application links. Built on AWS with all the enterprise bells and whistles, but simple enough to get running in minutes.
 
-## What You Get
+## What's Inside
 
-✅ **Production-ready infrastructure** - CDK stack with IAM, logging, tracing  
-✅ **Local development environment** - Test agents before deploying  
-✅ **Automated CI/CD** - GitHub Actions for Python + TypeScript  
-✅ **Built-in observability** - CloudWatch logs, OpenTelemetry tracing  
-✅ **Quality tooling** - Automated testing, linting, formatting
+🎯 **Smart job hunting** - Company hiring status with all the juicy details  
+🌐 **Multi-source magic** - Scrapes career pages and taps job board APIs  
+🏗️ **Production-ready setup** - CDK infrastructure that just works  
+🧪 **Local testing** - Try before you deploy  
+🚀 **Auto-deploy pipeline** - Push code, get infrastructure  
+📊 **Full observability** - See what's happening under the hood
 
-## Why Python + TypeScript?
+## Right Now
 
-We chose Python for the agent implementation and TypeScript for infrastructure because each language offers the richest ecosystem for its respective framework. [Strands](https://strandsagents.com) provides first-class Python support with comprehensive documentation and tooling, while [AWS CDK](https://aws.amazon.com/cdk/) delivers the best developer experience through TypeScript. This gives you access to the most mature libraries, examples, and community resources for both domains.
+- **Company lookup**: Toss in a company name, get their hiring pulse
+- **Live data**: Fresh intel from job boards and career pages
+- **Smart parsing**: AI extracts the good stuff - titles, links, dates
+- **Timestamp magic**: Know when jobs were posted and data was fetched
 
-As these frameworks evolve, we may consolidate to a single language for simplicity.
+## Coming Soon
 
-## Quick Start
+- **Set it and forget it**: Scheduled checks via EventBridge
+- **Instant alerts**: Get pinged when opportunities pop up
+
+## The Stack
+
+Python handles the agent smarts, TypeScript manages the infrastructure. Why? Because [Strands](https://strandsagents.com) + Python = 🔥 for AI agents, and [AWS CDK](https://aws.amazon.com/cdk/) + TypeScript = 🔥 for cloud infrastructure. Best tools for each job.
+
+## Get Started
 
 ```bash
-# Test locally
+# Try it locally first
 cd agent && source .venv/bin/activate && python src/agentcore_app.py
 
-# Deploy to AWS
+# Test with: {"company": "Panic Inc.", "title": "Software Engineer"}
+
+# Deploy to AWS when ready
 aws configure && cd cdk && npm install && npm run build && cdk deploy
 ```
 
-**Ready to build?** Replace the example agent code with your own and deploy to AWS in under 10 minutes. ⚡️
+**Ready to hunt?** Get your job search agent running on AWS in under 10 minutes. ⚡️
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete setup instructions.
+Check [DEPLOYMENT.md](DEPLOYMENT.md) for the full setup walkthrough.

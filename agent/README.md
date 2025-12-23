@@ -1,12 +1,14 @@
-# Strands Agent
+# Job Search Agent
 
-Python 3.13 agent with calculator, time, web search, and letter counter tools.
+Python 3.13 agent that monitors company hiring status using `http_request` and `current_time` tools.
 
 ## Quick Start
 
 ```bash
 python3.13 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
 python src/agentcore_app.py
+
+# Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
 ```
 
 ## Configuration
@@ -26,29 +28,20 @@ LOG_LEVEL=DEBUG
 
 **Available Models**: See [AWS Bedrock Model IDs documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html)
 
-## Adding Tools
+## Job Search Features
 
-**Community Tools:**
+**Current Tools:**
 
-```python
-from strands_tools import http_request, file_read, browser
-def get_agent() -> Agent:
-    return Agent(tools=[calculator, current_time, http_request, browser])
+- `http_request` - Fetch company career pages and job board APIs
+- `current_time` - Track job posting dates and search timestamps
+
+**Input Format:**
+
+```json
+{ "company": "required", "title": "optional", "location": "optional" }
 ```
 
-**Custom Tools:**
-
-```python
-# In src/tools/my_tools.py
-@tool
-def my_tool(param: str) -> str:
-    """Tool description."""
-    return f"Result: {param}"
-
-# Export in src/tools/__init__.py
-from .my_tools import my_tool
-__all__ = ["letter_counter", "my_tool"]
-```
+**Examples:** `{"company": "Panic Inc."}` or `{"company": "Netflix", "title": "Data Scientist", "location": "remote"}`
 
 ## Development
 

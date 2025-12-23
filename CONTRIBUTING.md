@@ -1,6 +1,6 @@
-# Contributing to Strands Agent Template
+# Contributing to Job Search Agent
 
-Thank you for your interest in contributing to the Strands Agent Template! This guide will help you get started with development and ensure your contributions align with our project standards.
+Thank you for your interest in contributing to the job search agent! This guide will help you get started with development and ensure your contributions align with our project standards.
 
 ## Getting Started
 
@@ -17,8 +17,8 @@ Thank you for your interest in contributing to the Strands Agent Template! This 
 1. **Fork and clone the repository**
 
    ```bash
-   git clone https://github.com/your-username/strands-agent.git
-   cd strands-agent
+   git clone https://github.com/your-username/job-search-agent.git
+   cd job-search-agent
    ```
 
 2. **Set up the Python environment**
@@ -54,6 +54,8 @@ Thank you for your interest in contributing to the Strands Agent Template! This 
 cd agent
 source .venv/bin/activate
 python src/agentcore_app.py
+
+# Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
 ```
 
 **Quality checks (recommended before committing):**
@@ -122,23 +124,33 @@ import * as cdk from "aws-cdk-lib";
 
 ## Project Structure
 
-### Adding New Tools
+### Adding New Job Search Tools
 
-1. **Create tool file** in `agent/src/tools/`
-2. **Implement with `@tool` decorator** and proper type hints
+1. **Create tool file** in `agent/src/tools/` (currently empty, using community tools)
+2. **Implement with `@tool` decorator** and proper type hints for job search functionality
 3. **Export in `__init__.py`**
 4. **Add tests** in `agent/tests/test_tools/`
 
-Example tool structure:
+Example job search tool structure:
 
 ```python
 from strands import tool
 
 @tool
-def my_custom_tool(input_param: str) -> str:
-    """Tool description for the agent."""
-    return f"Processed: {input_param}"
+def search_job_board(company_name: str, position_type: str) -> dict:
+    """Search job board API for company positions."""
+    return {
+        "company": company_name,
+        "jobs": [{"title": "...", "link": "...", "posted_date": "..."}]
+    }
 ```
+
+### Current Tool Usage
+
+The agent currently uses community tools:
+
+- `http_request` - For fetching company career pages and job board APIs
+- `current_time` - For tracking job posting dates and search timestamps
 
 ### Testing Guidelines
 

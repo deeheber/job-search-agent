@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Deploy Strands agent to AWS Bedrock AgentCore Runtime.
+Deploy the job search agent to AWS Bedrock AgentCore Runtime for automated company hiring monitoring.
 
 ## Prerequisites
 
@@ -35,7 +35,7 @@ cd agent && source .venv/bin/activate && pip install -e ".[dev]"
 python src/agentcore_app.py
 
 # Test in another terminal
-curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"prompt": "What is 42 * 137?"}'
+curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"company": "Panic Inc.", "title": "Software Engineer"}'
 ```
 
 ## Deploy
@@ -55,48 +55,53 @@ npm install && npm run build && cdk deploy
 
 ```bash
 RUNTIME_ARN="<your-runtime-arn>"
-aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qualifier DEFAULT --payload $(echo '{"prompt": "What is 42 * 137?"}' | base64) response.json
+aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qualifier DEFAULT --payload $(echo '{"company": "stripe", "title": "Software Engineer"}' | base64) response.json
 ```
 
-**AWS Console:** Bedrock AgentCore → Runtimes → `StrandsAgentStack_StrandsAgent` → Test
+**AWS Console:** Bedrock AgentCore → Runtimes → `JobSearchAgentStack_JobSearchAgent` → Test
 
-**Sample queries:**
+**Sample payloads:**
 
-- `"What is the time right now?"`
-- `"Calculate 3111696 / 74088"`
-- `"How many Rs in strawberry?"`
+- `{"company": "Panic Inc.", "title": "Software Engineer"}`
+- `{"company": "Stripe", "title": "Engineering", "location": "remote"}`
+- `{"company": "Netflix", "title": "Data Scientist", "location": "Los Gatos, CA"}`
 
 ## Monitoring
 
 **CloudWatch Logs:**
 
 ```bash
-aws logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runtimes/StrandsAgentStack
-aws logs tail /aws/bedrock-agentcore/runtimes/StrandsAgentStack_StrandsAgent-<id>-DEFAULT --follow
+aws logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runtimes/JobSearchAgentStack
+aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent-<id>-DEFAULT --follow
 ```
 
 ## Development Workflow
 
-1. **Edit** `agent/src/agentcore_app.py` or add tools in `agent/src/tools/`
+1. **Edit** `agent/src/agentcore_app.py` for job search logic improvements
 2. **Quality check** `cd agent && ./quality-check.sh`
-3. **Test locally** `python src/agentcore_app.py`
+3. **Test locally** `python src/agentcore_app.py` with job search payloads
 4. **Deploy** `cd cdk && npm run build && cdk deploy`
 
-**Adding Tools:**
+**Future Enhancements:**
+
+- **Scheduled monitoring**: EventBridge integration for periodic checks
+- **Email alerts**: SNS notifications when hiring opportunities are found
+
+**Adding Custom Tools:**
 
 ```python
-# Custom tool in src/tools/my_tools.py
+# Future custom tool in src/tools/job_search_tools.py
 @tool
-def my_tool(param: str) -> str:
-    """Tool description."""
-    return f"Result: {param}"
+def parse_job_board(url: str) -> dict:
+    """Parse job board API for structured job data."""
+    return {"jobs": [...]}
 
 # Export in src/tools/__init__.py
-from .my_tools import my_tool
-__all__ = ["letter_counter", "my_tool"]
+from .job_search_tools import parse_job_board
+__all__ = ["parse_job_board"]
 
-# Community tools
-from strands_tools import http_request, file_read
+# Community tools (currently used)
+from strands_tools import http_request, current_time
 ```
 
 ## Cleanup

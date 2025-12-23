@@ -1,5 +1,5 @@
 """Tools module for the Strands agent."""
 
-from .custom_tools import letter_counter
-
-__all__ = ["letter_counter"]
+# Custom tools can be added here as needed
+# See strands-agent template for examples
+# https://github.com/deeheber/strands-agent-template

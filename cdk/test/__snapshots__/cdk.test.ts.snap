@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`StrandsAgentStack CloudFormation Template Snapshot matches the expected template structure 1`] = `
+exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expected template structure 1`] = `
 {
   "Outputs": {
     "RuntimeArn": {
       "Description": "AgentCore Runtime ARN",
       "Value": {
         "Fn::GetAtt": [
-          "StrandsAgentRuntime57CF81D4",
+          "JobSearchAgentRuntime978502A3",
           "AgentRuntimeArn",
         ],
       },
@@ -16,7 +16,7 @@ exports[`StrandsAgentStack CloudFormation Template Snapshot matches the expected
       "Description": "AgentCore Runtime ID",
       "Value": {
         "Fn::GetAtt": [
-          "StrandsAgentRuntime57CF81D4",
+          "JobSearchAgentRuntime978502A3",
           "AgentRuntimeId",
         ],
       },
@@ -263,7 +263,7 @@ exports[`StrandsAgentStack CloudFormation Template Snapshot matches the expected
       },
       "Type": "AWS::IAM::Policy",
     },
-    "StrandsAgentRuntime57CF81D4": {
+    "JobSearchAgentRuntime978502A3": {
       "DependsOn": [
         "AgentCoreRoleDefaultPolicyEB23C10B",
         "AgentCoreRoleD989E366",
@@ -276,8 +276,8 @@ exports[`StrandsAgentStack CloudFormation Template Snapshot matches the expected
             },
           },
         },
-        "AgentRuntimeName": "TestStrandsAgentStack_StrandsAgent",
-        "Description": "Strands agent with calculator, time, and letter counter tools",
+        "AgentRuntimeName": "TestJobSearchAgentStack_JobSearchAgent",
+        "Description": "Job search agent with time and http_request",
         "EnvironmentVariables": {
           "AWS_DEFAULT_REGION": "us-west-2",
           "AWS_REGION": "us-west-2",
