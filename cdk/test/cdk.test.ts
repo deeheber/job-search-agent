@@ -14,7 +14,6 @@ describe('JobSearchAgentStack', () => {
         account: '123456789012',
         region: 'us-west-2',
       },
-      tavilyApiKey: 'fake-api-key',
     })
     template = Template.fromStack(stack)
   })

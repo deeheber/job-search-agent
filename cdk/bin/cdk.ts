@@ -12,7 +12,6 @@ const {
   CDK_DEFAULT_ACCOUNT,
   CDK_DEFAULT_REGION,
   BEDROCK_MODEL_ID,
-  TAVILY_API_KEY,
 } = process.env
 
 const account = CDK_DEFAULT_ACCOUNT ?? AWS_DEFAULT_ACCOUNT_ID
@@ -27,18 +26,9 @@ if (!account || !region) {
   )
 }
 
-if (!TAVILY_API_KEY) {
-  throw new Error(
-    `❌ TAVILY_API_KEY not found.
-
-🔧 Add TAVILY_API_KEY to agent/.env. Get a free key at https://app.tavily.com`
-  )
-}
-
 const app = new App()
 new JobSearchAgentStack(app, 'JobSearchAgentStack', {
   description: 'Demo template for strands-agents',
   bedrockModelID,
-  tavilyApiKey: TAVILY_API_KEY,
   env: { account, region },
 })

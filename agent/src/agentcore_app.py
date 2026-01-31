@@ -9,6 +9,8 @@ from strands import Agent
 from strands_tools import current_time, http_request  # type: ignore[import-untyped]
 from strands_tools.tavily import tavily_search  # type: ignore[import-untyped]
 
+from secret_utils import get_tavily_api_key
+
 # Load environment variables from .env file for local development
 if os.path.exists(".env"):
     try:
@@ -118,6 +120,11 @@ def get_model_id() -> str:
 
 def get_agent() -> Agent:
     """Create and return a Strands agent with configured tools and model."""
+    # Ensure Tavily API key is available (fetches from SSM in AWS, env var locally)
+    # strands_tools.tavily reads from TAVILY_API_KEY env var internally
+    tavily_key = get_tavily_api_key()
+    os.environ["TAVILY_API_KEY"] = tavily_key
+
     model_id = get_model_id()
     return Agent(
         model=model_id,

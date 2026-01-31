@@ -21,6 +21,10 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
         ],
       },
     },
+    "TavilyApiKeyParameter": {
+      "Description": "SSM Parameter name for Tavily API Key (must be created before deployment)",
+      "Value": "/job-search-agent/tavily-api-key",
+    },
   },
   "Parameters": {
     "BootstrapVersion": {
@@ -98,6 +102,23 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
                     "arn:aws:bedrock:us-west-2:123456789012:inference-profile/*",
                   ],
                   "Sid": "BedrockModels",
+                },
+                {
+                  "Action": "ssm:GetParameter",
+                  "Effect": "Allow",
+                  "Resource": "arn:aws:ssm:us-west-2:123456789012:parameter/job-search-agent/tavily-api-key",
+                  "Sid": "SSMParameterAccess",
+                },
+                {
+                  "Action": "kms:Decrypt",
+                  "Condition": {
+                    "StringEquals": {
+                      "kms:ViaService": "ssm.us-west-2.amazonaws.com",
+                    },
+                  },
+                  "Effect": "Allow",
+                  "Resource": "*",
+                  "Sid": "KMSDecrypt",
                 },
               ],
               "Version": "2012-10-17",
@@ -282,7 +303,7 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
           "AWS_DEFAULT_REGION": "us-west-2",
           "AWS_REGION": "us-west-2",
           "LOG_LEVEL": "INFO",
-          "TAVILY_API_KEY": "fake-api-key",
+          "TAVILY_API_KEY_SSM_PARAMETER": "/job-search-agent/tavily-api-key",
         },
         "LifecycleConfiguration": {},
         "NetworkConfiguration": {
