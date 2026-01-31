@@ -283,10 +283,7 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
           "AWS_REGION": "us-west-2",
           "LOG_LEVEL": "INFO",
         },
-        "LifecycleConfiguration": {
-          "IdleRuntimeSessionTimeout": 60,
-          "MaxLifetime": 28800,
-        },
+        "LifecycleConfiguration": {},
         "NetworkConfiguration": {
           "NetworkMode": "PUBLIC",
         },
