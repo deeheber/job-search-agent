@@ -27,9 +27,9 @@ cd cdk && npm install && npm run cdk:deploy
 
 ## Code Patterns
 
-- **Agent**: `Agent` class, tools via `tools` parameter, `if __name__ == "__main__"`
-- **AgentCore**: `BedrockAgentCoreApp`, `@app.entrypoint`, returns `status`/`response`
-- **Tools**: `@tool` decorator, export in `__init__.py`, type hints required
+- **Agent**: `Agent(model=model_id, tools=[...], system_prompt=SYSTEM_PROMPT)`
+- **AgentCore**: `BedrockAgentCoreApp`, `@app.entrypoint`, returns `{"status": "...", "response/error": "..."}`
+- **Tools**: Import from `strands_tools`, type hints required
 - **CDK**: Explicit imports (avoid wildcards), TypeScript strict mode
 
 ## Configuration

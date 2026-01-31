@@ -21,9 +21,9 @@ import * as cdk from "aws-cdk-lib";
 
 ## Stack Patterns
 
-**Structure**: IAM roles → Core resources → Outputs
-**Naming**: PascalCase construct IDs, underscore runtime names
-**Environment**: Auto-detect from AWS CLI, validate at startup
+**Structure**: IAM roles → AgentCore Runtime → Outputs
+**Naming**: PascalCase construct IDs, underscore for runtime names
+**Environment**: Auto-detect from AWS CLI
 
 ## IAM Security
 
@@ -33,8 +33,8 @@ import * as cdk from "aws-cdk-lib";
 ## AgentCore Runtime
 
 **Platform**: ARM64 for cost efficiency
-**Artifact**: Docker build from `../../agent`
-**Outputs**: RuntimeId and RuntimeArn (required)
+**Artifact**: Docker build from `../../agent` directory
+**Outputs**: RuntimeId and RuntimeArn
 
 ## Testing
 
