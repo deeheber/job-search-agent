@@ -2,7 +2,7 @@ FROM public.ecr.aws/docker/library/python:3.13-slim
 
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml ./
 RUN pip install --no-cache-dir . && \
     useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app

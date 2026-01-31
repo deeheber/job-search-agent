@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "job-search-agent"
 version = "0.0.1"
 description = "A Strands AI agent"
-readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "strands-agents[otel]>=1.23.0",
@@ -23,6 +22,7 @@ dev = [
     "mypy>=1.19.1",
     "black>=26.1.0",
     "python-dotenv>=1.2.1",
+    "boto3-stubs[ssm]>=1.42.32",
 ]
 
 [tool.hatch.build.targets.wheel]

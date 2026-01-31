@@ -8,7 +8,8 @@ from src.agentcore_app import DEFAULT_MODEL_ID, construct_job_search_prompt, get
 
 def test_agent_has_tools() -> None:
     """Test agent has expected tools registered."""
-    agent = get_agent()
+    with patch("src.agentcore_app.get_tavily_api_key", return_value="mock-api-key"):
+        agent = get_agent()
     tool_names = agent.tool_names
     assert "current_time" in tool_names
     assert "http_request" in tool_names

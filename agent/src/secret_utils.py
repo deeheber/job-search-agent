@@ -52,8 +52,8 @@ def get_tavily_api_key() -> str:
 @lru_cache(maxsize=1)
 def _get_from_ssm() -> str:
     """Fetch the Tavily API key from SSM Parameter Store (cached)."""
-    import boto3  # type: ignore[import-untyped]
-    from botocore.exceptions import ClientError, NoCredentialsError  # type: ignore[import-untyped]
+    import boto3
+    from botocore.exceptions import ClientError, NoCredentialsError
 
     parameter_name = os.environ.get(
         "TAVILY_API_KEY_SSM_PARAMETER",
