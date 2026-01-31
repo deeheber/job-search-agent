@@ -9,20 +9,20 @@ description = "A Strands AI agent"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "strands-agents[otel]>=1.19.0",
-    "strands-agents-tools>=0.2.17",
-    "bedrock-agentcore>=1.1.1",
-    "aws-opentelemetry-distro>=0.14.0",
-    "boto3>=1.42.9"
+    "strands-agents[otel]>=1.23.0",
+    "strands-agents-tools>=0.2.19",
+    "bedrock-agentcore>=1.2.0",
+    "aws-opentelemetry-distro>=0.14.2",
+    "boto3>=1.42.32"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.2",
-    "ruff>=0.14.9",
-    "mypy>=1.19.0",
-    "black>=25.12.0",
-    "python-dotenv>=1.0.0",
+    "ruff>=0.14.13",
+    "mypy>=1.19.1",
+    "black>=26.1.0",
+    "python-dotenv>=1.2.1",
 ]
 
 [tool.hatch.build.targets.wheel]

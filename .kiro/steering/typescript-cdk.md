@@ -21,9 +21,9 @@ import * as cdk from "aws-cdk-lib";
 
 ## Stack Patterns
 
-**Structure**: IAM roles → Core resources → Outputs
-**Naming**: PascalCase construct IDs, underscore runtime names
-**Environment**: Auto-detect from AWS CLI, validate at startup
+**Structure**: IAM roles → AgentCore Runtime → Outputs
+**Naming**: PascalCase construct IDs, underscore for runtime names
+**Environment**: Auto-detect from AWS CLI
 
 ## IAM Security
 
@@ -33,8 +33,8 @@ import * as cdk from "aws-cdk-lib";
 ## AgentCore Runtime
 
 **Platform**: ARM64 for cost efficiency
-**Artifact**: Docker build from `../../agent`
-**Outputs**: RuntimeId and RuntimeArn (required)
+**Artifact**: Docker build from `../../agent` directory
+**Outputs**: RuntimeId and RuntimeArn
 
 ## Testing
 
@@ -50,6 +50,8 @@ import * as cdk from "aws-cdk-lib";
 
 ## Dependencies
 
-**Core**: aws-cdk-lib 2.232.2, aws-bedrock-agentcore-alpha ~2.232.2-alpha.0
-**Dev**: TypeScript ~5.9.3, ESLint ^9.17.0, Prettier ^3.7.2, Jest ^30.2.0
+**Core**: aws-cdk-lib, aws-bedrock-agentcore-alpha, constructs
+**Dev**: TypeScript, ESLint, Prettier, Jest, aws-cdk CLI
 **Regions**: us-west-2, us-east-1 (ensure AgentCore availability)
+
+See `cdk/package.json` for current versions.
