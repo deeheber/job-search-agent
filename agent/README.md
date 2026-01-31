@@ -1,6 +1,6 @@
 # Job Search Agent
 
-Python 3.13 agent that monitors company hiring status using `http_request` and `current_time` tools.
+Python 3.13 agent that monitors company hiring status using `http_request` and `current_time` tools from `strands-agents-tools`.
 
 ## Quick Start
 
@@ -8,7 +8,8 @@ Python 3.13 agent that monitors company hiring status using `http_request` and `
 python3.13 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
 python src/agentcore_app.py
 
-# Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
+# Test in another terminal
+curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"company": "Panic Inc.", "title": "Software Engineer"}'
 ```
 
 ## Configuration
@@ -30,7 +31,7 @@ LOG_LEVEL=DEBUG
 
 ## Job Search Features
 
-**Current Tools:**
+**Current Tools** (from `strands-agents-tools` >=0.2.19):
 
 - `http_request` - Fetch company career pages and job board APIs
 - `current_time` - Track job posting dates and search timestamps

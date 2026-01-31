@@ -3,8 +3,9 @@
 ## Stack
 
 - **Python 3.13** + **Node.js 24**
-- **strands-agents[otel]** (>=1.19.0) with OpenTelemetry
-- **bedrock-agentcore** (>=1.1.1) + **boto3** (>=1.42.9)
+- **strands-agents[otel]** (>=1.23.0) + **strands-agents-tools** (>=0.2.19)
+- **bedrock-agentcore** (>=1.2.0) + **boto3** (>=1.42.32)
+- **aws-opentelemetry-distro** (>=0.14.2)
 - **CDK 2.232.2** + **aws-bedrock-agentcore-alpha** ~2.232.2-alpha.0
 
 ## Quick Commands
