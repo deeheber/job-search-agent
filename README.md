@@ -35,7 +35,8 @@ Python handles the agent smarts, TypeScript manages the infrastructure. Why? Bec
 # Try it locally first
 cd agent && source .venv/bin/activate && python src/agentcore_app.py
 
-# Test with: {"company": "Panic Inc.", "title": "Software Engineer"}
+# Test in another terminal
+curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"company": "Panic Inc.", "title": "Software Engineer"}'
 
 # Deploy to AWS when ready
 aws configure && cd cdk && npm install && npm run build && cdk deploy
