@@ -14,6 +14,7 @@ describe('JobSearchAgentStack', () => {
         account: '123456789012',
         region: 'us-west-2',
       },
+      tavilyApiKey: 'fake-api-key',
     })
     template = Template.fromStack(stack)
   })
@@ -143,7 +144,7 @@ describe('JobSearchAgentStack', () => {
     it('creates AgentCore runtime with proper configuration', () => {
       template.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
         AgentRuntimeName: 'TestJobSearchAgentStack_JobSearchAgent',
-        Description: 'Job search agent with time and http_request',
+        Description: 'Job search agent with web search, time, and http_request',
         RoleArn: {
           'Fn::GetAtt': [Match.stringLikeRegexp('AgentCoreRole.*'), 'Arn'],
         },

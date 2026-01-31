@@ -277,11 +277,12 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
           },
         },
         "AgentRuntimeName": "TestJobSearchAgentStack_JobSearchAgent",
-        "Description": "Job search agent with time and http_request",
+        "Description": "Job search agent with web search, time, and http_request",
         "EnvironmentVariables": {
           "AWS_DEFAULT_REGION": "us-west-2",
           "AWS_REGION": "us-west-2",
           "LOG_LEVEL": "INFO",
+          "TAVILY_API_KEY": "fake-api-key",
         },
         "LifecycleConfiguration": {},
         "NetworkConfiguration": {

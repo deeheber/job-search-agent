@@ -12,6 +12,7 @@ def test_agent_has_tools() -> None:
     tool_names = agent.tool_names
     assert "current_time" in tool_names
     assert "http_request" in tool_names
+    assert "tavily_search" in tool_names
 
 
 def test_get_model_id_fallback() -> None:
@@ -46,3 +47,12 @@ def test_construct_job_search_prompt_with_all_params() -> None:
     """Test prompt construction with all parameters."""
     result = construct_job_search_prompt("Microsoft", title="Software Engineer", location="remote")
     assert result == "Find jobs at Microsoft. Focus on 'Software Engineer' roles in remote."
+
+
+def test_system_prompt_uses_search_approach() -> None:
+    """Test that system prompt uses tavily_search instead of URL guessing."""
+    from src.agentcore_app import SYSTEM_PROMPT
+
+    assert "tavily_search" in SYSTEM_PROMPT
+    # Old URL patterns should be removed
+    assert "https://careers.COMPANY.com" not in SYSTEM_PROMPT

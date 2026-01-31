@@ -13,6 +13,7 @@ import * as path from 'path'
 
 interface AgentStackProps extends StackProps {
   bedrockModelID?: string | undefined
+  tavilyApiKey: string // Required for web search
 }
 
 export class JobSearchAgentStack extends Stack {
@@ -93,11 +94,12 @@ export class JobSearchAgentStack extends Stack {
       runtimeName: `${this.stackName.replace(/-/g, '_')}_JobSearchAgent`,
       agentRuntimeArtifact: agentArtifact,
       executionRole: agentRole,
-      description: 'Job search agent with time and http_request',
+      description: 'Job search agent with web search, time, and http_request',
       environmentVariables: {
         AWS_REGION: this.region,
         AWS_DEFAULT_REGION: this.region,
         LOG_LEVEL: 'INFO',
+        TAVILY_API_KEY: props.tavilyApiKey,
         ...(props.bedrockModelID && { BEDROCK_MODEL_ID: props.bedrockModelID }),
       },
     })
