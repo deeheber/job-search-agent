@@ -22,7 +22,7 @@ python src/agentcore_app.py     # Local run
 **CDK Deploy:**
 
 ```bash
-cd cdk && npm install && npm run build && cdk deploy
+cd cdk && npm install && npm run cdk:deploy
 ```
 
 ## Code Patterns

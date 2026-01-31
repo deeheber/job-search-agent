@@ -1,120 +1,182 @@
 # Deployment Guide
 
-Deploy the job search agent to AWS Bedrock AgentCore Runtime for automated company hiring monitoring.
+Get the job search agent running on AWS in minutes.
 
-## Prerequisites
+## What You Need
 
 - AWS CLI configured (`aws configure`)
-- Docker running
-- Node.js 24, Python 3.13
-- Bedrock model access enabled
-- **For CI/CD**: GitHub Actions OIDC setup (see below)
+- Docker running locally
+- Node.js 24 and Python 3.13
+- Bedrock model access in your AWS account
 
-**Supported regions**: See [AWS Bedrock AgentCore supported regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) for current availability
+Check [AWS Bedrock AgentCore regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) to make sure AgentCore is available where you want to deploy.
 
-## GitHub Actions CI/CD Setup
+## Try It Locally First
 
-The CI/CD pipeline requires OIDC authentication to deploy from GitHub Actions to AWS. Follow the [GitHub documentation for configuring OIDC in AWS](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws), then add the role ARN as a repository secret named `AWS_ROLE_TO_ASSUME`.
-
-## Configuration
-
-**Model Selection** (optional): Set `BEDROCK_MODEL_ID` environment variable to use a different Bedrock model. If not provided, defaults to `us.anthropic.claude-sonnet-4-5-20250929-v1:0`.
+Always test before deploying. Start the agent:
 
 ```bash
-# Local (agent/.env file)
-BEDROCK_MODEL_ID=us.anthropic.claude-3-5-sonnet-20241022-v2:0
-
-# CDK deployment (cdk/.env)
-BEDROCK_MODEL_ID=us.amazon.titan-text-express-v1
-```
-
-## Local Testing
-
-```bash
-cd agent && source .venv/bin/activate && pip install -e ".[dev]"
+cd agent
+python3.13 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
 python src/agentcore_app.py
-
-# Test in another terminal
-curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"company": "Panic Inc.", "title": "Software Engineer"}'
 ```
 
-## Deploy
+In another terminal, send a test request:
 
 ```bash
-cd cdk && cdk bootstrap  # First time only
-npm install && npm run build && cdk deploy
+curl -X POST http://localhost:8080/invocations \
+  -H "Content-Type: application/json" \
+  -d '{"company": "Stripe", "title": "Engineer"}'
 ```
 
-**Duration**: 5-10 minutes. Creates AgentCore Runtime, ECR image, IAM roles.
+## Deploy to AWS
 
-**Outputs**: Note `RuntimeId` and `RuntimeArn` for testing.
-
-## Testing
-
-**AWS CLI:**
+First time only, bootstrap CDK:
 
 ```bash
-RUNTIME_ARN="<your-runtime-arn>"
-aws bedrock-agentcore invoke-agent-runtime --agent-runtime-arn $RUNTIME_ARN --qualifier DEFAULT --payload $(echo '{"company": "stripe", "title": "Software Engineer"}' | base64) response.json
+cd cdk
+cdk bootstrap
 ```
 
-**AWS Console:** Bedrock AgentCore → Runtimes → `JobSearchAgentStack_JobSearchAgent` → Test
+Then deploy:
 
-**Sample payloads:**
+```bash
+npm install
+npm run cdk:deploy
+```
 
+This takes a few minutes. CDK builds a Docker image, pushes it to ECR, and creates an AgentCore Runtime. When it finishes, you'll see outputs like:
+
+```
+JobSearchAgentStack.RuntimeId = job-search-agent-abc123
+JobSearchAgentStack.RuntimeArn = arn:aws:bedrock-agentcore:...
+```
+
+Save these for testing.
+
+## Test on AWS
+
+Use the AWS CLI with your RuntimeArn:
+
+```bash
+RUNTIME_ARN="arn:aws:bedrock-agentcore:us-west-2:123456789012:agent-runtime/..."
+
+aws bedrock-agentcore invoke-agent-runtime \
+  --agent-runtime-arn $RUNTIME_ARN \
+  --qualifier DEFAULT \
+  --payload $(echo '{"company": "Netflix", "title": "Data Scientist"}' | base64) \
+  response.json
+
+cat response.json
+```
+
+Or use the AWS Console: Bedrock AgentCore → Runtimes → `JobSearchAgentStack_JobSearchAgent` → Test tab.
+
+Try these payloads:
+
+- `{"company": "Stripe"}`
+- `{"company": "Netflix", "title": "Engineer", "location": "remote"}`
 - `{"company": "Panic Inc.", "title": "Software Engineer"}`
-- `{"company": "Stripe", "title": "Engineering", "location": "remote"}`
-- `{"company": "Netflix", "title": "Data Scientist", "location": "Los Gatos, CA"}`
 
-## Monitoring
+## Check the Logs
 
-**CloudWatch Logs:**
+See what the agent is doing:
 
 ```bash
+# List log groups
 aws logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runtimes/JobSearchAgentStack
+
+# Tail logs in real-time
 aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent-<id>-DEFAULT --follow
 ```
 
-## Development Workflow
+## Change the Model
 
-1. **Edit** `agent/src/agentcore_app.py` for job search logic improvements
-2. **Quality check** `cd agent && ./quality-check.sh`
-3. **Test locally** `python src/agentcore_app.py` with job search payloads
-4. **Deploy** `cd cdk && npm run build && cdk deploy`
-
-**Future Enhancements:**
-
-- **Scheduled monitoring**: EventBridge integration for periodic checks
-- **Email alerts**: SNS notifications when hiring opportunities are found
-
-**Adding Custom Tools:**
-
-```python
-# Future custom tool in src/tools/job_search_tools.py
-@tool
-def parse_job_board(url: str) -> dict:
-    """Parse job board API for structured job data."""
-    return {"jobs": [...]}
-
-# Export in src/tools/__init__.py
-from .job_search_tools import parse_job_board
-__all__ = ["parse_job_board"]
-
-# Community tools (currently used)
-from strands_tools import http_request, current_time
-```
-
-## Cleanup
+Want to use a different Bedrock model? Edit `cdk/.env`:
 
 ```bash
-cd cdk && cdk destroy
+BEDROCK_MODEL_ID=us.anthropic.claude-3-5-sonnet-20241022-v2:0
 ```
 
-Removes: AgentCore Runtime, ECR repository, IAM roles, CloudWatch logs.
+Then redeploy: `npm run cdk:deploy`
+
+See [AWS Bedrock Model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html) for available models.
+
+## Development Loop
+
+1. Edit `agent/src/agentcore_app.py`
+2. Run `cd agent && ./quality-check.sh` (auto-fixes most issues)
+3. Test locally: `python src/agentcore_app.py`
+4. Deploy: `cd cdk && npm run cdk:deploy`
+
+The quality check runs mypy, ruff, black, and pytest. It'll catch most problems before deployment.
+
+## Add Custom Tools
+
+Right now the agent uses community tools (`http_request` and `current_time`). To add your own:
+
+```python
+# agent/src/tools/job_search_tools.py
+from strands.agent import tool
+
+@tool
+def parse_greenhouse_api(company_id: str) -> dict:
+    """Fetch jobs from Greenhouse API."""
+    # Your implementation
+    return {"jobs": [...]}
+```
+
+Export it in `agent/src/tools/__init__.py`:
+
+```python
+from .job_search_tools import parse_greenhouse_api
+__all__ = ["parse_greenhouse_api"]
+```
+
+Add to the agent in `agentcore_app.py`:
+
+```python
+from tools import parse_greenhouse_api
+agent = Agent(tools=[http_request, current_time, parse_greenhouse_api])
+```
+
+## CI/CD with GitHub Actions
+
+The repo includes GitHub Actions workflows for automated testing and deployment. To enable deployment:
+
+1. Set up [OIDC authentication between GitHub and AWS](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws)
+2. Add the IAM role ARN as a repository secret named `AWS_ROLE_TO_ASSUME`
+
+Now every push to main runs tests and deploys automatically.
+
+## What's Next
+
+The agent currently does one-off lookups. Future enhancements:
+
+- **Scheduled checks**: Use EventBridge to run searches periodically
+- **Notifications**: Send SNS alerts when new jobs appear
+- **Multi-company tracking**: Monitor multiple companies at once
+
+## Clean Up
+
+Done experimenting? Remove everything:
+
+```bash
+cd cdk && npm run cdk:destroy
+```
+
+This deletes the AgentCore Runtime and IAM roles. Note that CloudWatch logs and ECR images may persist and need manual cleanup if desired.
 
 ## Troubleshooting
 
-- **Docker issues**: Ensure `docker ps` works
-- **Permissions**: Need CloudFormation, ECR, IAM, BedrockAgentCore access
-- **Build failures**: Check CDK output, verify `pyproject.toml` dependencies
-- **Runtime errors**: Check CloudWatch logs
+**Docker not running**: Make sure `docker ps` works before deploying.
+
+**Permission errors**: Your AWS user needs CloudFormation, ECR, IAM, and BedrockAgentCore permissions.
+
+**Build failures**: Check the CDK output. Usually it's a missing dependency in `agent/pyproject.toml`.
+
+**Runtime errors**: Check CloudWatch logs. The agent logs every request and tool call.
+
+**Model access**: If you get "model not found" errors, enable the model in the Bedrock console first.
