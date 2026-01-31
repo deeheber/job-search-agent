@@ -33,6 +33,21 @@ curl -X POST http://localhost:8080/invocations \
 
 ## Deploy to AWS
 
+### 1. Store the Tavily API Key
+
+The agent needs a Tavily API key for web search. Store it in SSM Parameter Store:
+
+```bash
+aws ssm put-parameter \
+  --name "/job-search-agent/tavily-api-key" \
+  --value "tvly-xxxxx" \
+  --type SecureString
+```
+
+Get your API key at [tavily.com](https://tavily.com).
+
+### 2. Bootstrap and Deploy
+
 First time only, bootstrap CDK:
 
 ```bash
@@ -115,7 +130,7 @@ The quality check runs mypy, ruff, black, and pytest. It'll catch most problems 
 
 ## Add Custom Tools
 
-Right now the agent uses community tools (`http_request` and `current_time`). To add your own:
+The agent uses community tools (`tavily_search`, `http_request`, `current_time`). To add your own:
 
 ```python
 # agent/src/tools/job_search_tools.py
@@ -139,7 +154,7 @@ Add to the agent in `agentcore_app.py`:
 
 ```python
 from tools import parse_greenhouse_api
-agent = Agent(tools=[http_request, current_time, parse_greenhouse_api])
+agent = Agent(tools=[current_time, http_request, tavily_search, parse_greenhouse_api])
 ```
 
 ## CI/CD with GitHub Actions

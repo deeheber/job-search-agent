@@ -41,7 +41,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
    ```bash
    cd agent
    cp .env.example .env
-   # Edit .env with your configuration
+   # Edit .env and add your Tavily API key (get one at tavily.com)
    ```
 
 ## Development Workflow
@@ -147,10 +147,11 @@ def search_job_board(company_name: str, position_type: str) -> dict:
 
 ### Current Tool Usage
 
-The agent currently uses community tools:
+The agent uses community tools from `strands-agents-tools`:
 
-- `http_request` - For fetching company career pages and job board APIs
-- `current_time` - For tracking job posting dates and search timestamps
+- `tavily_search` - For searching the web for career pages and job listings
+- `http_request` - For fetching specific URLs found by search
+- `current_time` - For timestamping search results
 
 ### Testing Guidelines
 
@@ -243,7 +244,8 @@ All checks must pass before merging.
 We use `strands-agents-tools` for common functionality:
 
 ```python
-from strands_tools import calculator, current_time, http_request, browser
+from strands_tools import current_time, http_request
+from strands_tools.tavily import tavily_search
 ```
 
 When adding tools, consider if they should be:

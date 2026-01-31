@@ -11,10 +11,21 @@ npm run cdk:deploy
 
 Takes about 5-10 minutes. The stack builds a Docker image from `../agent`, pushes it to ECR, and creates an AgentCore Runtime on ARM64 (cheaper than x86).
 
+## Prerequisites
+
+Create the Tavily API key in SSM Parameter Store before deploying:
+
+```bash
+aws ssm put-parameter \
+  --name "/job-search-agent/tavily-api-key" \
+  --value "tvly-xxxxx" \
+  --type SecureString
+```
+
 ## What Gets Created
 
 - **AgentCore Runtime** - Serverless container that runs your agent
-- **IAM Role** - Permissions for Bedrock models, CloudWatch, and X-Ray
+- **IAM Role** - Permissions for Bedrock models, CloudWatch, X-Ray, and SSM
 - **ECR Repository** - Stores the agent Docker image
 - **CloudWatch Logs** - Agent execution logs and traces
 
@@ -44,17 +55,7 @@ All imports are explicit (no wildcards), and we use TypeScript strict mode.
 
 ## Customization
 
-Want to change the model or add environment variables? Edit `lib/job-search-agent-stack.ts`:
-
-```typescript
-const runtime = new AgentCoreRuntime(this, 'JobSearchAgent', {
-  // ... existing config
-  environmentVariables: {
-    BEDROCK_MODEL_ID: 'your-model-id',
-    CUSTOM_VAR: 'value',
-  },
-})
-```
+Want to change the model? Set `BEDROCK_MODEL_ID` in the stack's environment variables in `lib/job-search-agent-stack.ts`.
 
 ## Next Steps
 
