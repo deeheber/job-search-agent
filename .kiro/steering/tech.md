@@ -3,10 +3,11 @@
 ## Stack
 
 - **Python 3.13** + **Node.js 24**
-- **strands-agents[otel]** (>=1.23.0) + **strands-agents-tools** (>=0.2.19)
-- **bedrock-agentcore** (>=1.2.0) + **boto3** (>=1.42.32)
-- **aws-opentelemetry-distro** (>=0.14.2)
-- **CDK 2.236.0** + **aws-bedrock-agentcore-alpha** ~2.236.0-alpha.0
+- **Strands Agents** with OpenTelemetry + community tools
+- **Bedrock AgentCore** + AWS SDK (boto3)
+- **AWS CDK** with AgentCore alpha constructs
+
+See `agent/pyproject.toml` and `cdk/package.json` for current versions.
 
 ## Quick Commands
 

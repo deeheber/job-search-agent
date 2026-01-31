@@ -31,7 +31,7 @@ LOG_LEVEL=DEBUG
 
 ## Job Search Features
 
-**Current Tools** (from `strands-agents-tools` >=0.2.19):
+**Current Tools** (from `strands-agents-tools`):
 
 - `http_request` - Fetch company career pages and job board APIs
 - `current_time` - Track job posting dates and search timestamps

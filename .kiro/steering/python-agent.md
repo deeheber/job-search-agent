@@ -10,7 +10,7 @@ fileMatchPattern: "agent/**"
 **Python**: 3.13, pyproject.toml, 100 char line length
 **Style**: Strict typing, Google docstrings, `strands_agents_tools` imports
 **Tools**: MyPy strict mode, Ruff (E,F,I,N,W,UP), Black, Pytest
-**Dependencies**: strands-agents[otel] >=1.23.0, strands-agents-tools >=0.2.19, bedrock-agentcore >=1.2.0, boto3 >=1.42.32, aws-opentelemetry-distro >=0.14.2
+**Dependencies**: See `agent/pyproject.toml` for current versions
 
 ## Structure
 

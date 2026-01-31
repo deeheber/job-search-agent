@@ -50,6 +50,8 @@ import * as cdk from "aws-cdk-lib";
 
 ## Dependencies
 
-**Core**: aws-cdk-lib 2.236.0, aws-bedrock-agentcore-alpha ~2.236.0-alpha.0, constructs ^10.4.5
-**Dev**: TypeScript ~5.9.3, ESLint ^9.17.0, Prettier ^3.8.1, Jest ^30.2.0, aws-cdk ^2.1104.0, typescript-eslint ^8.54.0, @types/node ^25.1.0
+**Core**: aws-cdk-lib, aws-bedrock-agentcore-alpha, constructs
+**Dev**: TypeScript, ESLint, Prettier, Jest, aws-cdk CLI
 **Regions**: us-west-2, us-east-1 (ensure AgentCore availability)
+
+See `cdk/package.json` for current versions.
