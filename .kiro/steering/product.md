@@ -10,10 +10,11 @@ Takes company name as input → returns hiring status, position titles, and job 
 
 ## Current Features
 
-- Single company job search with web scraping and job board APIs
+- Single company job search using Tavily web search API
 - Real-time results from live job postings and career pages
 - Strands framework with AgentCore Runtime deployment
 - OpenTelemetry observability and CloudWatch Logs
+- Secure API key management via SSM Parameter Store
 
 ## Roadmap
 
