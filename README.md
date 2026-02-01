@@ -2,7 +2,7 @@
 
 AI agent that tells you who's hiring. Give it a company name, get back open positions with links.
 
-Built with [Strands Agents](https://strandsagents.com) and deployed to Amazon Bedrock AgentCore Runtime. Uses Tavily web search to find career pages and job boards.
+Built with [Strands Agents](https://strandsagents.com) and deployed to Amazon Bedrock AgentCore Runtime. Uses [Tavily](https://www.tavily.com/) web search to find career pages and job boards.
 
 > **Note:** This project was started before my current employment as a learning exercise. I'm completing it to finish what I started, not as an indication of active job searching.
 
