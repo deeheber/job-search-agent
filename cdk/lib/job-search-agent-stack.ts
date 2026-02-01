@@ -11,6 +11,9 @@ import { Construct } from 'constructs'
 import { Runtime, AgentRuntimeArtifact } from '@aws-cdk/aws-bedrock-agentcore-alpha'
 import * as path from 'path'
 
+// SSM parameter name for Tavily API key (must be created manually before deployment)
+const TAVILY_API_KEY_SSM_PARAMETER = '/job-search-agent/tavily-api-key'
+
 interface AgentStackProps extends StackProps {
   bedrockModelID?: string | undefined
 }
@@ -76,6 +79,27 @@ export class JobSearchAgentStack extends Stack {
                 `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/*`,
               ],
             }),
+            // SSM Parameter Store access for secrets (Tavily API key)
+            new PolicyStatement({
+              sid: 'SSMParameterAccess',
+              effect: Effect.ALLOW,
+              actions: ['ssm:GetParameter'],
+              resources: [
+                `arn:aws:ssm:${this.region}:${this.account}:parameter${TAVILY_API_KEY_SSM_PARAMETER}`,
+              ],
+            }),
+            // KMS decrypt for SecureString parameters (uses AWS managed key)
+            new PolicyStatement({
+              sid: 'KMSDecrypt',
+              effect: Effect.ALLOW,
+              actions: ['kms:Decrypt'],
+              resources: ['*'],
+              conditions: {
+                StringEquals: {
+                  'kms:ViaService': `ssm.${this.region}.amazonaws.com`,
+                },
+              },
+            }),
           ],
         }),
       },
@@ -93,11 +117,13 @@ export class JobSearchAgentStack extends Stack {
       runtimeName: `${this.stackName.replace(/-/g, '_')}_JobSearchAgent`,
       agentRuntimeArtifact: agentArtifact,
       executionRole: agentRole,
-      description: 'Job search agent with time and http_request',
+      description: 'Job search agent with web search, time, and http_request',
       environmentVariables: {
         AWS_REGION: this.region,
         AWS_DEFAULT_REGION: this.region,
         LOG_LEVEL: 'INFO',
+        // Tavily API key is fetched from SSM Parameter Store at runtime
+        TAVILY_API_KEY_SSM_PARAMETER: TAVILY_API_KEY_SSM_PARAMETER,
         ...(props.bedrockModelID && { BEDROCK_MODEL_ID: props.bedrockModelID }),
       },
     })
@@ -111,6 +137,11 @@ export class JobSearchAgentStack extends Stack {
     new CfnOutput(this, 'RuntimeArn', {
       description: 'AgentCore Runtime ARN',
       value: runtime.agentRuntimeArn,
+    })
+
+    new CfnOutput(this, 'TavilyApiKeyParameter', {
+      description: 'SSM Parameter name for Tavily API Key (must be created before deployment)',
+      value: TAVILY_API_KEY_SSM_PARAMETER,
     })
   }
 }

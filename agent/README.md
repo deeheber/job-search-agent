@@ -10,6 +10,9 @@ python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 
+# Add your Tavily API key (get one at tavily.com)
+echo "TAVILY_API_KEY=tvly-xxxxx" > .env
+
 # Start the agent
 python src/agentcore_app.py
 ```
@@ -24,23 +27,26 @@ curl -X POST http://localhost:8080/invocations \
 
 ## How It Works
 
-The agent uses two community tools from `strands-agents-tools`:
+The agent uses community tools from `strands-agents-tools`:
 
-- **http_request** - Fetches company career pages and job board APIs
-- **current_time** - Timestamps job postings and search results
+- **tavily_search** - Searches the web for career pages and job listings
+- **http_request** - Fetches specific URLs found by search
+- **current_time** - Timestamps search results
 
-When you send a company name, the agent figures out where to look, fetches the data, and extracts job information. It's basically a smart web scraper that knows how to find and parse job listings.
+When you send a company name, the agent searches for career pages, fetches the content, and extracts job information.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and customize:
+Copy `.env.example` to `.env` and add your Tavily API key:
 
 ```bash
-BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-5-20250929-v1:0
-LOG_LEVEL=INFO
+cp .env.example .env
+# Edit .env and set TAVILY_API_KEY=tvly-xxxxx
 ```
 
-The agent loads these automatically when running locally. See [AWS Bedrock Model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html) for available models.
+The Tavily API key is required for web search. Get one at [tavily.com](https://tavily.com).
+
+For AWS deployment, the key is stored in SSM Parameter Store instead (see [DEPLOYMENT.md](../DEPLOYMENT.md)).
 
 ## Input Format
 

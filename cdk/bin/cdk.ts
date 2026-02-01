@@ -4,7 +4,7 @@ import path from 'path'
 import { App } from 'aws-cdk-lib'
 import { JobSearchAgentStack } from '../lib/job-search-agent-stack'
 
-dotenv.config({ path: path.join(__dirname, '../.env') })
+dotenv.config({ path: path.join(__dirname, '../../agent/.env') })
 
 const {
   AWS_DEFAULT_ACCOUNT_ID,

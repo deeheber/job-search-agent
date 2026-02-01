@@ -11,6 +11,7 @@ cdk/                   # CDK infrastructure (lib/, bin/, test/)
 ## Agent Files
 
 - `src/agentcore_app.py` - Main agent implementation
+- `src/secret_utils.py` - SSM Parameter Store integration for API keys
 - `tests/` - Test files (mirror src/ structure)
 - `pyproject.toml` - Dependencies, build config, tool settings
 - `Dockerfile` - AgentCore Runtime container

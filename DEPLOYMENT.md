@@ -8,15 +8,17 @@ Get the job search agent running on AWS in minutes.
 - Docker running locally
 - Node.js 24 and Python 3.13
 - Bedrock model access in your AWS account
+- Tavily API key (sign up at [tavily.com](https://tavily.com) - free tier available)
 
 Check [AWS Bedrock AgentCore regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) to make sure AgentCore is available where you want to deploy.
 
 ## Try It Locally First
 
-Always test before deploying. Start the agent:
+Always test before deploying. Set up your Tavily API key and start the agent:
 
 ```bash
 cd agent
+echo "TAVILY_API_KEY=tvly-xxxxx" > .env  # Add your Tavily API key
 python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
@@ -32,6 +34,21 @@ curl -X POST http://localhost:8080/invocations \
 ```
 
 ## Deploy to AWS
+
+### 1. Store the Tavily API Key
+
+The agent needs a Tavily API key for web search. Store it in SSM Parameter Store:
+
+```bash
+aws ssm put-parameter \
+  --name "/job-search-agent/tavily-api-key" \
+  --value "tvly-xxxxx" \
+  --type SecureString
+```
+
+Get your API key at [tavily.com](https://tavily.com).
+
+### 2. Bootstrap and Deploy
 
 First time only, bootstrap CDK:
 
@@ -115,7 +132,7 @@ The quality check runs mypy, ruff, black, and pytest. It'll catch most problems 
 
 ## Add Custom Tools
 
-Right now the agent uses community tools (`http_request` and `current_time`). To add your own:
+The agent uses community tools (`tavily_search`, `http_request`, `current_time`). To add your own:
 
 ```python
 # agent/src/tools/job_search_tools.py
@@ -139,7 +156,7 @@ Add to the agent in `agentcore_app.py`:
 
 ```python
 from tools import parse_greenhouse_api
-agent = Agent(tools=[http_request, current_time, parse_greenhouse_api])
+agent = Agent(tools=[current_time, http_request, tavily_search, parse_greenhouse_api])
 ```
 
 ## CI/CD with GitHub Actions

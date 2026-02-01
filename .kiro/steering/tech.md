@@ -25,15 +25,9 @@ python src/agentcore_app.py     # Local run
 cd cdk && npm install && npm run cdk:deploy
 ```
 
-## Code Patterns
-
-- **Agent**: `Agent(model=model_id, tools=[...], system_prompt=SYSTEM_PROMPT)`
-- **AgentCore**: `BedrockAgentCoreApp`, `@app.entrypoint`, returns `{"status": "...", "response/error": "..."}`
-- **Tools**: Import from `strands_tools`, type hints required
-- **CDK**: Explicit imports (avoid wildcards), TypeScript strict mode
-
 ## Configuration
 
 - **Model**: Set `BEDROCK_MODEL_ID` in `.env` (local) or CDK env vars (deploy)
+- **Tavily API Key**: Set `TAVILY_API_KEY` in `.env` (local) or create SSM parameter `/job-search-agent/tavily-api-key` (AWS)
 - **Settings**: `agent/pyproject.toml` (line length: 100, Python 3.13)
 - **Logging**: `LOG_LEVEL` env var (default: INFO)
