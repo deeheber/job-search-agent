@@ -7,8 +7,24 @@ Built with [Strands Agents](https://strandsagents.com) and deployed to AWS Bedro
 ## Quick Start
 
 ```bash
+# Get a Tavily API key (free tier available)
+# Sign up at https://tavily.com
+
 # Run locally
-cd agent && python src/agentcore_app.py
+cd agent
+echo "TAVILY_API_KEY=your_key_here" > .env
+python src/agentcore_app.py
+
+# In another terminal window
+curl -X POST http://localhost:8080/invocations \
+  -H "Content-Type: application/json" \
+  -d '{"company": "Stripe", "title": "Engineer"}'
+
+# Put Tavily API key in SSM Parameter Store
+aws ssm put-parameter \
+  --name "/job-search-agent/tavily-api-key" \
+  --value "tvly-xxxxx" \
+  --type SecureString
 
 # Deploy to AWS
 cd cdk && npm run cdk:deploy

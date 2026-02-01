@@ -10,6 +10,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
 - **Node.js 24** (see `.nvmrc`)
 - **Docker** (for deployment)
 - **AWS CLI** configured with appropriate permissions
+- **Tavily API key** (sign up at [tavily.com](https://tavily.com) - free tier available)
 - **Git** for version control
 
 ### Initial Setup

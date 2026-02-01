@@ -2,18 +2,9 @@
 
 The TypeScript side that deploys everything to AWS. This creates the AgentCore Runtime, IAM roles, and CloudWatch logging.
 
-## Deploy
-
-```bash
-npm install
-npm run cdk:deploy
-```
-
-Takes about 5-10 minutes. The stack builds a Docker image from `../agent`, pushes it to ECR, and creates an AgentCore Runtime on ARM64 (cheaper than x86).
-
 ## Prerequisites
 
-Create the Tavily API key in SSM Parameter Store before deploying:
+Get a Tavily API key at [tavily.com](https://tavily.com) (free tier available), then store it in SSM Parameter Store before deploying:
 
 ```bash
 aws ssm put-parameter \
@@ -21,6 +12,15 @@ aws ssm put-parameter \
   --value "tvly-xxxxx" \
   --type SecureString
 ```
+
+## Deploy
+
+```bash
+npm install
+npm run cdk:deploy
+```
+
+Takes a few minutes. The stack builds a Docker image from `../agent`, pushes it to ECR, and creates an AgentCore Runtime on ARM64 (cheaper than x86).
 
 ## What Gets Created
 

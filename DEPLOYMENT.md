@@ -8,15 +8,17 @@ Get the job search agent running on AWS in minutes.
 - Docker running locally
 - Node.js 24 and Python 3.13
 - Bedrock model access in your AWS account
+- Tavily API key (sign up at [tavily.com](https://tavily.com) - free tier available)
 
 Check [AWS Bedrock AgentCore regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) to make sure AgentCore is available where you want to deploy.
 
 ## Try It Locally First
 
-Always test before deploying. Start the agent:
+Always test before deploying. Set up your Tavily API key and start the agent:
 
 ```bash
 cd agent
+echo "TAVILY_API_KEY=tvly-xxxxx" > .env  # Add your Tavily API key
 python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"

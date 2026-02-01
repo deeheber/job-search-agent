@@ -10,6 +10,9 @@ python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 
+# Add your Tavily API key (get one at tavily.com)
+echo "TAVILY_API_KEY=tvly-xxxxx" > .env
+
 # Start the agent
 python src/agentcore_app.py
 ```
