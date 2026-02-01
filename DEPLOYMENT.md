@@ -10,7 +10,7 @@ Get the job search agent running on AWS in minutes.
 - Bedrock model access in your AWS account
 - Tavily API key (sign up at [tavily.com](https://tavily.com) - free tier available)
 
-Check [AWS Bedrock AgentCore regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) to make sure AgentCore is available where you want to deploy.
+Check [Amazon Bedrock AgentCore regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) to make sure AgentCore is available where you want to deploy.
 
 ## Try It Locally First
 
@@ -119,7 +119,7 @@ BEDROCK_MODEL_ID=us.anthropic.claude-3-5-sonnet-20241022-v2:0
 
 Then redeploy: `npm run cdk:deploy`
 
-See [AWS Bedrock Model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html) for available models.
+See [Amazon Bedrock Model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html) for available models.
 
 ## Development Loop
 
