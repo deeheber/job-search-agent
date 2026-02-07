@@ -3,7 +3,7 @@
 AI agent that finds hiring opportunities at companies using Tavily web search.
 
 **Input**: Company name (+ optional title/location filters)
-**Output**: Hiring status, matching positions, job links
+**Output**: Hiring status, matching positions, job links (+ optional SNS email alerts)
 
 ## Quick Reference
 

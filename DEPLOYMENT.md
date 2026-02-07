@@ -48,7 +48,17 @@ aws ssm put-parameter \
 
 Get your API key at [tavily.com](https://tavily.com).
 
-### 2. Bootstrap and Deploy
+### 2. Set Up Email Notifications (Optional)
+
+To receive email alerts when companies are hiring, add your email to `agent/.env`:
+
+```bash
+NOTIFICATION_EMAIL=your-email@example.com
+```
+
+After deploying, you'll receive a confirmation email — click the link to activate notifications.
+
+### 3. Bootstrap and Deploy
 
 First time only, bootstrap CDK:
 
@@ -173,8 +183,6 @@ Now every push to main runs tests and deploys automatically.
 The agent currently does one-off lookups. Future enhancements:
 
 - **Scheduled checks**: Use EventBridge to run searches periodically
-- **Notifications**: Send SNS alerts when new jobs appear
-- **Multi-company tracking**: Monitor multiple companies at once
 
 ## Clean Up
 

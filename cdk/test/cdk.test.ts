@@ -111,6 +111,22 @@ describe('JobSearchAgentStack', () => {
       })
     })
 
+    it('configures SNS publish permissions scoped to notification topic', () => {
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: 'sns:Publish',
+              Effect: 'Allow',
+              Resource: {
+                Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
+              },
+            }),
+          ]),
+        },
+      })
+    })
+
     it('configures Bedrock model invocation permissions', () => {
       template.hasResourceProperties('AWS::IAM::Role', {
         Policies: [
@@ -135,9 +151,10 @@ describe('JobSearchAgentStack', () => {
   })
 
   describe('Required Resources', () => {
-    it('creates exactly one IAM role and runtime', () => {
+    it('creates exactly one IAM role, runtime, and SNS topic', () => {
       template.resourceCountIs('AWS::IAM::Role', 1)
       template.resourceCountIs('AWS::BedrockAgentCore::Runtime', 1)
+      template.resourceCountIs('AWS::SNS::Topic', 1)
     })
 
     it('creates AgentCore runtime with proper configuration', () => {
@@ -156,6 +173,9 @@ describe('JobSearchAgentStack', () => {
           AWS_REGION: 'us-west-2',
           AWS_DEFAULT_REGION: 'us-west-2',
           LOG_LEVEL: 'INFO',
+          SNS_TOPIC_ARN: {
+            Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
+          },
         },
       })
     })
@@ -172,6 +192,13 @@ describe('JobSearchAgentStack', () => {
         Description: 'AgentCore Runtime ARN',
         Value: {
           'Fn::GetAtt': [Match.stringLikeRegexp('JobSearchAgentRuntime.*'), 'AgentRuntimeArn'],
+        },
+      })
+
+      template.hasOutput('NotificationTopicArn', {
+        Description: Match.stringLikeRegexp('SNS Topic ARN.*'),
+        Value: {
+          Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
         },
       })
     })
@@ -191,7 +218,7 @@ describe('JobSearchAgentStack', () => {
     })
 
     it('creates ECR access policy for container deployment', () => {
-      // CDK creates additional IAM policy for ECR access
+      // CDK creates IAM policy for ECR access and SNS publish
       template.resourceCountIs('AWS::IAM::Policy', 1)
 
       template.hasResourceProperties('AWS::IAM::Policy', {
@@ -269,6 +296,27 @@ describe('JobSearchAgentStack', () => {
             },
           },
         ],
+      })
+    })
+  })
+
+  describe('SNS Notifications', () => {
+    it('does not create email subscription when notificationEmail is not provided', () => {
+      template.resourceCountIs('AWS::SNS::Subscription', 0)
+    })
+
+    it('creates email subscription when notificationEmail is provided', () => {
+      const appWithEmail = new App()
+      const stackWithEmail = new JobSearchAgentStack(appWithEmail, 'TestStackWithEmail', {
+        notificationEmail: 'test@example.com',
+        env: { account: '123456789012', region: 'us-west-2' },
+      })
+      const templateWithEmail = Template.fromStack(stackWithEmail)
+
+      templateWithEmail.resourceCountIs('AWS::SNS::Subscription', 1)
+      templateWithEmail.hasResourceProperties('AWS::SNS::Subscription', {
+        Protocol: 'email',
+        Endpoint: 'test@example.com',
       })
     })
   })

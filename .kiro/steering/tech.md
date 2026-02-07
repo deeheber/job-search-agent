@@ -29,5 +29,6 @@ cd cdk && npm install && npm run cdk:deploy
 
 - **Model**: Set `BEDROCK_MODEL_ID` in `.env` (local) or CDK env vars (deploy)
 - **Tavily API Key**: Set `TAVILY_API_KEY` in `.env` (local) or create SSM parameter `/job-search-agent/tavily-api-key` (AWS)
+- **Email Notifications**: Set `NOTIFICATION_EMAIL` in `.env` before deploy (optional); `SNS_TOPIC_ARN` is auto-set by CDK
 - **Settings**: `agent/pyproject.toml` (line length: 100, Python 3.13)
 - **Logging**: `LOG_LEVEL` env var (default: INFO)

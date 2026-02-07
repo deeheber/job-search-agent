@@ -16,7 +16,7 @@ fileMatchPattern: "agent/**"
 
 **Main**: `agentcore_app.py` (BedrockAgentCoreApp + @app.entrypoint)
 **Secrets**: `secret_utils.py` (SSM Parameter Store integration for API keys)
-**Tools**: Community tools from `strands_tools` package (`http_request`, `current_time`, `tavily_search`)
+**Tools**: Community tools from `strands_tools` package (`http_request`, `current_time`, `tavily_search`, `use_aws` when SNS is configured)
 **Custom Tools**: Add in `src/tools/` directory when needed
 
 ## Agent Patterns
@@ -42,3 +42,4 @@ fileMatchPattern: "agent/**"
 **AWS_REGION**: Auto-set by AgentCore Runtime
 **TAVILY_API_KEY**: Local dev only - Tavily API key (or use SSM)
 **TAVILY_API_KEY_SSM_PARAMETER**: SSM parameter path (default: `/job-search-agent/tavily-api-key`)
+**SNS_TOPIC_ARN**: Optional - SNS topic ARN for email notifications when companies are hiring
