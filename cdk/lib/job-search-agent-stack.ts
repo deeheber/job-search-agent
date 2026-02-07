@@ -7,6 +7,8 @@ import {
   Effect,
 } from 'aws-cdk-lib/aws-iam'
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets'
+import { Topic } from 'aws-cdk-lib/aws-sns'
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions'
 import { Construct } from 'constructs'
 import { Runtime, AgentRuntimeArtifact } from '@aws-cdk/aws-bedrock-agentcore-alpha'
 import * as path from 'path'
@@ -16,6 +18,7 @@ const TAVILY_API_KEY_SSM_PARAMETER = '/job-search-agent/tavily-api-key'
 
 interface AgentStackProps extends StackProps {
   bedrockModelID?: string | undefined
+  notificationEmail?: string | undefined
 }
 
 export class JobSearchAgentStack extends Stack {
@@ -105,6 +108,17 @@ export class JobSearchAgentStack extends Stack {
       },
     })
 
+    const notificationTopic = new Topic(this, 'JobSearchNotificationTopic', {
+      topicName: `${this.stackName}-notify`,
+      displayName: 'Job Search Agent Notifications',
+    })
+
+    if (props.notificationEmail) {
+      notificationTopic.addSubscription(new EmailSubscription(props.notificationEmail))
+    }
+
+    notificationTopic.grantPublish(agentRole)
+
     // Build Docker image from local agent code
     const agentArtifact = AgentRuntimeArtifact.fromAsset(path.join(__dirname, '../../agent'), {
       platform: Platform.LINUX_ARM64,
@@ -124,6 +138,7 @@ export class JobSearchAgentStack extends Stack {
         LOG_LEVEL: 'INFO',
         // Tavily API key is fetched from SSM Parameter Store at runtime
         TAVILY_API_KEY_SSM_PARAMETER: TAVILY_API_KEY_SSM_PARAMETER,
+        SNS_TOPIC_ARN: notificationTopic.topicArn,
         ...(props.bedrockModelID && { BEDROCK_MODEL_ID: props.bedrockModelID }),
       },
     })
@@ -142,6 +157,11 @@ export class JobSearchAgentStack extends Stack {
     new CfnOutput(this, 'TavilyApiKeyParameter', {
       description: 'SSM Parameter name for Tavily API Key (must be created before deployment)',
       value: TAVILY_API_KEY_SSM_PARAMETER,
+    })
+
+    new CfnOutput(this, 'NotificationTopicArn', {
+      description: 'SNS Topic ARN for job search notifications',
+      value: notificationTopic.topicArn,
     })
   }
 }

@@ -1,0 +1,16 @@
+name: Remove In Progress Label
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  remove-label:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'in progress')
+    steps:
+      - name: Remove "in progress" label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: gh issue edit "$ISSUE_URL" --remove-label "in progress"

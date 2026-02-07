@@ -6,7 +6,7 @@ from typing import Any
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
-from strands_tools import current_time, http_request  # type: ignore[import-untyped]
+from strands_tools import current_time, http_request, use_aws  # type: ignore[import-untyped]
 from strands_tools.tavily import tavily_search  # type: ignore[import-untyped]
 
 from secret_utils import get_tavily_api_key
@@ -103,6 +103,15 @@ RECOGNIZING JOB LISTINGS:
 - Marketing pages only have general company info, testimonials, and "join us" messaging
 - If a page says "Working at GitHub is the best place..." but has no specific job titles, it's marketing
 - Always search job boards when company pages are purely marketing content"""
+
+SNS_NOTIFICATION_PROMPT = """
+NOTIFICATION INSTRUCTIONS:
+After completing your response, if **Hiring Status** is Yes, send exactly ONE SNS notification:
+1. Use the use_aws tool with service_name="sns", operation_name="publish"
+2. Parameters: TopicArn="{topic_arn}", Subject="Job Alert: [COMPANY] is hiring!", Message=your full response text
+3. If the notification fails, still return your normal response - notification is best-effort
+4. Do NOT send more than one notification per request - never retry or send duplicate messages
+"""
 # fmt: on
 
 
@@ -126,10 +135,21 @@ def get_agent() -> Agent:
     os.environ["TAVILY_API_KEY"] = tavily_key
 
     model_id = get_model_id()
+
+    tools: list[object] = [current_time, http_request, tavily_search]
+    system_prompt = SYSTEM_PROMPT
+    sns_topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
+    if sns_topic_arn:
+        tools.append(use_aws)
+        system_prompt += SNS_NOTIFICATION_PROMPT.format(topic_arn=sns_topic_arn)
+        logging.info(f"SNS notifications enabled for topic: {sns_topic_arn}")
+    else:
+        logging.info("SNS_TOPIC_ARN not configured, notifications disabled")
+
     return Agent(
         model=model_id,
-        tools=[current_time, http_request, tavily_search],
-        system_prompt=SYSTEM_PROMPT,
+        tools=tools,
+        system_prompt=system_prompt,
     )
 
 
@@ -184,6 +204,7 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
         response_text = response.message["content"][0]["text"]
 
         logging.info(f"Agent response generated (length: {len(response_text)} chars)")
+        logging.info(f"Hiring result for {company}: {response_text}")
 
         result = {
             "status": "success",

@@ -12,11 +12,13 @@ const {
   CDK_DEFAULT_ACCOUNT,
   CDK_DEFAULT_REGION,
   BEDROCK_MODEL_ID,
+  NOTIFICATION_EMAIL,
 } = process.env
 
 const account = CDK_DEFAULT_ACCOUNT ?? AWS_DEFAULT_ACCOUNT_ID
 const region = CDK_DEFAULT_REGION ?? AWS_DEFAULT_REGION
 const bedrockModelID = BEDROCK_MODEL_ID ?? undefined
+const notificationEmail = NOTIFICATION_EMAIL ?? undefined
 
 if (!account || !region) {
   throw new Error(
@@ -30,5 +32,6 @@ const app = new App()
 new JobSearchAgentStack(app, 'JobSearchAgentStack', {
   description: 'Demo template for strands-agents',
   bedrockModelID,
+  notificationEmail,
   env: { account, region },
 })

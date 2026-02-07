@@ -3,6 +3,12 @@
 exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expected template structure 1`] = `
 {
   "Outputs": {
+    "NotificationTopicArn": {
+      "Description": "SNS Topic ARN for job search notifications",
+      "Value": {
+        "Ref": "JobSearchNotificationTopicA750FAD4",
+      },
+    },
     "RuntimeArn": {
       "Description": "AgentCore Runtime ARN",
       "Value": {
@@ -133,6 +139,13 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
       "Properties": {
         "PolicyDocument": {
           "Statement": [
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "JobSearchNotificationTopicA750FAD4",
+              },
+            },
             {
               "Action": [
                 "logs:DescribeLogStreams",
@@ -303,6 +316,9 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
           "AWS_DEFAULT_REGION": "us-west-2",
           "AWS_REGION": "us-west-2",
           "LOG_LEVEL": "INFO",
+          "SNS_TOPIC_ARN": {
+            "Ref": "JobSearchNotificationTopicA750FAD4",
+          },
           "TAVILY_API_KEY_SSM_PARAMETER": "/job-search-agent/tavily-api-key",
         },
         "LifecycleConfiguration": {},
@@ -318,6 +334,13 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
         },
       },
       "Type": "AWS::BedrockAgentCore::Runtime",
+    },
+    "JobSearchNotificationTopicA750FAD4": {
+      "Properties": {
+        "DisplayName": "Job Search Agent Notifications",
+        "TopicName": "TestJobSearchAgentStack-notify",
+      },
+      "Type": "AWS::SNS::Topic",
     },
   },
   "Rules": {

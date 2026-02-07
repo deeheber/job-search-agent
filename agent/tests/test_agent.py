@@ -57,3 +57,26 @@ def test_system_prompt_uses_search_approach() -> None:
     assert "tavily_search" in SYSTEM_PROMPT
     # Old URL patterns should be removed
     assert "https://careers.COMPANY.com" not in SYSTEM_PROMPT
+
+
+def test_agent_with_sns_has_use_aws_tool() -> None:
+    """Test agent includes use_aws tool when SNS_TOPIC_ARN is configured."""
+    with (
+        patch("src.agentcore_app.get_tavily_api_key", return_value="mock-api-key"),
+        patch.dict(os.environ, {"SNS_TOPIC_ARN": "arn:aws:sns:us-west-2:123456789012:test-topic"}),
+    ):
+        agent = get_agent()
+    assert "use_aws" in agent.tool_names
+
+
+def test_system_prompt_includes_sns_when_configured() -> None:
+    """Test system prompt contains SNS instructions with topic ARN when configured."""
+    topic_arn = "arn:aws:sns:us-west-2:123456789012:test-topic"
+    with (
+        patch("src.agentcore_app.get_tavily_api_key", return_value="mock-api-key"),
+        patch.dict(os.environ, {"SNS_TOPIC_ARN": topic_arn}),
+    ):
+        agent = get_agent()
+    assert topic_arn in agent.system_prompt
+    assert "sns" in agent.system_prompt.lower()
+    assert "publish" in agent.system_prompt.lower()

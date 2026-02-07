@@ -12,11 +12,12 @@ Takes company name as input → returns hiring status, position titles, and job 
 
 - Single company job search using Tavily web search API
 - Real-time results from live job postings and career pages
+- Optional email notifications via SNS when companies are hiring
 - Strands framework with AgentCore Runtime deployment
 - OpenTelemetry observability and CloudWatch Logs
 - Secure API key management via SSM Parameter Store
 
 ## Roadmap
 
-1. **Phase 1** (Current): Single company lookup
-2. **Phase 2**: EventBridge scheduling + SNS notifications
+1. **Phase 1** (Current): Single company lookup + optional SNS notifications
+2. **Phase 2**: EventBridge scheduling for periodic checks
