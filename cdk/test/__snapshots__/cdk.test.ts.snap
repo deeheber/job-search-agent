@@ -338,7 +338,7 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
     "JobSearchNotificationTopicA750FAD4": {
       "Properties": {
         "DisplayName": "Job Search Agent Notifications",
-        "TopicName": "TestJobSearchAgentStack-notifications",
+        "TopicName": "TestJobSearchAgentStack-notify",
       },
       "Type": "AWS::SNS::Topic",
     },
