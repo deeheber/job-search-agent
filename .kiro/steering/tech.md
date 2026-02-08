@@ -31,5 +31,6 @@ cd cdk && npm install && npm run cdk:deploy
 - **Tavily API Key**: Set `TAVILY_API_KEY` in `.env` (local) or create SSM parameter `/job-search-agent/tavily-api-key` (AWS)
 - **Email Notifications**: Set `NOTIFICATION_EMAIL` in `.env` before deploy (optional); `SNS_TOPIC_ARN` is auto-set by CDK
 - **Scheduled Searches**: Set `SCHEDULES` in `.env` as a JSON array (optional); creates EventBridge schedules on deploy
+- **Stack Name**: Set `STACK_NAME` in `.env` to deploy multiple stacks to the same account/region (default: `JobSearchAgentStack`)
 - **Settings**: `agent/pyproject.toml` (line length: 100, Python 3.13)
 - **Logging**: `LOG_LEVEL` env var (default: INFO)

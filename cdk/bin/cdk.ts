@@ -14,6 +14,7 @@ const {
   BEDROCK_MODEL_ID,
   NOTIFICATION_EMAIL,
   SCHEDULES,
+  STACK_NAME,
 } = process.env
 
 const account = CDK_DEFAULT_ACCOUNT ?? AWS_DEFAULT_ACCOUNT_ID
@@ -32,9 +33,11 @@ if (!account || !region) {
   )
 }
 
+const stackName = STACK_NAME ?? 'JobSearchAgentStack'
+
 const app = new App()
-new JobSearchAgentStack(app, 'JobSearchAgentStack', {
-  description: 'Demo template for strands-agents',
+new JobSearchAgentStack(app, stackName, {
+  description: 'Job Search Agent infrastructure',
   bedrockModelID,
   notificationEmail,
   schedules,

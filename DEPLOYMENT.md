@@ -74,6 +74,8 @@ npm install
 npm run cdk:deploy
 ```
 
+To deploy multiple stacks to the same account/region, set `STACK_NAME` in `agent/.env` (default: `JobSearchAgentStack`).
+
 This takes a few minutes. CDK builds a Docker image, pushes it to ECR, and creates an AgentCore Runtime. When it finishes, you'll see outputs like:
 
 ```
