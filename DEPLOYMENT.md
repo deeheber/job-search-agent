@@ -50,13 +50,13 @@ Get your API key at [tavily.com](https://tavily.com).
 
 ### 2. Set Up Email Notifications (Optional)
 
-To receive email alerts when companies are hiring, add your email to `agent/.env`:
+To receive email alerts when companies are hiring, add emails to `agent/.env` (comma-separated for multiple):
 
 ```bash
-NOTIFICATION_EMAIL=your-email@example.com
+NOTIFICATION_EMAILS=your-email@example.com,teammate@example.com
 ```
 
-After deploying, you'll receive a confirmation email — click the link to activate notifications.
+After deploying, each address will receive a confirmation email — click the link to activate notifications.
 
 ### 3. Bootstrap and Deploy
 
@@ -186,7 +186,7 @@ Set these as GitHub repository **variables** (Settings > Secrets and variables >
 
 | Variable | Description | Default |
 |---|---|---|
-| `NOTIFICATION_EMAIL` | Email for SNS hiring alerts | _(none)_ |
+| `NOTIFICATION_EMAILS` | Comma-separated emails for SNS hiring alerts | _(none)_ |
 | `SCHEDULES` | JSON array of scheduled searches (see [Scheduled Searches](#set-up-scheduled-searches-optional)) | _(none)_ |
 | `BEDROCK_MODEL_ID` | Bedrock model to use | Stack default |
 | `STACK_NAME` | CloudFormation stack name | `JobSearchAgentStack` |
@@ -212,7 +212,7 @@ Then redeploy:
 cd cdk && npm run cdk:deploy
 ```
 
-The agent sends SNS notifications when it finds open positions, so pair this with `NOTIFICATION_EMAIL` for automated alerts.
+The agent sends SNS notifications when it finds open positions, so pair this with `NOTIFICATION_EMAILS` for automated alerts.
 
 ## Clean Up
 

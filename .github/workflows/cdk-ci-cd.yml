@@ -94,7 +94,7 @@ jobs:
       - name: Deploy
         run: npm run cdk:deploy:ci
         env:
-          NOTIFICATION_EMAIL: ${{ vars.NOTIFICATION_EMAIL }}
+          NOTIFICATION_EMAILS: ${{ vars.NOTIFICATION_EMAILS }}
           SCHEDULES: ${{ vars.SCHEDULES }}
           BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID }}
           STACK_NAME: ${{ vars.STACK_NAME }}
