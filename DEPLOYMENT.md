@@ -173,12 +173,23 @@ agent = Agent(tools=[current_time, http_request, tavily_search, parse_greenhouse
 
 ## CI/CD with GitHub Actions
 
-The repo includes GitHub Actions workflows for automated testing and deployment. To enable deployment:
+The repo includes GitHub Actions workflows for automated testing and deployment. Every push to main runs tests, synth, and deploys to AWS automatically.
+
+### Setup
 
 1. Set up [OIDC authentication between GitHub and AWS](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws)
 2. Add the IAM role ARN as a repository secret named `AWS_ROLE_TO_ASSUME`
 
-Now every push to main runs tests and deploys automatically.
+### Optional Configuration
+
+Set these as GitHub repository **variables** (Settings > Secrets and variables > Actions > Variables tab) to customize the deployment:
+
+| Variable | Description | Default |
+|---|---|---|
+| `NOTIFICATION_EMAIL` | Email for SNS hiring alerts | _(none)_ |
+| `SCHEDULES` | JSON array of scheduled searches (see [Scheduled Searches](#set-up-scheduled-searches-optional)) | _(none)_ |
+| `BEDROCK_MODEL_ID` | Bedrock model to use | Stack default |
+| `STACK_NAME` | CloudFormation stack name | `JobSearchAgentStack` |
 
 ## Set Up Scheduled Searches (Optional)
 

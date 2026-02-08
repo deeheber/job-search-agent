@@ -19,8 +19,11 @@ const {
 
 const account = CDK_DEFAULT_ACCOUNT ?? AWS_DEFAULT_ACCOUNT_ID
 const region = CDK_DEFAULT_REGION ?? AWS_DEFAULT_REGION
-const bedrockModelID = BEDROCK_MODEL_ID ?? undefined
-const notificationEmail = NOTIFICATION_EMAIL ?? undefined
+// Use || instead of ?? to treat empty strings (from unset GitHub vars) as undefined
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const bedrockModelID = BEDROCK_MODEL_ID || undefined
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const notificationEmail = NOTIFICATION_EMAIL || undefined
 const schedules: ScheduleConfig[] | undefined = SCHEDULES
   ? (JSON.parse(SCHEDULES) as ScheduleConfig[])
   : undefined
@@ -33,7 +36,8 @@ if (!account || !region) {
   )
 }
 
-const stackName = STACK_NAME ?? 'JobSearchAgentStack'
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const stackName = STACK_NAME || 'JobSearchAgentStack'
 
 const app = new App()
 new JobSearchAgentStack(app, stackName, {
