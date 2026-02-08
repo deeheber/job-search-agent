@@ -1,4 +1,4 @@
-name: CDK CI
+name: CDK CI/CD
 
 on:
   push:
@@ -83,6 +83,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Set up QEMU for ARM64 Docker builds
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
 
       - name: Configure AWS credentials from OIDC
         uses: aws-actions/configure-aws-credentials@v6
