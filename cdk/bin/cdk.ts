@@ -2,7 +2,7 @@
 import * as dotenv from 'dotenv'
 import path from 'path'
 import { App } from 'aws-cdk-lib'
-import { JobSearchAgentStack } from '../lib/job-search-agent-stack'
+import { JobSearchAgentStack, ScheduleConfig } from '../lib/job-search-agent-stack'
 
 dotenv.config({ path: path.join(__dirname, '../../agent/.env') })
 
@@ -13,12 +13,16 @@ const {
   CDK_DEFAULT_REGION,
   BEDROCK_MODEL_ID,
   NOTIFICATION_EMAIL,
+  SCHEDULES,
 } = process.env
 
 const account = CDK_DEFAULT_ACCOUNT ?? AWS_DEFAULT_ACCOUNT_ID
 const region = CDK_DEFAULT_REGION ?? AWS_DEFAULT_REGION
 const bedrockModelID = BEDROCK_MODEL_ID ?? undefined
 const notificationEmail = NOTIFICATION_EMAIL ?? undefined
+const schedules: ScheduleConfig[] | undefined = SCHEDULES
+  ? (JSON.parse(SCHEDULES) as ScheduleConfig[])
+  : undefined
 
 if (!account || !region) {
   throw new Error(
@@ -33,5 +37,6 @@ new JobSearchAgentStack(app, 'JobSearchAgentStack', {
   description: 'Demo template for strands-agents',
   bedrockModelID,
   notificationEmail,
+  schedules,
   env: { account, region },
 })

@@ -16,8 +16,4 @@ Takes company name as input → returns hiring status, position titles, and job 
 - Strands framework with AgentCore Runtime deployment
 - OpenTelemetry observability and CloudWatch Logs
 - Secure API key management via SSM Parameter Store
-
-## Roadmap
-
-1. **Phase 1** (Current): Single company lookup + optional SNS notifications
-2. **Phase 2**: EventBridge scheduling for periodic checks
+- EventBridge Scheduler for periodic job searches

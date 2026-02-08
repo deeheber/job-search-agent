@@ -132,6 +132,7 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
             "PolicyName": "AgentCorePolicy",
           },
         ],
+        "RoleName": "TestJobSearchAgentStack-AgentCoreRole",
       },
       "Type": "AWS::IAM::Role",
     },
