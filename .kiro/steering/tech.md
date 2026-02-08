@@ -9,22 +9,6 @@
 
 See `agent/pyproject.toml` and `cdk/package.json` for current versions.
 
-## Quick Commands
-
-**Agent Setup & Run:**
-
-```bash
-cd agent && python3.13 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
-python src/agentcore_app.py     # Local run
-./quality-check.sh              # All quality checks
-```
-
-**CDK Deploy:**
-
-```bash
-cd cdk && npm install && npm run cdk:deploy
-```
-
 ## Configuration
 
 - **Model**: Set `BEDROCK_MODEL_ID` in `.env` (local) or CDK env vars (deploy)
