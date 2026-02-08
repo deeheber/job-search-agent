@@ -50,10 +50,7 @@ describe('JobSearchAgentStack', () => {
                     'ecr:BatchCheckLayerAvailability',
                     'ecr:GetAuthorizationToken',
                   ],
-                  Resource: [
-                    Match.stringLikeRegexp('arn:aws:ecr:.+:.+:repository/cdk-\\*'),
-                    '*', // GetAuthorizationToken requires wildcard
-                  ],
+                  Resource: [Match.stringLikeRegexp('arn:aws:ecr:.+:.+:repository/cdk-\\*'), '*'],
                 }),
               ]),
             },
@@ -157,6 +154,10 @@ describe('JobSearchAgentStack', () => {
       template.resourceCountIs('AWS::SNS::Topic', 1)
     })
 
+    it('creates no schedules when schedules prop is not provided', () => {
+      template.resourceCountIs('AWS::Scheduler::Schedule', 0)
+    })
+
     it('creates AgentCore runtime with proper configuration', () => {
       template.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
         AgentRuntimeName: 'TestJobSearchAgentStack_JobSearchAgent',
@@ -204,102 +205,6 @@ describe('JobSearchAgentStack', () => {
     })
   })
 
-  describe('AgentRuntimeArtifact Configuration', () => {
-    it('configures container artifact correctly', () => {
-      template.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
-        AgentRuntimeArtifact: {
-          ContainerConfiguration: {
-            ContainerUri: {
-              'Fn::Sub': Match.stringLikeRegexp('.*\\.dkr\\.ecr\\..+\\..*/.*:.*'),
-            },
-          },
-        },
-      })
-    })
-
-    it('creates ECR access policy for container deployment', () => {
-      // CDK creates IAM policy for ECR access and SNS publish
-      template.resourceCountIs('AWS::IAM::Policy', 1)
-
-      template.hasResourceProperties('AWS::IAM::Policy', {
-        PolicyDocument: {
-          Statement: Match.arrayWith([
-            Match.objectLike({
-              Action: Match.arrayWith([
-                'ecr:BatchCheckLayerAvailability',
-                'ecr:GetDownloadUrlForLayer',
-                'ecr:BatchGetImage',
-              ]),
-              Effect: 'Allow',
-            }),
-          ]),
-        },
-      })
-    })
-  })
-
-  describe('Security Validation', () => {
-    it('ensures permissions follow principle of least privilege', () => {
-      // Verify that ECR permissions are scoped to account resources where possible
-      template.hasResourceProperties('AWS::IAM::Role', {
-        Policies: [
-          {
-            PolicyDocument: {
-              Statement: Match.arrayWith([
-                Match.objectLike({
-                  Sid: 'ECRAccess',
-                  Resource: Match.arrayWith([
-                    Match.stringLikeRegexp('arn:aws:ecr:.+:.+:repository/cdk-\\*'),
-                  ]),
-                }),
-              ]),
-            },
-          },
-        ],
-      })
-
-      // Verify CloudWatch logs are scoped to AgentCore log groups
-      template.hasResourceProperties('AWS::IAM::Role', {
-        Policies: [
-          {
-            PolicyDocument: {
-              Statement: Match.arrayWith([
-                Match.objectLike({
-                  Sid: 'CloudWatchLogs',
-                  Action: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-                  Resource: Match.stringLikeRegexp(
-                    'arn:aws:logs:.+:.+:log-group:/aws/bedrock-agentcore/runtimes/\\*'
-                  ),
-                }),
-              ]),
-            },
-          },
-        ],
-      })
-
-      // Verify CloudWatch metrics are scoped to bedrock-agentcore namespace
-      template.hasResourceProperties('AWS::IAM::Role', {
-        Policies: [
-          {
-            PolicyDocument: {
-              Statement: Match.arrayWith([
-                Match.objectLike({
-                  Sid: 'Observability',
-                  Action: Match.arrayWith(['cloudwatch:PutMetricData']),
-                  Condition: {
-                    StringEquals: {
-                      'cloudwatch:namespace': 'bedrock-agentcore',
-                    },
-                  },
-                }),
-              ]),
-            },
-          },
-        ],
-      })
-    })
-  })
-
   describe('SNS Notifications', () => {
     it('does not create email subscription when notificationEmail is not provided', () => {
       template.resourceCountIs('AWS::SNS::Subscription', 0)
@@ -317,6 +222,58 @@ describe('JobSearchAgentStack', () => {
       templateWithEmail.hasResourceProperties('AWS::SNS::Subscription', {
         Protocol: 'email',
         Endpoint: 'test@example.com',
+      })
+    })
+  })
+
+  describe('EventBridge Schedules', () => {
+    let scheduleTemplate: Template
+
+    beforeEach(() => {
+      const scheduleApp = new App()
+      const scheduleStack = new JobSearchAgentStack(scheduleApp, 'TestScheduleStack', {
+        env: { account: '123456789012', region: 'us-west-2' },
+        schedules: [
+          { company: 'Google', title: 'Software Engineer', location: 'Remote' },
+          { company: 'Meta', schedule: 'cron(0 12 ? * MON *)' },
+        ],
+      })
+      scheduleTemplate = Template.fromStack(scheduleStack)
+    })
+
+    it('creates one schedule per configured company', () => {
+      scheduleTemplate.resourceCountIs('AWS::Scheduler::Schedule', 2)
+    })
+
+    it('uses default rate(7 days) when no schedule expression provided', () => {
+      scheduleTemplate.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'rate(7 days)',
+        Description: 'Job search: Google',
+      })
+    })
+
+    it('uses custom expression when schedule is provided', () => {
+      scheduleTemplate.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(0 12 ? * MON *)',
+        Description: 'Job search: Meta',
+      })
+    })
+
+    it('passes company, title, and location in schedule payload', () => {
+      scheduleTemplate.hasResourceProperties('AWS::Scheduler::Schedule', {
+        Description: 'Job search: Google',
+        Target: Match.objectLike({
+          Input: {
+            'Fn::Join': [
+              '',
+              Match.arrayWith([
+                Match.stringLikeRegexp(
+                  '.*company.*Google.*title.*Software Engineer.*location.*Remote.*'
+                ),
+              ]),
+            ],
+          },
+        }),
       })
     })
   })

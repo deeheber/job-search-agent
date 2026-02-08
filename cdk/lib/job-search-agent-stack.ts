@@ -1,4 +1,4 @@
-import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib'
+import { Stack, StackProps, CfnOutput, Duration } from 'aws-cdk-lib'
 import {
   Role,
   ServicePrincipal,
@@ -9,29 +9,44 @@ import {
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets'
 import { Topic } from 'aws-cdk-lib/aws-sns'
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions'
+import {
+  Schedule,
+  ScheduleExpression,
+  ScheduleTargetInput,
+  TimeWindow,
+} from 'aws-cdk-lib/aws-scheduler'
+import { Universal } from 'aws-cdk-lib/aws-scheduler-targets'
 import { Construct } from 'constructs'
 import { Runtime, AgentRuntimeArtifact } from '@aws-cdk/aws-bedrock-agentcore-alpha'
 import * as path from 'path'
+import { Queue } from 'aws-cdk-lib/aws-sqs'
 
 // SSM parameter name for Tavily API key (must be created manually before deployment)
 const TAVILY_API_KEY_SSM_PARAMETER = '/job-search-agent/tavily-api-key'
 
+export interface ScheduleConfig {
+  company: string
+  title?: string
+  location?: string
+  schedule?: string // EventBridge expression, e.g. "cron(0 12 ? * MON *)" or "rate(14 days)"
+}
+
 interface AgentStackProps extends StackProps {
   bedrockModelID?: string | undefined
   notificationEmail?: string | undefined
+  schedules?: ScheduleConfig[] | undefined
 }
 
 export class JobSearchAgentStack extends Stack {
   constructor(scope: Construct, id: string, props: AgentStackProps) {
     super(scope, id, props)
 
-    // IAM Role for AgentCore Runtime
     const agentRole = new Role(this, 'AgentCoreRole', {
+      roleName: `${this.stackName}-AgentCoreRole`,
       assumedBy: new ServicePrincipal('bedrock-agentcore.amazonaws.com'),
       inlinePolicies: {
         AgentCorePolicy: new PolicyDocument({
           statements: [
-            // ECR access for container images
             new PolicyStatement({
               sid: 'ECRAccess',
               effect: Effect.ALLOW,
@@ -46,7 +61,6 @@ export class JobSearchAgentStack extends Stack {
                 '*', // GetAuthorizationToken requires wildcard
               ],
             }),
-            // CloudWatch Logs for AgentCore
             new PolicyStatement({
               sid: 'CloudWatchLogs',
               effect: Effect.ALLOW,
@@ -55,7 +69,6 @@ export class JobSearchAgentStack extends Stack {
                 `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/*`,
               ],
             }),
-            // Observability (X-Ray and CloudWatch metrics)
             new PolicyStatement({
               sid: 'Observability',
               effect: Effect.ALLOW,
@@ -71,7 +84,6 @@ export class JobSearchAgentStack extends Stack {
                 },
               },
             }),
-            // Bedrock models and inference profiles
             // TODO: scope down to models used
             new PolicyStatement({
               sid: 'BedrockModels',
@@ -82,7 +94,6 @@ export class JobSearchAgentStack extends Stack {
                 `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/*`,
               ],
             }),
-            // SSM Parameter Store access for secrets (Tavily API key)
             new PolicyStatement({
               sid: 'SSMParameterAccess',
               effect: Effect.ALLOW,
@@ -91,7 +102,6 @@ export class JobSearchAgentStack extends Stack {
                 `arn:aws:ssm:${this.region}:${this.account}:parameter${TAVILY_API_KEY_SSM_PARAMETER}`,
               ],
             }),
-            // KMS decrypt for SecureString parameters (uses AWS managed key)
             new PolicyStatement({
               sid: 'KMSDecrypt',
               effect: Effect.ALLOW,
@@ -119,14 +129,12 @@ export class JobSearchAgentStack extends Stack {
 
     notificationTopic.grantPublish(agentRole)
 
-    // Build Docker image from local agent code
     const agentArtifact = AgentRuntimeArtifact.fromAsset(path.join(__dirname, '../../agent'), {
       platform: Platform.LINUX_ARM64,
       // https://github.com/aws/aws-cdk-cli/issues/650
       extraHash: `${this.account}-${this.region}`,
     })
 
-    // Create AgentCore Runtime
     const runtime = new Runtime(this, 'JobSearchAgentRuntime', {
       runtimeName: `${this.stackName.replace(/-/g, '_')}_JobSearchAgent`,
       agentRuntimeArtifact: agentArtifact,
@@ -136,14 +144,52 @@ export class JobSearchAgentStack extends Stack {
         AWS_REGION: this.region,
         AWS_DEFAULT_REGION: this.region,
         LOG_LEVEL: 'INFO',
-        // Tavily API key is fetched from SSM Parameter Store at runtime
         TAVILY_API_KEY_SSM_PARAMETER: TAVILY_API_KEY_SSM_PARAMETER,
         SNS_TOPIC_ARN: notificationTopic.topicArn,
         ...(props.bedrockModelID && { BEDROCK_MODEL_ID: props.bedrockModelID }),
       },
     })
 
-    // Outputs
+    if (props.schedules && props.schedules.length > 0) {
+      const dlq = new Queue(this, 'Scheduler-dlq', {
+        queueName: `${this.stackName}-scheduler-dlq`,
+        retentionPeriod: Duration.days(14),
+      })
+
+      for (const [index, config] of props.schedules.entries()) {
+        const payload: Record<string, string> = { company: config.company }
+        if (config.title) payload.title = config.title
+        if (config.location) payload.location = config.location
+
+        const scheduleExpr = config.schedule
+          ? ScheduleExpression.expression(config.schedule)
+          : ScheduleExpression.rate(Duration.days(7))
+
+        new Schedule(this, `Schedule-${index}`, {
+          schedule: scheduleExpr,
+          scheduleName: `${this.stackName}-Schedule-${index}`,
+          target: new Universal({
+            service: 'bedrockagentcore',
+            action: 'invokeAgentRuntime',
+            input: ScheduleTargetInput.fromObject({
+              AgentRuntimeArn: runtime.agentRuntimeArn,
+              Payload: JSON.stringify(payload),
+            }),
+            policyStatements: [
+              new PolicyStatement({
+                actions: ['bedrock-agentcore:InvokeAgentRuntime'],
+                resources: [`${runtime.agentRuntimeArn}*`],
+              }),
+            ],
+            retryAttempts: 0,
+            deadLetterQueue: dlq,
+          }),
+          timeWindow: TimeWindow.flexible(Duration.hours(2)),
+          description: `Job search: ${config.company}`,
+        })
+      }
+    }
+
     new CfnOutput(this, 'RuntimeId', {
       description: 'AgentCore Runtime ID',
       value: runtime.agentRuntimeId,

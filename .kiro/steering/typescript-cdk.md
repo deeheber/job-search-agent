@@ -21,7 +21,7 @@ import * as cdk from "aws-cdk-lib";
 
 ## Stack Patterns
 
-**Structure**: IAM roles → AgentCore Runtime → Outputs
+**Structure**: IAM roles → AgentCore Runtime → EventBridge Schedules → Outputs
 **Naming**: PascalCase construct IDs, underscore for runtime names
 **Environment**: Auto-detect from AWS CLI
 
@@ -50,7 +50,7 @@ import * as cdk from "aws-cdk-lib";
 
 ## Dependencies
 
-**Core**: aws-cdk-lib, aws-bedrock-agentcore-alpha, constructs
+**Core**: aws-cdk-lib (including aws-scheduler, aws-scheduler-targets), aws-bedrock-agentcore-alpha, constructs
 **Dev**: TypeScript, ESLint, Prettier, Jest, aws-cdk CLI
 **Regions**: us-west-2, us-east-1 (ensure AgentCore availability)
 

@@ -178,11 +178,28 @@ The repo includes GitHub Actions workflows for automated testing and deployment.
 
 Now every push to main runs tests and deploys automatically.
 
-## What's Next
+## Set Up Scheduled Searches (Optional)
 
-The agent currently does one-off lookups. Future enhancements:
+Automate periodic job searches with EventBridge Scheduler. Add a `SCHEDULES` env var to `agent/.env` with a JSON array of companies to monitor:
 
-- **Scheduled checks**: Use EventBridge to run searches periodically
+```bash
+SCHEDULES=[{"company":"Google","title":"Software Engineer","location":"Remote"},{"company":"Meta","schedule":"rate(14 days)"}]
+```
+
+Each entry creates an EventBridge schedule that invokes the agent automatically. Fields:
+
+- **`company`** (required): Company name to search
+- **`title`** (optional): Job title filter
+- **`location`** (optional): Location filter
+- **`schedule`** (optional): EventBridge expression — `cron(...)` or `rate(...)`. Defaults to `rate(7 days)`
+
+Then redeploy:
+
+```bash
+cd cdk && npm run cdk:deploy
+```
+
+The agent sends SNS notifications when it finds open positions, so pair this with `NOTIFICATION_EMAIL` for automated alerts.
 
 ## Clean Up
 

@@ -40,6 +40,7 @@ That's it. The agent fetches live job postings, extracts titles and links, and r
 - Searches career pages and job boards via Tavily API
 - Returns hiring status with position details
 - Optionally sends email alerts via SNS when companies are hiring
+- Scheduled searches via EventBridge for automated monitoring
 - Tracks when jobs were posted
 
 **Example:** `{"company": "Stripe", "title": "Engineer"}` → List of engineering roles at Stripe with application links.
