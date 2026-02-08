@@ -6,12 +6,11 @@ on:
   pull_request:
     branches: main
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   test-cdk:
+    concurrency:
+      group: test-cdk-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -59,6 +58,9 @@ jobs:
           LOG_LEVEL: INFO
 
   deploy:
+    concurrency:
+      group: deploy-cdk
+      cancel-in-progress: false
     needs: test-cdk
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
