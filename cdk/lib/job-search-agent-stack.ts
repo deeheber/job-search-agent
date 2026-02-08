@@ -33,7 +33,7 @@ export interface ScheduleConfig {
 
 interface AgentStackProps extends StackProps {
   bedrockModelID?: string | undefined
-  notificationEmail?: string | undefined
+  notificationEmails?: string[] | undefined
   schedules?: ScheduleConfig[] | undefined
 }
 
@@ -123,8 +123,8 @@ export class JobSearchAgentStack extends Stack {
       displayName: 'Job Search Agent Notifications',
     })
 
-    if (props.notificationEmail) {
-      notificationTopic.addSubscription(new EmailSubscription(props.notificationEmail))
+    for (const email of props.notificationEmails ?? []) {
+      notificationTopic.addSubscription(new EmailSubscription(email))
     }
 
     notificationTopic.grantPublish(agentRole)

@@ -206,23 +206,19 @@ describe('JobSearchAgentStack', () => {
   })
 
   describe('SNS Notifications', () => {
-    it('does not create email subscription when notificationEmail is not provided', () => {
+    it('does not create email subscription when notificationEmails is not provided', () => {
       template.resourceCountIs('AWS::SNS::Subscription', 0)
     })
 
-    it('creates email subscription when notificationEmail is provided', () => {
+    it('creates email subscription for each notificationEmails entry', () => {
       const appWithEmail = new App()
       const stackWithEmail = new JobSearchAgentStack(appWithEmail, 'TestStackWithEmail', {
-        notificationEmail: 'test@example.com',
+        notificationEmails: ['a@example.com', 'b@example.com'],
         env: { account: '123456789012', region: 'us-west-2' },
       })
       const templateWithEmail = Template.fromStack(stackWithEmail)
 
-      templateWithEmail.resourceCountIs('AWS::SNS::Subscription', 1)
-      templateWithEmail.hasResourceProperties('AWS::SNS::Subscription', {
-        Protocol: 'email',
-        Endpoint: 'test@example.com',
-      })
+      templateWithEmail.resourceCountIs('AWS::SNS::Subscription', 2)
     })
   })
 

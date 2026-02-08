@@ -12,7 +12,7 @@ const {
   CDK_DEFAULT_ACCOUNT,
   CDK_DEFAULT_REGION,
   BEDROCK_MODEL_ID,
-  NOTIFICATION_EMAIL,
+  NOTIFICATION_EMAILS,
   SCHEDULES,
   STACK_NAME,
 } = process.env
@@ -22,8 +22,9 @@ const region = CDK_DEFAULT_REGION ?? AWS_DEFAULT_REGION
 // Use || instead of ?? to treat empty strings (from unset GitHub vars) as undefined
 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 const bedrockModelID = BEDROCK_MODEL_ID || undefined
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const notificationEmail = NOTIFICATION_EMAIL || undefined
+const notificationEmails = NOTIFICATION_EMAILS?.split(',')
+  .map((e) => e.trim())
+  .filter(Boolean)
 const schedules: ScheduleConfig[] | undefined = SCHEDULES
   ? (JSON.parse(SCHEDULES) as ScheduleConfig[])
   : undefined
@@ -43,7 +44,7 @@ const app = new App()
 new JobSearchAgentStack(app, stackName, {
   description: 'Job Search Agent infrastructure',
   bedrockModelID,
-  notificationEmail,
+  notificationEmails,
   schedules,
   env: { account, region },
 })

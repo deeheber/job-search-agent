@@ -63,7 +63,7 @@ jobs:
       cancel-in-progress: false
     needs: test-cdk
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       id-token: write
       contents: read
@@ -84,11 +84,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Set up QEMU for ARM64 Docker builds
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
       - name: Configure AWS credentials from OIDC
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -99,7 +94,7 @@ jobs:
       - name: Deploy
         run: npm run cdk:deploy:ci
         env:
-          NOTIFICATION_EMAIL: ${{ vars.NOTIFICATION_EMAIL }}
+          NOTIFICATION_EMAILS: ${{ vars.NOTIFICATION_EMAILS }}
           SCHEDULES: ${{ vars.SCHEDULES }}
           BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID }}
           STACK_NAME: ${{ vars.STACK_NAME }}
