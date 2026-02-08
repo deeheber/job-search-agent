@@ -57,3 +57,9 @@ jobs:
         run: npm run cdk:synth
         env:
           LOG_LEVEL: INFO
+
+      - name: cdk deploy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npm run cdk:deploy:ci
+        env:
+          LOG_LEVEL: INFO
