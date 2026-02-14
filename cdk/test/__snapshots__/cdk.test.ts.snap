@@ -54,84 +54,6 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
           ],
           "Version": "2012-10-17",
         },
-        "Policies": [
-          {
-            "PolicyDocument": {
-              "Statement": [
-                {
-                  "Action": [
-                    "ecr:BatchGetImage",
-                    "ecr:GetDownloadUrlForLayer",
-                    "ecr:BatchCheckLayerAvailability",
-                    "ecr:GetAuthorizationToken",
-                  ],
-                  "Effect": "Allow",
-                  "Resource": [
-                    "arn:aws:ecr:us-west-2:123456789012:repository/cdk-*",
-                    "*",
-                  ],
-                  "Sid": "ECRAccess",
-                },
-                {
-                  "Action": [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents",
-                  ],
-                  "Effect": "Allow",
-                  "Resource": "arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/*",
-                  "Sid": "CloudWatchLogs",
-                },
-                {
-                  "Action": [
-                    "xray:PutTraceSegments",
-                    "xray:PutTelemetryRecords",
-                    "cloudwatch:PutMetricData",
-                  ],
-                  "Condition": {
-                    "StringEquals": {
-                      "cloudwatch:namespace": "bedrock-agentcore",
-                    },
-                  },
-                  "Effect": "Allow",
-                  "Resource": "*",
-                  "Sid": "Observability",
-                },
-                {
-                  "Action": [
-                    "bedrock:InvokeModel",
-                    "bedrock:InvokeModelWithResponseStream",
-                  ],
-                  "Effect": "Allow",
-                  "Resource": [
-                    "arn:aws:bedrock:*::foundation-model/*",
-                    "arn:aws:bedrock:us-west-2:123456789012:inference-profile/*",
-                  ],
-                  "Sid": "BedrockModels",
-                },
-                {
-                  "Action": "ssm:GetParameter",
-                  "Effect": "Allow",
-                  "Resource": "arn:aws:ssm:us-west-2:123456789012:parameter/job-search-agent/tavily-api-key",
-                  "Sid": "SSMParameterAccess",
-                },
-                {
-                  "Action": "kms:Decrypt",
-                  "Condition": {
-                    "StringEquals": {
-                      "kms:ViaService": "ssm.us-west-2.amazonaws.com",
-                    },
-                  },
-                  "Effect": "Allow",
-                  "Resource": "*",
-                  "Sid": "KMSDecrypt",
-                },
-              ],
-              "Version": "2012-10-17",
-            },
-            "PolicyName": "AgentCorePolicy",
-          },
-        ],
         "RoleName": "TestJobSearchAgentStack-AgentCoreRole",
       },
       "Type": "AWS::IAM::Role",
@@ -140,6 +62,35 @@ exports[`JobSearchAgentStack CloudFormation Template Snapshot matches the expect
       "Properties": {
         "PolicyDocument": {
           "Statement": [
+            {
+              "Action": [
+                "bedrock:InvokeModel",
+                "bedrock:InvokeModelWithResponseStream",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:bedrock:*::foundation-model/*",
+                "arn:aws:bedrock:us-west-2:123456789012:inference-profile/*",
+              ],
+              "Sid": "BedrockModels",
+            },
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": "arn:aws:ssm:us-west-2:123456789012:parameter/job-search-agent/tavily-api-key",
+              "Sid": "SSMParameterAccess",
+            },
+            {
+              "Action": "kms:Decrypt",
+              "Condition": {
+                "StringEquals": {
+                  "kms:ViaService": "ssm.us-west-2.amazonaws.com",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": "*",
+              "Sid": "KMSDecrypt",
+            },
             {
               "Action": "sns:Publish",
               "Effect": "Allow",

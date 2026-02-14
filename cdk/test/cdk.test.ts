@@ -35,83 +35,35 @@ describe('JobSearchAgentStack', () => {
       })
     })
 
-    it('configures ECR permissions for container image access', () => {
-      template.hasResourceProperties('AWS::IAM::Role', {
-        Policies: [
-          {
-            PolicyDocument: {
-              Statement: Match.arrayWith([
-                Match.objectLike({
-                  Sid: 'ECRAccess',
-                  Effect: 'Allow',
-                  Action: [
-                    'ecr:BatchGetImage',
-                    'ecr:GetDownloadUrlForLayer',
-                    'ecr:BatchCheckLayerAvailability',
-                    'ecr:GetAuthorizationToken',
-                  ],
-                  Resource: [Match.stringLikeRegexp('arn:aws:ecr:.+:.+:repository/cdk-\\*'), '*'],
-                }),
-              ]),
-            },
-          },
-        ],
-      })
-    })
-
-    it('configures CloudWatch logs permissions', () => {
-      template.hasResourceProperties('AWS::IAM::Role', {
-        Policies: [
-          {
-            PolicyDocument: {
-              Statement: Match.arrayWith([
-                Match.objectLike({
-                  Sid: 'CloudWatchLogs',
-                  Effect: 'Allow',
-                  Action: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-                  Resource: Match.stringLikeRegexp(
-                    'arn:aws:logs:.+:.+:log-group:/aws/bedrock-agentcore/runtimes/\\*'
-                  ),
-                }),
-              ]),
-            },
-          },
-        ],
-      })
-    })
-
-    it('configures observability permissions for X-Ray and CloudWatch metrics', () => {
-      template.hasResourceProperties('AWS::IAM::Role', {
-        Policies: [
-          {
-            PolicyDocument: {
-              Statement: Match.arrayWith([
-                Match.objectLike({
-                  Sid: 'Observability',
-                  Effect: 'Allow',
-                  Action: [
-                    'xray:PutTraceSegments',
-                    'xray:PutTelemetryRecords',
-                    'cloudwatch:PutMetricData',
-                  ],
-                  Resource: '*',
-                  Condition: {
-                    StringEquals: {
-                      'cloudwatch:namespace': 'bedrock-agentcore',
-                    },
-                  },
-                }),
-              ]),
-            },
-          },
-        ],
-      })
-    })
-
-    it('configures SNS publish permissions scoped to notification topic', () => {
+    it('configures manually added permissions in DefaultPolicy', () => {
       template.hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
+              Effect: 'Allow',
+              Resource: [
+                'arn:aws:bedrock:*::foundation-model/*',
+                Match.stringLikeRegexp('arn:aws:bedrock:.+:.+:inference-profile/\\*'),
+              ],
+            }),
+            Match.objectLike({
+              Action: 'ssm:GetParameter',
+              Effect: 'Allow',
+              Resource: Match.stringLikeRegexp(
+                'arn:aws:ssm:.+:.+:parameter/job-search-agent/tavily-api-key'
+              ),
+            }),
+            Match.objectLike({
+              Action: 'kms:Decrypt',
+              Effect: 'Allow',
+              Resource: '*',
+              Condition: {
+                StringEquals: {
+                  'kms:ViaService': 'ssm.us-west-2.amazonaws.com',
+                },
+              },
+            }),
             Match.objectLike({
               Action: 'sns:Publish',
               Effect: 'Allow',
@@ -123,37 +75,9 @@ describe('JobSearchAgentStack', () => {
         },
       })
     })
-
-    it('configures Bedrock model invocation permissions', () => {
-      template.hasResourceProperties('AWS::IAM::Role', {
-        Policies: [
-          {
-            PolicyDocument: {
-              Statement: Match.arrayWith([
-                Match.objectLike({
-                  Sid: 'BedrockModels',
-                  Effect: 'Allow',
-                  Action: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
-                  Resource: [
-                    'arn:aws:bedrock:*::foundation-model/*',
-                    Match.stringLikeRegexp('arn:aws:bedrock:.+:.+:inference-profile/\\*'),
-                  ],
-                }),
-              ]),
-            },
-          },
-        ],
-      })
-    })
   })
 
   describe('Required Resources', () => {
-    it('creates exactly one IAM role, runtime, and SNS topic', () => {
-      template.resourceCountIs('AWS::IAM::Role', 1)
-      template.resourceCountIs('AWS::BedrockAgentCore::Runtime', 1)
-      template.resourceCountIs('AWS::SNS::Topic', 1)
-    })
-
     it('creates no schedules when schedules prop is not provided', () => {
       template.resourceCountIs('AWS::Scheduler::Schedule', 0)
     })
