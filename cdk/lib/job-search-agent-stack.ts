@@ -1,11 +1,5 @@
 import { Stack, StackProps, CfnOutput, Duration } from 'aws-cdk-lib'
-import {
-  Role,
-  ServicePrincipal,
-  PolicyDocument,
-  PolicyStatement,
-  Effect,
-} from 'aws-cdk-lib/aws-iam'
+import { Role, ServicePrincipal, PolicyStatement } from 'aws-cdk-lib/aws-iam'
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets'
 import { Topic } from 'aws-cdk-lib/aws-sns'
 import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions'
@@ -44,79 +38,42 @@ export class JobSearchAgentStack extends Stack {
     const agentRole = new Role(this, 'AgentCoreRole', {
       roleName: `${this.stackName}-AgentCoreRole`,
       assumedBy: new ServicePrincipal('bedrock-agentcore.amazonaws.com'),
-      inlinePolicies: {
-        AgentCorePolicy: new PolicyDocument({
-          statements: [
-            new PolicyStatement({
-              sid: 'ECRAccess',
-              effect: Effect.ALLOW,
-              actions: [
-                'ecr:BatchGetImage',
-                'ecr:GetDownloadUrlForLayer',
-                'ecr:BatchCheckLayerAvailability',
-                'ecr:GetAuthorizationToken',
-              ],
-              resources: [
-                `arn:aws:ecr:${this.region}:${this.account}:repository/cdk-*`,
-                '*', // GetAuthorizationToken requires wildcard
-              ],
-            }),
-            new PolicyStatement({
-              sid: 'CloudWatchLogs',
-              effect: Effect.ALLOW,
-              actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-              resources: [
-                `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/*`,
-              ],
-            }),
-            new PolicyStatement({
-              sid: 'Observability',
-              effect: Effect.ALLOW,
-              actions: [
-                'xray:PutTraceSegments',
-                'xray:PutTelemetryRecords',
-                'cloudwatch:PutMetricData',
-              ],
-              resources: ['*'],
-              conditions: {
-                StringEquals: {
-                  'cloudwatch:namespace': 'bedrock-agentcore',
-                },
-              },
-            }),
-            // TODO: scope down to models used
-            new PolicyStatement({
-              sid: 'BedrockModels',
-              effect: Effect.ALLOW,
-              actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
-              resources: [
-                'arn:aws:bedrock:*::foundation-model/*',
-                `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/*`,
-              ],
-            }),
-            new PolicyStatement({
-              sid: 'SSMParameterAccess',
-              effect: Effect.ALLOW,
-              actions: ['ssm:GetParameter'],
-              resources: [
-                `arn:aws:ssm:${this.region}:${this.account}:parameter${TAVILY_API_KEY_SSM_PARAMETER}`,
-              ],
-            }),
-            new PolicyStatement({
-              sid: 'KMSDecrypt',
-              effect: Effect.ALLOW,
-              actions: ['kms:Decrypt'],
-              resources: ['*'],
-              conditions: {
-                StringEquals: {
-                  'kms:ViaService': `ssm.${this.region}.amazonaws.com`,
-                },
-              },
-            }),
-          ],
-        }),
-      },
     })
+
+    agentRole.addToPolicy(
+      new PolicyStatement({
+        sid: 'BedrockModels',
+        actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
+        resources: [
+          'arn:aws:bedrock:*::foundation-model/*',
+          `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/*`,
+        ],
+      })
+    )
+
+    agentRole.addToPolicy(
+      new PolicyStatement({
+        sid: 'SSMParameterAccess',
+        actions: ['ssm:GetParameter'],
+        resources: [
+          `arn:aws:ssm:${this.region}:${this.account}:parameter${TAVILY_API_KEY_SSM_PARAMETER}`,
+        ],
+      })
+    )
+
+    // KMS Decrypt for SSM parameter encryption
+    agentRole.addToPolicy(
+      new PolicyStatement({
+        sid: 'KMSDecrypt',
+        actions: ['kms:Decrypt'],
+        resources: ['*'],
+        conditions: {
+          StringEquals: {
+            'kms:ViaService': `ssm.${this.region}.amazonaws.com`,
+          },
+        },
+      })
+    )
 
     const notificationTopic = new Topic(this, 'JobSearchNotificationTopic', {
       topicName: `${this.stackName}-notify`,
