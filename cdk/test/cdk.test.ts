@@ -39,7 +39,6 @@ describe('JobSearchAgentStack', () => {
       template.hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: Match.arrayWith([
-            // Bedrock InvokeModel
             Match.objectLike({
               Action: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
               Effect: 'Allow',
@@ -48,7 +47,6 @@ describe('JobSearchAgentStack', () => {
                 Match.stringLikeRegexp('arn:aws:bedrock:.+:.+:inference-profile/\\*'),
               ],
             }),
-            // SSM GetParameter for Tavily API key
             Match.objectLike({
               Action: 'ssm:GetParameter',
               Effect: 'Allow',
@@ -56,7 +54,6 @@ describe('JobSearchAgentStack', () => {
                 'arn:aws:ssm:.+:.+:parameter/job-search-agent/tavily-api-key'
               ),
             }),
-            // KMS Decrypt for SSM parameter encryption
             Match.objectLike({
               Action: 'kms:Decrypt',
               Effect: 'Allow',
@@ -67,7 +64,6 @@ describe('JobSearchAgentStack', () => {
                 },
               },
             }),
-            // SNS Publish
             Match.objectLike({
               Action: 'sns:Publish',
               Effect: 'Allow',
