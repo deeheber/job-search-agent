@@ -58,3 +58,5 @@ That's it. The agent fetches live job postings, extracts titles and links, and r
 **Want to see how the AWS infra is set up?** See [cdk/README.md](cdk/README.md)
 
 **Ready to deploy to AWS?** See [DEPLOYMENT.md](DEPLOYMENT.md)
+
+**Want a more detailed write up of the background of how this came to be?** Read [this blogpost](https://danielleheberling.xyz/blog/job-search-agent/)
