@@ -15,30 +15,20 @@ const envSchema = z
     SCHEDULES: z.string().optional(),
     STACK_NAME: z.string().default('JobSearchAgentStack'),
   })
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-  .refine((data) => data.CDK_DEFAULT_ACCOUNT || data.AWS_DEFAULT_ACCOUNT_ID, {
+  .refine((data) => data.CDK_DEFAULT_ACCOUNT ?? data.AWS_DEFAULT_ACCOUNT_ID, {
     message:
-      'AWS account not found. Please configure AWS CLI credentials by running "aws configure",' +
-      ' set AWS_PROFILE environment variable, or set CDK_DEFAULT_ACCOUNT/CDK_DEFAULT_REGION' +
-      ' environment variables.',
+      '❌ AWS account not found. Please configure AWS CLI credentials by running "aws configure", set AWS_PROFILE environment variable, or set CDK_DEFAULT_ACCOUNT environment variable.',
   })
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-  .refine((data) => data.CDK_DEFAULT_REGION || data.AWS_DEFAULT_REGION, {
+  .refine((data) => data.CDK_DEFAULT_REGION ?? data.AWS_DEFAULT_REGION, {
     message:
-      'AWS region not found. Please configure AWS CLI credentials by running "aws configure",' +
-      ' set AWS_PROFILE environment variable, or set CDK_DEFAULT_ACCOUNT/CDK_DEFAULT_REGION' +
-      ' environment variables.',
+      '❌ AWS region not found. Please configure AWS CLI credentials by running "aws configure", set AWS_PROFILE environment variable, or set CDK_DEFAULT_REGION environment variable.',
   })
 
 const env = envSchema.parse(process.env)
 
-// Use || instead of ?? to treat empty strings (from unset GitHub vars) as undefined
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const account = (env.CDK_DEFAULT_ACCOUNT || env.AWS_DEFAULT_ACCOUNT_ID)!
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const region = (env.CDK_DEFAULT_REGION || env.AWS_DEFAULT_REGION)!
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const bedrockModelID = env.BEDROCK_MODEL_ID || undefined
+const account = (env.CDK_DEFAULT_ACCOUNT ?? env.AWS_DEFAULT_ACCOUNT_ID)!
+const region = (env.CDK_DEFAULT_REGION ?? env.AWS_DEFAULT_REGION)!
+const bedrockModelID = env.BEDROCK_MODEL_ID ?? undefined
 const notificationEmails = env.NOTIFICATION_EMAILS?.split(',')
   .map((e) => e.trim())
   .filter(Boolean)

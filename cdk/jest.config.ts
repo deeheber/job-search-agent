@@ -5,7 +5,10 @@ const config: Config = {
   roots: ['<rootDir>/test'],
   testMatch: ['**/*.test.ts'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.tsx?$': [
+      '@swc/jest',
+      { jsc: { parser: { syntax: 'typescript', decorators: true }, target: 'es2023' } },
+    ],
   },
   collectCoverageFrom: ['lib/**/*.ts'],
   coveragePathIgnorePatterns: ['/node_modules/'],
