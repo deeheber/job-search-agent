@@ -1,47 +1,53 @@
 #!/usr/bin/env node
-import * as dotenv from 'dotenv'
-import path from 'path'
 import { App } from 'aws-cdk-lib'
+import { z } from 'zod'
+
 import { JobSearchAgentStack, ScheduleConfig } from '../lib/job-search-agent-stack'
 
-dotenv.config({ path: path.join(__dirname, '../../agent/.env') })
+const envSchema = z
+  .object({
+    CDK_DEFAULT_ACCOUNT: z.string().optional(),
+    CDK_DEFAULT_REGION: z.string().optional(),
+    AWS_DEFAULT_ACCOUNT_ID: z.string().optional(),
+    AWS_DEFAULT_REGION: z.string().optional(),
+    BEDROCK_MODEL_ID: z.string().optional(),
+    NOTIFICATION_EMAILS: z.string().optional(),
+    SCHEDULES: z.string().optional(),
+    STACK_NAME: z.string().default('JobSearchAgentStack'),
+  })
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  .refine((data) => data.CDK_DEFAULT_ACCOUNT || data.AWS_DEFAULT_ACCOUNT_ID, {
+    message:
+      'AWS account not found. Please configure AWS CLI credentials by running "aws configure",' +
+      ' set AWS_PROFILE environment variable, or set CDK_DEFAULT_ACCOUNT/CDK_DEFAULT_REGION' +
+      ' environment variables.',
+  })
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  .refine((data) => data.CDK_DEFAULT_REGION || data.AWS_DEFAULT_REGION, {
+    message:
+      'AWS region not found. Please configure AWS CLI credentials by running "aws configure",' +
+      ' set AWS_PROFILE environment variable, or set CDK_DEFAULT_ACCOUNT/CDK_DEFAULT_REGION' +
+      ' environment variables.',
+  })
 
-const {
-  AWS_DEFAULT_ACCOUNT_ID,
-  AWS_DEFAULT_REGION,
-  CDK_DEFAULT_ACCOUNT,
-  CDK_DEFAULT_REGION,
-  BEDROCK_MODEL_ID,
-  NOTIFICATION_EMAILS,
-  SCHEDULES,
-  STACK_NAME,
-} = process.env
+const env = envSchema.parse(process.env)
 
-const account = CDK_DEFAULT_ACCOUNT ?? AWS_DEFAULT_ACCOUNT_ID
-const region = CDK_DEFAULT_REGION ?? AWS_DEFAULT_REGION
 // Use || instead of ?? to treat empty strings (from unset GitHub vars) as undefined
 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const bedrockModelID = BEDROCK_MODEL_ID || undefined
-const notificationEmails = NOTIFICATION_EMAILS?.split(',')
+const account = (env.CDK_DEFAULT_ACCOUNT || env.AWS_DEFAULT_ACCOUNT_ID)!
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const region = (env.CDK_DEFAULT_REGION || env.AWS_DEFAULT_REGION)!
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const bedrockModelID = env.BEDROCK_MODEL_ID || undefined
+const notificationEmails = env.NOTIFICATION_EMAILS?.split(',')
   .map((e) => e.trim())
   .filter(Boolean)
-const schedules: ScheduleConfig[] | undefined = SCHEDULES
-  ? (JSON.parse(SCHEDULES) as ScheduleConfig[])
+const schedules: ScheduleConfig[] | undefined = env.SCHEDULES
+  ? (JSON.parse(env.SCHEDULES) as ScheduleConfig[])
   : undefined
 
-if (!account || !region) {
-  throw new Error(
-    `❌ AWS account and region not found.
-
-🔧 Please configure AWS CLI credentials by running "aws configure", set AWS_PROFILE environment variable, or set CDK_DEFAULT_ACCOUNT/CDK_DEFAULT_REGION environment variables.`
-  )
-}
-
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const stackName = STACK_NAME || 'JobSearchAgentStack'
-
 const app = new App()
-new JobSearchAgentStack(app, stackName, {
+new JobSearchAgentStack(app, env.STACK_NAME, {
   description: 'Job Search Agent infrastructure',
   bedrockModelID,
   notificationEmails,
