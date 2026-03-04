@@ -10,10 +10,23 @@ const envSchema = z
     CDK_DEFAULT_REGION: z.string().optional(),
     AWS_DEFAULT_ACCOUNT_ID: z.string().optional(),
     AWS_DEFAULT_REGION: z.string().optional(),
-    BEDROCK_MODEL_ID: z.string().optional(),
-    NOTIFICATION_EMAILS: z.string().optional(),
-    SCHEDULES: z.string().optional(),
-    STACK_NAME: z.string().default('JobSearchAgentStack'),
+    BEDROCK_MODEL_ID: z
+      .string()
+      .transform((s) => (s === '' ? undefined : s))
+      .optional(),
+    NOTIFICATION_EMAILS: z
+      .string()
+      .transform((s) => (s === '' ? undefined : s))
+      .optional(),
+    SCHEDULES: z
+      .string()
+      .transform((s) => (s === '' ? undefined : s))
+      .optional(),
+    STACK_NAME: z
+      .string()
+      .transform((s) => (s === '' ? undefined : s))
+      .optional()
+      .default('JobSearchAgentStack'),
   })
   .refine((data) => data.CDK_DEFAULT_ACCOUNT ?? data.AWS_DEFAULT_ACCOUNT_ID, {
     message:
