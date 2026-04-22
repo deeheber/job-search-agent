@@ -126,7 +126,7 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 Want to use a different Bedrock model? Edit `cdk/.env`:
 
 ```bash
-BEDROCK_MODEL_ID=us.anthropic.claude-3-5-sonnet-20241022-v2:0
+BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
 ```
 
 Then redeploy: `npm run cdk:deploy`
