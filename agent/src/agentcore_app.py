@@ -20,7 +20,7 @@ if os.path.exists(".env"):
     except ImportError:
         pass  # Optional dependency for local development
 
-DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
