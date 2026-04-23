@@ -28,7 +28,7 @@ Takes a few minutes. The stack builds a Docker image from `../agent`, pushes it 
 - **IAM Role** - Permissions for Bedrock models, SSM parameter read, KMS decrypt (for SSM), and SNS publish
 - **ECR Repository** - Auto-created by the Docker asset to store the agent image
 - **SNS Topic** - Receives hiring notifications; email subscriptions added when `NOTIFICATION_EMAILS` is set
-- **EventBridge Schedules + SQS DLQ** *(optional)* - Created when `SCHEDULES` is set, one schedule per entry
+- **EventBridge Schedules + SQS DLQ** _(optional)_ - Created when `SCHEDULES` is set, one schedule per entry
 
 The stack outputs `RuntimeId`, `RuntimeArn`, `TavilyApiKeyParameter`, and `NotificationTopicArn`.
 
