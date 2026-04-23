@@ -123,7 +123,7 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 
 ## Change the Model
 
-Want to use a different Bedrock model? Edit `cdk/.env`:
+Want to use a different Bedrock model? Edit `agent/.env`:
 
 ```bash
 BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6

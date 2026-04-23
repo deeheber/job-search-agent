@@ -1,6 +1,6 @@
 # CDK Infrastructure
 
-The TypeScript side that deploys everything to AWS. This creates the AgentCore Runtime, IAM roles, and CloudWatch logging.
+The TypeScript side that deploys everything to AWS. This creates the AgentCore Runtime, IAM role, SNS topic for notifications, and (optionally) EventBridge schedules.
 
 ## Prerequisites
 
@@ -25,11 +25,12 @@ Takes a few minutes. The stack builds a Docker image from `../agent`, pushes it 
 ## What Gets Created
 
 - **AgentCore Runtime** - Serverless container that runs your agent
-- **IAM Role** - Permissions for Bedrock models, CloudWatch, X-Ray, and SSM
-- **ECR Repository** - Stores the agent Docker image
-- **CloudWatch Logs** - Agent execution logs and traces
+- **IAM Role** - Permissions for Bedrock models, SSM parameter read, KMS decrypt (for SSM), and SNS publish
+- **ECR Repository** - Auto-created by the Docker asset to store the agent image
+- **SNS Topic** - Receives hiring notifications; email subscriptions added when `NOTIFICATION_EMAILS` is set
+- **EventBridge Schedules + SQS DLQ** _(optional)_ - Created when `SCHEDULES` is set, one schedule per entry
 
-The stack outputs `RuntimeId` and `RuntimeArn` for testing.
+The stack outputs `RuntimeId`, `RuntimeArn`, `TavilyApiKeyParameter`, and `NotificationTopicArn`.
 
 ## Development
 
@@ -49,13 +50,13 @@ The stack follows this pattern:
 
 1. **IAM roles** - Set up permissions first
 2. **Core resources** - AgentCore Runtime with Docker build
-3. **Outputs** - Export RuntimeId and RuntimeArn
+3. **Outputs** - Export RuntimeId, RuntimeArn, TavilyApiKeyParameter, and NotificationTopicArn
 
 All imports are explicit (no wildcards), and we use TypeScript strict mode.
 
 ## Customization
 
-Want to change the model? Set `BEDROCK_MODEL_ID` in the stack's environment variables in `lib/job-search-agent-stack.ts`.
+Want to change the model? Set `BEDROCK_MODEL_ID` in `agent/.env`, then run `npm run cdk:deploy`.
 
 ## Next Steps
 

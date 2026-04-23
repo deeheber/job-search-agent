@@ -76,7 +76,7 @@ The quality check script auto-fixes most issues. Run it before committing.
 Right now we're using community tools, but you can add custom ones in `src/tools/`:
 
 ```python
-from strands.agent import tool
+from strands import tool
 
 @tool
 def parse_greenhouse_api(company_id: str) -> dict:
