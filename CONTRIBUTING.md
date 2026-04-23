@@ -91,8 +91,8 @@ npm run format
 **Deploying to AWS:**
 
 ```bash
-cdk synth    # Generate CloudFormation
-cdk deploy   # Deploy to AWS
+npm run cdk:synth    # Generate CloudFormation
+npm run cdk:deploy   # Deploy to AWS
 ```
 
 ## Code Standards
@@ -109,7 +109,7 @@ cdk deploy   # Deploy to AWS
 
 - **Formatter**: Prettier
 - **Linter**: ESLint
-- **Testing**: Jest with snapshot testing
+- **Testing**: Vitest with snapshot testing
 - **Imports**: Use explicit imports, avoid wildcards
 
 **Good TypeScript imports:**
@@ -164,7 +164,7 @@ The agent uses community tools from `strands-agents-tools`:
 
 **CDK tests:**
 
-- Use Jest with snapshot testing
+- Use Vitest with snapshot testing
 - Test IAM policies, resource configurations, and security settings
 - Update snapshots when infrastructure changes are intentional
 
@@ -231,10 +231,10 @@ Our GitHub Actions workflows will automatically:
 - Lint with ruff
 - Format check with black
 
-**CDK Infrastructure CI (`cdk-ci.yml`):**
+**CDK Infrastructure CI (`cdk-ci-cd.yml`):**
 
 - Build TypeScript
-- Run Jest tests
+- Run Vitest tests
 - Lint with ESLint
 - Format check with Prettier
 
