@@ -1,0 +1,42 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Migrate from pip to uv: update Dockerfile, GitHub Actions workflow, quality-check.sh, .gitignore, .dockerignore, commit uv.lock, and update all documentation",
+  "status": "pending",
+  "steps": [
+    "Step 1 - Generate and commit uv.lock: Run 'uv lock' in agent/ directory to generate the lockfile. The uv.lock file must be committed to version control.",
+    "Step 2 - Update agent/Dockerfile to use uv instead of pip. Follow uv Docker best practices: use 'COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/' to install uv binary. Copy pyproject.toml and uv.lock first, run 'uv sync --locked --no-dev --no-editable' to install dependencies (uses lockfile for reproducibility). Keep the python:3.13-slim base image. Set ENV UV_COMPILE_BYTECODE=1 and ENV UV_LINK_MODE=copy for Docker optimization. Place the .venv bin on PATH with 'ENV PATH=/app/.venv/bin:$PATH'. Keep the appuser setup. The final CMD should use the venv directly (no uv run needed since PATH is set): CMD [\"opentelemetry-instrument\", \"python\", \"agentcore_app.py\"]. Copy src/ after syncing deps for layer caching.",
+    "Step 3 - Update .github/workflows/agent-ci.yml: Replace setup-python pip caching and 'pip install' with uv. Use 'astral-sh/setup-uv@v5' action to install uv. Keep 'actions/setup-python@v6' with python-version-file for Python itself but remove 'cache: pip' and 'cache-dependency-path'. Change 'Install dependencies' step to use 'uv sync --locked --dev'. Change all tool invocations to use 'uv run' prefix (e.g., 'uv run pytest -v --tb=short', 'uv run mypy src/', 'uv run ruff check .', 'uv run black --check .').",
+    "Step 4 - Update agent/quality-check.sh: Remove the virtual environment activation logic (uv handles this). Replace direct tool invocations with 'uv run' prefix (e.g., 'uv run pytest', 'uv run mypy src/', 'uv run ruff check --fix .', 'uv run black .'). Keep the pyproject.toml existence check. Remove the VIRTUAL_ENV and .venv activation block.",
+    "Step 5 - Update .gitignore: Add 'agent/uv.lock' should NOT be in gitignore (we want it committed). Ensure .venv is still ignored. No other changes needed since uv.lock should be tracked.",
+    "Step 6 - Update agent/.dockerignore: Add 'uv.lock' to the list of files that should NOT be ignored (ensure it is not excluded). Currently it does not exclude .toml or .lock files so this should be fine. Add '.venv/' if not already present (it is already covered by 'venv/' pattern but be explicit).",
+    "Step 7 - Update agent/README.md: Replace the 'First time setup' section. Change from 'python3.13 -m venv .venv / source .venv/bin/activate / pip install -e \".[dev]\"' to 'uv sync'. Update the 'Development Workflow' section to mention 'uv run' for running tools directly if desired.",
+    "Step 8 - Update CONTRIBUTING.md: In 'Set up the Python environment' section, change from 'python3.13 -m venv .venv / source .venv/bin/activate / pip install -e \".[dev]\"' to 'uv sync'. Update manual quality validation to use 'uv run' prefix. Add uv to Prerequisites list.",
+    "Step 9 - Update DEPLOYMENT.md: In 'Try It Locally First' section, change setup from 'python3.13 -m venv .venv / source .venv/bin/activate / pip install -e \".[dev]\"' to 'uv sync'. In 'What You Need' prerequisites, replace mention of pip or add uv.",
+    "Step 10 - Update root README.md: No pip-specific instructions appear in root README, so likely no changes needed. Verify and skip if clean."
+  ],
+  "acceptance_criteria": [
+    "agent/uv.lock exists and is committed",
+    "agent/Dockerfile uses uv instead of pip for dependency installation",
+    "agent/Dockerfile uses COPY --from=ghcr.io/astral-sh/uv:latest pattern",
+    "agent/Dockerfile uses 'uv sync --locked --no-dev --no-editable' for reproducible installs",
+    ".github/workflows/agent-ci.yml uses astral-sh/setup-uv action and 'uv sync --locked --dev'",
+    ".github/workflows/agent-ci.yml uses 'uv run' for all Python tool invocations",
+    "agent/quality-check.sh uses 'uv run' for tool invocations and has no pip/venv activation logic",
+    "agent/README.md documents uv-based setup (uv sync) instead of pip",
+    "CONTRIBUTING.md documents uv-based setup instead of pip",
+    "DEPLOYMENT.md documents uv-based local setup instead of pip",
+    "No references to 'pip install' remain in any modified file",
+    "All tests still pass: uv run pytest -v --tb=short in agent/",
+    "Type checking still passes: uv run mypy src/ in agent/",
+    "Linting still passes: uv run ruff check . in agent/",
+    "Formatting still passes: uv run black --check . in agent/"
+  ],
+  "verification": [
+    "cd /projects/sandbox/job-search-agent/agent && uv sync --locked && uv run pytest -v --tb=short && uv run mypy src/ && uv run ruff check . && uv run black --check .",
+    "grep -r 'pip install' /projects/sandbox/job-search-agent/agent/ /projects/sandbox/job-search-agent/.github/ /projects/sandbox/job-search-agent/CONTRIBUTING.md /projects/sandbox/job-search-agent/DEPLOYMENT.md should return no results",
+    "test -f /projects/sandbox/job-search-agent/agent/uv.lock"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

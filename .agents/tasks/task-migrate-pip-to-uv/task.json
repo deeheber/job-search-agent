@@ -1,0 +1,7 @@
+{
+  "task_id": "task-migrate-pip-to-uv",
+  "task_description": "Migrate from pip to uv for Python package management. Update Dockerfile, CI workflow, quality-check script, and all documentation. Generate and commit uv.lock. Remove all pip references.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}
