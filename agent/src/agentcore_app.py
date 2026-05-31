@@ -11,15 +11,6 @@ from strands_tools.tavily import tavily_search  # type: ignore[import-untyped]
 
 from secret_utils import get_tavily_api_key
 
-# Load environment variables from .env file for local development
-if os.path.exists(".env"):
-    try:
-        from dotenv import load_dotenv
-
-        load_dotenv()
-    except ImportError:
-        pass  # Optional dependency for local development
-
 DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()

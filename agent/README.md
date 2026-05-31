@@ -11,8 +11,8 @@ uv sync
 # Add your Tavily API key (get one at tavily.com)
 echo "TAVILY_API_KEY=tvly-xxxxx" > .env
 
-# Start the agent
-uv run python src/agentcore_app.py
+# Start the agent (loads .env automatically)
+uv run --env-file .env python src/agentcore_app.py
 ```
 
 The agent starts on `localhost:8080`. Test it with:
