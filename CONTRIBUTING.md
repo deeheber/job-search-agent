@@ -52,7 +52,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
 
 ```bash
 cd agent
-uv run python src/agentcore_app.py
+uv run --env-file .env python src/agentcore_app.py
 
 # Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
 ```

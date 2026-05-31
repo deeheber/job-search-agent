@@ -21,7 +21,7 @@ Always test before deploying. Set up your Tavily API key and start the agent:
 cd agent
 echo "TAVILY_API_KEY=tvly-xxxxx" > .env  # Add your Tavily API key
 uv sync
-uv run python src/agentcore_app.py
+uv run --env-file .env python src/agentcore_app.py
 ```
 
 In another terminal, send a test request:
@@ -136,7 +136,7 @@ See [Amazon Bedrock Model IDs](https://docs.aws.amazon.com/bedrock/latest/usergu
 
 1. Edit `agent/src/agentcore_app.py`
 2. Run `cd agent && ./quality-check.sh` (auto-fixes most issues)
-3. Test locally: `uv run python src/agentcore_app.py`
+3. Test locally: `uv run --env-file .env python src/agentcore_app.py`
 4. Deploy: `cd cdk && npm run cdk:deploy`
 
 The quality check runs mypy, ruff, black, and pytest. It'll catch most problems before deployment.

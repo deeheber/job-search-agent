@@ -17,7 +17,8 @@ Built with [Strands Agents](https://strandsagents.com) and deployed to Amazon Be
 # Run locally
 cd agent
 echo "TAVILY_API_KEY=your_key_here" > .env
-python src/agentcore_app.py
+uv sync
+uv run --env-file .env python src/agentcore_app.py
 
 # In another terminal window
 curl -X POST http://localhost:8080/invocations \
