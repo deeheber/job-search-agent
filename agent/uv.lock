@@ -814,20 +814,20 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aws-opentelemetry-distro", specifier = ">=0.14.2" },
-    { name = "bedrock-agentcore", specifier = ">=1.2.0" },
-    { name = "boto3", specifier = ">=1.42.32" },
-    { name = "strands-agents", extras = ["otel"], specifier = ">=1.23.0" },
-    { name = "strands-agents-tools", specifier = ">=0.2.19" },
+    { name = "aws-opentelemetry-distro", specifier = ">=0.17.1" },
+    { name = "bedrock-agentcore", specifier = ">=1.12.0" },
+    { name = "boto3", specifier = ">=1.43.18" },
+    { name = "strands-agents", extras = ["otel"], specifier = ">=1.41.0" },
+    { name = "strands-agents-tools", specifier = ">=0.7.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "black", specifier = ">=26.1.0" },
-    { name = "boto3-stubs", extras = ["ssm"], specifier = ">=1.42.32" },
-    { name = "mypy", specifier = ">=1.19.1" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "ruff", specifier = ">=0.14.13" },
+    { name = "black", specifier = ">=26.5.1" },
+    { name = "boto3-stubs", extras = ["ssm"], specifier = ">=1.43.18" },
+    { name = "mypy", specifier = ">=2.1.0" },
+    { name = "pytest", specifier = ">=9.0.3" },
+    { name = "ruff", specifier = ">=0.15.15" },
 ]
 
 [[package]]
