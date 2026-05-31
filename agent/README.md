@@ -30,6 +30,7 @@ The agent uses community tools from `strands-agents-tools`:
 - **tavily_search** - Searches the web for career pages and job listings
 - **http_request** - Fetches specific URLs found by search
 - **current_time** - Timestamps search results
+- **use_aws** - Publishes SNS notifications (conditionally loaded when `SNS_TOPIC_ARN` is set)
 
 When you send a company name, the agent searches for career pages, fetches the content, and extracts job information.
 
