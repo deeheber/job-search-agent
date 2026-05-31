@@ -803,7 +803,7 @@ dependencies = [
     { name = "strands-agents-tools" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
     { name = "black" },
     { name = "boto3-stubs", extra = ["ssm"] },
@@ -816,16 +816,19 @@ dev = [
 requires-dist = [
     { name = "aws-opentelemetry-distro", specifier = ">=0.14.2" },
     { name = "bedrock-agentcore", specifier = ">=1.2.0" },
-    { name = "black", marker = "extra == 'dev'", specifier = ">=26.1.0" },
     { name = "boto3", specifier = ">=1.42.32" },
-    { name = "boto3-stubs", extras = ["ssm"], marker = "extra == 'dev'", specifier = ">=1.42.32" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.19.1" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.2" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.13" },
     { name = "strands-agents", extras = ["otel"], specifier = ">=1.23.0" },
     { name = "strands-agents-tools", specifier = ">=0.2.19" },
 ]
-provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = ">=26.1.0" },
+    { name = "boto3-stubs", extras = ["ssm"], specifier = ">=1.42.32" },
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "ruff", specifier = ">=0.14.13" },
+]
 
 [[package]]
 name = "jsonschema"
