@@ -52,6 +52,6 @@ Thumbs.db
 tests/
 
 # Documentation (not needed in runtime, but README.md required for build)
-# README.md is needed by hatchling during pip install
+# README.md is needed by hatchling during package build
 *.md
 !README.md
