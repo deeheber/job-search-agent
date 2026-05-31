@@ -7,6 +7,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
 ### Prerequisites
 
 - **Python 3.13** (see `.python-version`)
+- **[uv](https://docs.astral.sh/uv/)** for Python package management
 - **Node.js 24** (see `.nvmrc`)
 - **Docker** (for deployment)
 - **AWS CLI** configured with appropriate permissions
@@ -26,9 +27,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
 
    ```bash
    cd agent
-   python3.13 -m venv .venv
-   source .venv/bin/activate
-   pip install -e ".[dev]"
+   uv sync
    ```
 
 3. **Set up the CDK environment**
@@ -53,8 +52,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
 
 ```bash
 cd agent
-source .venv/bin/activate
-python src/agentcore_app.py
+uv run --env-file .env python src/agentcore_app.py
 
 # Test with input: {"company": "Panic Inc.", "title": "Software Engineer"}
 ```
@@ -68,7 +66,7 @@ python src/agentcore_app.py
 **Manual quality validation:**
 
 ```bash
-pytest && mypy src/ && ruff check --fix . && black .
+uv run pytest && uv run mypy src/ && uv run ruff check --fix . && uv run black .
 ```
 
 ### CDK Infrastructure Development

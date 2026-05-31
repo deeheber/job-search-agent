@@ -20,10 +20,10 @@ jobs:
         working-directory: ./cdk
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -45,7 +45,7 @@ jobs:
         run: npm test
 
       - name: configure AWS credentials from OIDC
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6
         with:
           # 15 minutes aka shortest time allowed
           role-duration-seconds: 900
@@ -72,10 +72,10 @@ jobs:
         working-directory: ./cdk
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
@@ -85,7 +85,7 @@ jobs:
         run: npm ci
 
       - name: Configure AWS credentials from OIDC
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6
         with:
           role-duration-seconds: 1800
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}

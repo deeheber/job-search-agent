@@ -7,6 +7,7 @@ Get the job search agent running on AWS in minutes.
 - AWS CLI configured (`aws configure`)
 - Docker running locally
 - Node.js 24 and Python 3.13
+- [uv](https://docs.astral.sh/uv/) for Python package management
 - Bedrock model access in your AWS account
 - Tavily API key (sign up at [tavily.com](https://tavily.com) - free tier available)
 
@@ -19,10 +20,8 @@ Always test before deploying. Set up your Tavily API key and start the agent:
 ```bash
 cd agent
 echo "TAVILY_API_KEY=tvly-xxxxx" > .env  # Add your Tavily API key
-python3.13 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-python src/agentcore_app.py
+uv sync
+uv run --env-file .env python src/agentcore_app.py
 ```
 
 In another terminal, send a test request:
@@ -137,7 +136,7 @@ See [Amazon Bedrock Model IDs](https://docs.aws.amazon.com/bedrock/latest/usergu
 
 1. Edit `agent/src/agentcore_app.py`
 2. Run `cd agent && ./quality-check.sh` (auto-fixes most issues)
-3. Test locally: `python src/agentcore_app.py`
+3. Test locally: `uv run --env-file .env python src/agentcore_app.py`
 4. Deploy: `cd cdk && npm run cdk:deploy`
 
 The quality check runs mypy, ruff, black, and pytest. It'll catch most problems before deployment.

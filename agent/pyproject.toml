@@ -15,13 +15,12 @@ dependencies = [
     "boto3>=1.42.32"
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=9.0.2",
     "ruff>=0.14.13",
     "mypy>=1.19.1",
     "black>=26.1.0",
-    "python-dotenv>=1.2.1",
     "boto3-stubs[ssm]>=1.42.32",
 ]
 

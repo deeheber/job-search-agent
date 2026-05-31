@@ -11,19 +11,9 @@ if [ ! -f "pyproject.toml" ]; then
     exit 1
 fi
 
-# Check if we're already in a virtual environment
-if [ -n "$VIRTUAL_ENV" ]; then
-    echo "📦 Already in virtual environment: $VIRTUAL_ENV"
-elif [ -d ".venv" ]; then
-    echo "📦 Activating virtual environment..."
-    source .venv/bin/activate
-else
-    echo "⚠️  Warning: No virtual environment found at .venv"
-fi
-
 # Run quality checks
 echo "🧪 Running tests..."
-if pytest; then
+if uv run pytest; then
     echo "✅ Tests passed"
 else
     echo "❌ Tests failed"
@@ -31,7 +21,7 @@ else
 fi
 
 echo "🔍 Running type checking..."
-if mypy src/; then
+if uv run mypy src/; then
     echo "✅ Type checking passed"
 else
     echo "❌ Type checking failed"
@@ -39,7 +29,7 @@ else
 fi
 
 echo "🔧 Running linting with autofix..."
-if ruff check --fix .; then
+if uv run ruff check --fix .; then
     echo "✅ Linting passed (issues auto-fixed)"
 else
     echo "❌ Linting failed (some issues couldn't be auto-fixed)"
@@ -47,7 +37,7 @@ else
 fi
 
 echo "🎨 Formatting code..."
-if black .; then
+if uv run black .; then
     echo "✅ Code formatted successfully"
 else
     echo "❌ Code formatting failed"

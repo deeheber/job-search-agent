@@ -51,7 +51,5 @@ Thumbs.db
 # Tests (not needed in container)
 tests/
 
-# Documentation (not needed in runtime, but README.md required for build)
-# README.md is needed by hatchling during pip install
+# Documentation
 *.md
-!README.md
