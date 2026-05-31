@@ -6,15 +6,13 @@ The Python side of the job search agent. This is where the AI magic happens.
 
 ```bash
 # First time setup
-python3.13 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync
 
 # Add your Tavily API key (get one at tavily.com)
 echo "TAVILY_API_KEY=tvly-xxxxx" > .env
 
 # Start the agent
-python src/agentcore_app.py
+uv run python src/agentcore_app.py
 ```
 
 The agent starts on `localhost:8080`. Test it with:
@@ -66,7 +64,7 @@ The agent returns hiring status, position titles, and application links.
 
 ```bash
 ./quality-check.sh    # Run all checks (mypy, ruff, black, pytest)
-pytest                # Just the tests
+uv run pytest         # Just the tests
 ```
 
 The quality check script auto-fixes most issues. Run it before committing.
