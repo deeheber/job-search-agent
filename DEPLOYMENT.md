@@ -147,7 +147,7 @@ The agent uses community tools (`tavily_search`, `http_request`, `current_time`)
 
 ```python
 # agent/src/tools/job_search_tools.py
-from strands.agent import tool
+from strands import tool
 
 @tool
 def parse_greenhouse_api(company_id: str) -> dict:

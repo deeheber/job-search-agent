@@ -151,6 +151,7 @@ The agent uses community tools from `strands-agents-tools`:
 - `tavily_search` - For searching the web for career pages and job listings
 - `http_request` - For fetching specific URLs found by search
 - `current_time` - For timestamping search results
+- `use_aws` - For publishing SNS notifications (conditionally loaded when `SNS_TOPIC_ARN` is set)
 
 ### Testing Guidelines
 
@@ -243,7 +244,7 @@ All checks must pass before merging.
 We use `strands-agents-tools` for common functionality:
 
 ```python
-from strands_tools import current_time, http_request
+from strands_tools import current_time, http_request, use_aws
 from strands_tools.tavily import tavily_search
 ```
 
