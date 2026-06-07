@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Upgrade Python from 3.13 to 3.14 across the project. Update version references, Dockerfile base image, tool configs, and remove configs that are now inferred automatically from requires-python.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Update `.python-version` at repo root from `3.13` to `3.14`",
     "Update `agent/pyproject.toml`: change `requires-python = \">=3.13\"` to `requires-python = \">=3.14\"`",
@@ -32,5 +32,5 @@
     "cd agent && uv run black --check ."
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All 12 tests pass with Python 3.14. mypy, ruff, and black all pass. Black shows an informational warning about Python 3.15 parsing but exits 0. The uv.lock was simplified by removing cp313 wheel entries since requires-python is now >=3.14. No source code changes needed."
 }
