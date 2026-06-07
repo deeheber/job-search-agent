@@ -6,7 +6,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
 
 ### Prerequisites
 
-- **Python 3.13** (see `.python-version`)
+- **Python 3.14** (see `.python-version`)
 - **[uv](https://docs.astral.sh/uv/)** for Python package management
 - **Node.js 24** (see `.nvmrc`)
 - **Docker** (for deployment)

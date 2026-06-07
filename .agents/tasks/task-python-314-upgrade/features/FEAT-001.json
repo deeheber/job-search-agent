@@ -1,0 +1,36 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Upgrade Python from 3.13 to 3.14 across the project. Update version references, Dockerfile base image, tool configs, and remove configs that are now inferred automatically from requires-python.",
+  "status": "in_progress",
+  "steps": [
+    "Update `.python-version` at repo root from `3.13` to `3.14`",
+    "Update `agent/pyproject.toml`: change `requires-python = \">=3.13\"` to `requires-python = \">=3.14\"`",
+    "Update `agent/pyproject.toml` [tool.black]: remove `target-version = [\"py313\"]` entirely (Black 26.5.1 infers from requires-python automatically)",
+    "Update `agent/pyproject.toml` [tool.mypy]: change `python_version = \"3.13\"` to `python_version = \"3.14\"`",
+    "Update `agent/pyproject.toml` [tool.ruff]: remove `target-version = \"py313\"` entirely (Ruff infers from requires-python in the same pyproject.toml when target-version is not set)",
+    "Update `agent/Dockerfile`: change base image from `python:3.13-slim` to `python:3.14-slim`",
+    "Update `CONTRIBUTING.md`: change prerequisite reference from `Python 3.13` to `Python 3.14`",
+    "Run `cd agent && uv lock` to regenerate the lock file for the new Python version requirement",
+    "Run the full quality check suite: pytest, mypy, ruff, black"
+  ],
+  "acceptance_criteria": [
+    "`.python-version` contains `3.14`",
+    "`requires-python` in pyproject.toml is `>=3.14`",
+    "No `target-version` in [tool.black] section (removed, inferred from requires-python)",
+    "No `target-version` in [tool.ruff] section (removed, inferred from requires-python)",
+    "`python_version` in [tool.mypy] is `3.14`",
+    "Dockerfile uses `python:3.14-slim` base image",
+    "CONTRIBUTING.md references Python 3.14",
+    "All tests pass with Python 3.14",
+    "mypy, ruff, and black checks pass"
+  ],
+  "verification": [
+    "cd agent && uv run pytest -v --tb=short",
+    "cd agent && uv run mypy src/",
+    "cd agent && uv run ruff check .",
+    "cd agent && uv run black --check ."
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
