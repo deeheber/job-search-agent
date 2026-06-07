@@ -24,6 +24,9 @@ dev = [
     "boto3-stubs[ssm]>=1.43.18",
 ]
 
+[tool.uv]
+required-version = "~=0.11.0"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
 
