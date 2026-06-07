@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "job-search-agent"
 version = "0.0.1"
 description = "A Strands AI agent"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "strands-agents[otel]>=1.41.0",
     "strands-agents-tools>=0.7.0",
@@ -32,10 +32,9 @@ packages = ["src"]
 
 [tool.black]
 line-length = 100
-target-version = ["py313"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -49,7 +48,6 @@ pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
