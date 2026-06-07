@@ -1,0 +1,7 @@
+{
+  "task_id": "task-python-314-upgrade",
+  "task_description": "Upgrade Python from 3.13 to 3.14 and update dependency specifiers to use compatible release (~=) operator to allow minor+patch but disallow major updates. Closes issue #38.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}
