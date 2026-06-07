@@ -6,7 +6,7 @@ Get the job search agent running on AWS in minutes.
 
 - AWS CLI configured (`aws configure`)
 - Docker running locally
-- Node.js 24 and Python 3.13
+- Node.js 24 and Python 3.14
 - [uv](https://docs.astral.sh/uv/) for Python package management
 - Bedrock model access in your AWS account
 - Tavily API key (sign up at [tavily.com](https://tavily.com) - free tier available)

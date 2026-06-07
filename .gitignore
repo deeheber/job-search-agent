@@ -63,3 +63,4 @@ htmlcov/
 
 # Task state
 .tasks/
+.agents/
