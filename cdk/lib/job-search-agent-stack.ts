@@ -11,7 +11,7 @@ import {
 } from 'aws-cdk-lib/aws-scheduler'
 import { Universal } from 'aws-cdk-lib/aws-scheduler-targets'
 import { Construct } from 'constructs'
-import { Runtime, AgentRuntimeArtifact } from '@aws-cdk/aws-bedrock-agentcore-alpha'
+import { Runtime, AgentRuntimeArtifact } from 'aws-cdk-lib/aws-bedrockagentcore'
 import * as path from 'path'
 import { Queue } from 'aws-cdk-lib/aws-sqs'
 
