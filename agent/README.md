@@ -21,8 +21,10 @@ The agent starts on `localhost:8080`. Test it with:
 ```bash
 curl -X POST http://localhost:8080/invocations \
   -H "Content-Type: application/json" \
-  -d '{"company": "Stripe", "title": "Engineer"}'
+  -d '{"company": "Stripe", "title": "Engineer", "sync": true}'
 ```
+
+`"sync": true` returns the full result. Without it the agent replies `{"status": "accepted"}` immediately and logs the result when done — the mode scheduled invokes use, since EventBridge Scheduler's call times out after ~30s.
 
 ## How It Works
 

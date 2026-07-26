@@ -21,10 +21,10 @@ echo "TAVILY_API_KEY=tvly-xxxxx" >> .env
 uv sync
 uv run --env-file .env python src/agentcore_app.py
 
-# In another terminal window
+# In another terminal window ("sync" waits for the result; omit it for async)
 curl -X POST http://localhost:8080/invocations \
   -H "Content-Type: application/json" \
-  -d '{"company": "Stripe", "title": "Engineer"}'
+  -d '{"company": "Stripe", "title": "Engineer", "sync": true}'
 
 # Put API keys in SSM Parameter Store
 aws ssm put-parameter \

@@ -1,7 +1,9 @@
 """Tests for the agent."""
 
+import asyncio
 import os
-from unittest.mock import patch
+from typing import Any
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from strands.models.anthropic import AnthropicModel
@@ -10,9 +12,11 @@ from src.agentcore_app import (
     ANTHROPIC_MAX_TOKENS,
     DEFAULT_ANTHROPIC_MODEL_ID,
     DEFAULT_BEDROCK_MODEL_ID,
+    _background_tasks,
     construct_job_search_prompt,
     get_agent,
     get_model,
+    invoke,
 )
 
 
@@ -133,3 +137,36 @@ def test_system_prompt_includes_sns_when_configured() -> None:
         agent = get_agent()
     assert "send_job_alert" in agent.system_prompt
     assert "NOTIFICATION INSTRUCTIONS" in agent.system_prompt
+
+
+def test_invoke_requires_company() -> None:
+    """Test invoke returns an error when company is missing."""
+    result = asyncio.run(invoke({"title": "Engineer"}))
+    assert result == {"status": "error", "error": "Company name is required"}
+
+
+def test_invoke_default_returns_accepted_and_runs_search_in_background() -> None:
+    """Test the default path responds immediately and runs the search as a background task."""
+    mock_search = AsyncMock(return_value={"status": "success"})
+
+    async def scenario() -> dict[str, Any]:
+        with patch("src.agentcore_app.run_job_search", mock_search):
+            result = await invoke({"company": "Stripe", "title": "Engineer"})
+            await asyncio.gather(*_background_tasks)
+        return result
+
+    result = asyncio.run(scenario())
+    assert result["status"] == "accepted"
+    mock_search.assert_awaited_once_with("Stripe", "Engineer", "")
+
+
+def test_invoke_sync_returns_full_result() -> None:
+    """Test the sync flag runs the search inline and returns its result."""
+    full_result = {"status": "success", "response": "**Hiring Status**: Yes"}
+    mock_search = AsyncMock(return_value=full_result)
+
+    with patch("src.agentcore_app.run_job_search", mock_search):
+        result = asyncio.run(invoke({"company": "Stripe", "sync": True}))
+
+    assert result == full_result
+    mock_search.assert_awaited_once_with("Stripe", "", "")
