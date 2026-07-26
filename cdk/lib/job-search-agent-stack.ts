@@ -145,7 +145,7 @@ export class JobSearchAgentStack extends Stack {
                 resources: [`${runtime.agentRuntimeArn}*`],
               }),
             ],
-            retryAttempts: 0,
+            retryAttempts: 2,
             deadLetterQueue: dlq,
           }),
           timeWindow: TimeWindow.flexible(Duration.hours(2)),

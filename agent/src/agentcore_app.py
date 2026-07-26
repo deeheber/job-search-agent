@@ -1,5 +1,6 @@
 """AgentCore Runtime wrapper for the Strands agent."""
 
+import asyncio
 import logging
 import os
 from typing import Any
@@ -184,29 +185,14 @@ def construct_job_search_prompt(company: str, title: str = "", location: str = "
     return " ".join(prompt_parts)
 
 
-@app.entrypoint
-async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Main entrypoint for the agent invocation."""
+async def run_job_search(company: str, title: str, location: str) -> dict[str, Any]:
+    """Run the job search and return the result dict."""
     try:
-        if not payload:
-            return {"status": "error", "error": "Payload is required"}
-
-        # Extract parameters from payload
-        company = payload.get("company", "")
-        title = payload.get("title", "")
-        location = payload.get("location", "")
-
-        if not company:
-            return {"status": "error", "error": "Company name is required"}
-
         prompt = construct_job_search_prompt(company, title, location)
-
-        logging.info(f"Payload received: {payload}")
-        logging.info(f"Company: {company}, Title: {title}, Location: {location}")
 
         agent = get_agent()
 
-        response = agent(prompt)
+        response = await agent.invoke_async(prompt)
         # content can lead with thinking blocks; str() joins only the text blocks
         response_text = str(response)
 
@@ -224,8 +210,51 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
 
     except Exception as e:
         logging.error(f"Error processing request: {e}", exc_info=True)
-        logging.error(f"Payload that caused error: {payload}")
         return {"status": "error", "error": "Internal processing error"}
+
+
+# strong refs: asyncio only weakly references tasks
+_background_tasks: set[asyncio.Task[Any]] = set()
+
+
+async def _tracked_job_search(company: str, title: str, location: str) -> None:
+    """Run the job search as a tracked async task so ping reports HealthyBusy."""
+    task_id = app.add_async_task("job_search")
+    try:
+        await run_job_search(company, title, location)
+    finally:
+        app.complete_async_task(task_id)
+
+
+@app.entrypoint
+async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Main entrypoint for the agent invocation."""
+    if not payload:
+        return {"status": "error", "error": "Payload is required"}
+
+    # Extract parameters from payload
+    company = payload.get("company", "")
+    title = payload.get("title", "")
+    location = payload.get("location", "")
+
+    if not company:
+        return {"status": "error", "error": "Company name is required"}
+
+    logging.info(f"Payload received: {payload}")
+    logging.info(f"Company: {company}, Title: {title}, Location: {location}")
+
+    if payload.get("sync"):
+        return await run_job_search(company, title, location)
+
+    # Respond before EventBridge Scheduler's ~30s call timeout DLQs the invocation
+    task = asyncio.create_task(_tracked_job_search(company, title, location))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
+    return {
+        "status": "accepted",
+        "search_criteria": {"company": company, "title": title, "location": location},
+    }
 
 
 if __name__ == "__main__":
