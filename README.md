@@ -49,7 +49,7 @@ That's it. The agent fetches live job postings, extracts titles and links, and r
 - Returns hiring status with position details
 - Optionally sends email alerts via SNS when companies are hiring
 - Scheduled searches via EventBridge for automated monitoring
-- Tracks when jobs were posted
+- Timestamps each search so you know how fresh the results are
 
 **Example:** `{"company": "Stripe", "title": "Engineer"}` → List of engineering roles at Stripe with application links.
 

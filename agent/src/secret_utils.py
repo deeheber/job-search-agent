@@ -6,7 +6,8 @@ from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
-# Default SSM parameter names (must be created manually before deployment)
+# Default SSM parameter names (created out-of-band, never by the CDK stack;
+# they must exist by the time the agent is invoked)
 DEFAULT_TAVILY_SSM_PARAMETER = "/job-search-agent/tavily-api-key"
 DEFAULT_ANTHROPIC_SSM_PARAMETER = "/job-search-agent/anthropic-api-key"
 

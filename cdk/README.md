@@ -33,7 +33,7 @@ Takes a few minutes. The stack builds a Docker image from `../agent`, pushes it 
 
 - **AgentCore Runtime** - Serverless container that runs your agent
 - **IAM Role** - Permissions for Bedrock models, SSM parameter reads (Tavily + Anthropic API keys), KMS decrypt (for SSM), and SNS publish
-- **ECR Repository** - Auto-created by the Docker asset to store the agent image
+- **ECR Image** - The agent image is pushed to the shared ECR repository that `cdk bootstrap` manages (the stack doesn't create its own repository)
 - **SNS Topic** - Receives hiring notifications; email subscriptions added when `NOTIFICATION_EMAILS` is set
 - **EventBridge Schedules + SQS DLQ** _(optional)_ - Created when `SCHEDULES` is set, one schedule per entry
 

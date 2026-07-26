@@ -25,12 +25,12 @@ uv sync
 uv run --env-file .env python src/agentcore_app.py
 ```
 
-In another terminal, send a test request:
+In another terminal, send a test request (`"sync": true` waits for the result; omit it for async):
 
 ```bash
 curl -X POST http://localhost:8080/invocations \
   -H "Content-Type: application/json" \
-  -d '{"company": "Stripe", "title": "Engineer"}'
+  -d '{"company": "Stripe", "title": "Engineer", "sync": true}'
 ```
 
 ## Deploy to AWS
@@ -84,7 +84,7 @@ To deploy multiple stacks to the same account/region, set `STACK_NAME` in `agent
 This takes a few minutes. CDK builds a Docker image, pushes it to ECR, and creates an AgentCore Runtime. When it finishes, you'll see outputs like:
 
 ```
-JobSearchAgentStack.RuntimeId = job-search-agent-abc123
+JobSearchAgentStack.RuntimeId = JobSearchAgentStack_JobSearchAgent-abc123def4
 JobSearchAgentStack.RuntimeArn = arn:aws:bedrock-agentcore:...
 ```
 
@@ -100,7 +100,7 @@ RUNTIME_ARN="arn:aws:bedrock-agentcore:us-west-2:123456789012:agent-runtime/..."
 aws bedrock-agentcore invoke-agent-runtime \
   --agent-runtime-arn $RUNTIME_ARN \
   --qualifier DEFAULT \
-  --payload $(echo '{"company": "Netflix", "title": "Data Scientist"}' | base64) \
+  --payload $(echo '{"company": "Netflix", "title": "Data Scientist", "sync": true}' | base64) \
   response.json
 
 cat response.json
@@ -108,11 +108,11 @@ cat response.json
 
 Or use the AWS Console: Bedrock AgentCore → Runtimes → `JobSearchAgentStack_JobSearchAgent` → Test tab.
 
-Try these payloads:
+Try these payloads (keep `"sync": true` to see the result in the response; without it the agent returns `{"status": "accepted"}` and logs the result instead):
 
-- `{"company": "Stripe"}`
-- `{"company": "Netflix", "title": "Engineer", "location": "remote"}`
-- `{"company": "Panic Inc.", "title": "Software Engineer"}`
+- `{"company": "Stripe", "sync": true}`
+- `{"company": "Netflix", "title": "Engineer", "location": "remote", "sync": true}`
+- `{"company": "Panic Inc.", "title": "Software Engineer", "sync": true}`
 
 ## Check the Logs
 
@@ -147,11 +147,11 @@ Then redeploy: `npm run cdk:deploy`
 3. Test locally: `uv run --env-file .env python src/agentcore_app.py`
 4. Deploy: `cd cdk && npm run cdk:deploy`
 
-The quality check runs mypy, ruff, black, and pytest. It'll catch most problems before deployment.
+The quality check runs pytest, mypy, ruff, and black. It'll catch most problems before deployment.
 
 ## Add Custom Tools
 
-The agent uses community tools (`tavily_search`, `http_request`, `current_time`). To add your own:
+The agent uses community tools (`tavily_search`, `http_request`, `current_time`) plus a custom `send_job_alert` tool in `agent/src/tools/`. To add your own:
 
 ```python
 # agent/src/tools/job_search_tools.py
