@@ -11,12 +11,13 @@ Built with [Strands Agents](https://strandsagents.com) and deployed to Amazon Be
 ## Quick Start
 
 ```bash
-# Get a Tavily API key (free tier available)
-# Sign up at https://tavily.com
+# Get API keys: Anthropic (https://console.anthropic.com)
+# and Tavily (https://tavily.com, free tier available)
 
 # Run locally
 cd agent
-echo "TAVILY_API_KEY=your_key_here" > .env
+echo "ANTHROPIC_API_KEY=sk-ant-xxxxx" > .env
+echo "TAVILY_API_KEY=tvly-xxxxx" >> .env
 uv sync
 uv run --env-file .env python src/agentcore_app.py
 
@@ -25,7 +26,11 @@ curl -X POST http://localhost:8080/invocations \
   -H "Content-Type: application/json" \
   -d '{"company": "Stripe", "title": "Engineer"}'
 
-# Put Tavily API key in SSM Parameter Store
+# Put API keys in SSM Parameter Store
+aws ssm put-parameter \
+  --name "/job-search-agent/anthropic-api-key" \
+  --value "sk-ant-xxxxx" \
+  --type SecureString
 aws ssm put-parameter \
   --name "/job-search-agent/tavily-api-key" \
   --value "tvly-xxxxx" \

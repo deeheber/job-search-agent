@@ -8,18 +8,19 @@ Get the job search agent running on AWS in minutes.
 - Docker running locally
 - Node.js 24 and Python 3.14
 - [uv](https://docs.astral.sh/uv/) for Python package management
-- Bedrock model access in your AWS account
+- Anthropic API key (sign up at [console.anthropic.com](https://console.anthropic.com)) — or Bedrock model access in your AWS account when using `MODEL_PROVIDER=bedrock`
 - Tavily API key (sign up at [tavily.com](https://tavily.com) - free tier available)
 
 Check [Amazon Bedrock AgentCore regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) to make sure AgentCore is available where you want to deploy.
 
 ## Try It Locally First
 
-Always test before deploying. Set up your Tavily API key and start the agent:
+Always test before deploying. Set up your API keys and start the agent:
 
 ```bash
 cd agent
-echo "TAVILY_API_KEY=tvly-xxxxx" > .env  # Add your Tavily API key
+echo "ANTHROPIC_API_KEY=sk-ant-xxxxx" > .env
+echo "TAVILY_API_KEY=tvly-xxxxx" >> .env
 uv sync
 uv run --env-file .env python src/agentcore_app.py
 ```
@@ -34,18 +35,23 @@ curl -X POST http://localhost:8080/invocations \
 
 ## Deploy to AWS
 
-### 1. Store the Tavily API Key
+### 1. Store the API Keys
 
-The agent needs a Tavily API key for web search. Store it in SSM Parameter Store:
+The agent needs an Anthropic API key for the model (default provider) and a Tavily API key for web search. Store both in SSM Parameter Store:
 
 ```bash
+aws ssm put-parameter \
+  --name "/job-search-agent/anthropic-api-key" \
+  --value "sk-ant-xxxxx" \
+  --type SecureString
+
 aws ssm put-parameter \
   --name "/job-search-agent/tavily-api-key" \
   --value "tvly-xxxxx" \
   --type SecureString
 ```
 
-Get your API key at [tavily.com](https://tavily.com).
+Get your keys at [console.anthropic.com](https://console.anthropic.com) and [tavily.com](https://tavily.com). The Anthropic parameter isn't needed if you deploy with `MODEL_PROVIDER=bedrock`.
 
 ### 2. Set Up Email Notifications (Optional)
 
@@ -120,17 +126,19 @@ aws logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runt
 aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent-<id>-DEFAULT --follow
 ```
 
-## Change the Model
+## Change the Model or Provider
 
-Want to use a different Bedrock model? Edit `agent/.env`:
+The agent supports two model providers, selected with `MODEL_PROVIDER` in `agent/.env`:
+
+- **`anthropic`** (default) — calls the Anthropic API directly. Requires the Anthropic API key (SSM parameter above). Override the model with `ANTHROPIC_MODEL_ID` (default: `claude-sonnet-5`); see [Anthropic model IDs](https://docs.claude.com/en/docs/about-claude/models/overview).
+- **`bedrock`** — uses Amazon Bedrock with the runtime's IAM role. Requires Bedrock model access in your account. Override the model with `BEDROCK_MODEL_ID` (default: `us.anthropic.claude-sonnet-4-6`); see [Amazon Bedrock model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
 ```bash
+MODEL_PROVIDER=bedrock
 BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
 ```
 
 Then redeploy: `npm run cdk:deploy`
-
-See [Amazon Bedrock Model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html) for available models.
 
 ## Development Loop
 
@@ -187,7 +195,9 @@ Set these as GitHub repository **variables** (Settings > Secrets and variables >
 |---|---|---|
 | `NOTIFICATION_EMAILS` | Comma-separated emails for SNS hiring alerts | _(none)_ |
 | `SCHEDULES` | JSON array of scheduled searches (see [Scheduled Searches](#set-up-scheduled-searches-optional)) | _(none)_ |
-| `BEDROCK_MODEL_ID` | Bedrock model to use | Stack default |
+| `MODEL_PROVIDER` | Model provider: `anthropic` or `bedrock` | `anthropic` |
+| `ANTHROPIC_MODEL_ID` | Anthropic API model (when provider is `anthropic`) | `claude-sonnet-5` |
+| `BEDROCK_MODEL_ID` | Bedrock model (when provider is `bedrock`) | `us.anthropic.claude-sonnet-4-6` |
 | `STACK_NAME` | CloudFormation stack name | `JobSearchAgentStack` |
 
 ## Set Up Scheduled Searches (Optional)
@@ -233,4 +243,6 @@ This deletes the AgentCore Runtime and IAM roles. Note that CloudWatch logs and 
 
 **Runtime errors**: Check CloudWatch logs. The agent logs every request and tool call.
 
-**Model access**: If you get "model not found" errors, enable the model in the Bedrock console first.
+**Model access (anthropic provider)**: If invocations fail with an SSM `ParameterNotFound` error, create the `/job-search-agent/anthropic-api-key` parameter (see [Store the API Keys](#1-store-the-api-keys)). Authentication errors mean the stored key is invalid.
+
+**Model access (bedrock provider)**: If you get "model not found" or throttling errors, enable the model in the Bedrock console and check your account's Bedrock quotas.

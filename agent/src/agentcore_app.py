@@ -6,12 +6,17 @@ from typing import Any
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
-from strands_tools import current_time, http_request, use_aws  # type: ignore[import-untyped]
+from strands.models.anthropic import AnthropicModel
+from strands_tools import current_time, http_request  # type: ignore[import-untyped]
 from strands_tools.tavily import tavily_search  # type: ignore[import-untyped]
 
-from secret_utils import get_tavily_api_key
+from secret_utils import get_anthropic_api_key, get_tavily_api_key
+from tools import send_job_alert
 
-DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
+DEFAULT_MODEL_PROVIDER = "anthropic"
+DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
+DEFAULT_ANTHROPIC_MODEL_ID = "claude-sonnet-5"
+ANTHROPIC_MAX_TOKENS = 8192
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
@@ -97,25 +102,35 @@ RECOGNIZING JOB LISTINGS:
 
 SNS_NOTIFICATION_PROMPT = """
 NOTIFICATION INSTRUCTIONS:
-After completing your response, if **Hiring Status** is Yes, send exactly ONE SNS notification:
-1. Use the use_aws tool with service_name="sns", operation_name="publish"
-2. Parameters: TopicArn="{topic_arn}", Subject="Job Alert: [COMPANY] is hiring!", Message=your full response text
-3. If the notification fails, still return your normal response - notification is best-effort
-4. Do NOT send more than one notification per request - never retry or send duplicate messages
+After completing your response, if **Hiring Status** is Yes, send exactly ONE notification:
+1. Use the send_job_alert tool with subject="Job Alert: [COMPANY] is hiring!" and message=your full response text
+2. If the notification fails, still return your normal response - notification is best-effort
+3. Do NOT send more than one notification per request - never retry or send duplicate messages
 """
 # fmt: on
 
 
-def get_model_id() -> str:
-    """
-    Get the Bedrock model ID from environment variable or use default.
+def get_model() -> str | AnthropicModel:
+    """Build the model backend selected by MODEL_PROVIDER (default: anthropic)."""
+    provider = os.getenv("MODEL_PROVIDER", DEFAULT_MODEL_PROVIDER).strip().lower()
 
-    Returns:
-        str: The model ID to use for the agent
-    """
-    model_id = os.getenv("BEDROCK_MODEL_ID", DEFAULT_MODEL_ID)
-    logging.info(f"Using Bedrock model: {model_id}")
-    return model_id
+    if provider == "bedrock":
+        model_id = os.getenv("BEDROCK_MODEL_ID", DEFAULT_BEDROCK_MODEL_ID)
+        logging.info(f"Using Bedrock model: {model_id}")
+        return model_id
+
+    if provider == "anthropic":
+        model_id = os.getenv("ANTHROPIC_MODEL_ID", DEFAULT_ANTHROPIC_MODEL_ID)
+        logging.info(f"Using Anthropic API model: {model_id}")
+        return AnthropicModel(
+            client_args={"api_key": get_anthropic_api_key()},
+            model_id=model_id,
+            max_tokens=ANTHROPIC_MAX_TOKENS,
+        )
+
+    raise ValueError(
+        f"Unsupported MODEL_PROVIDER '{provider}'. Supported values: 'bedrock', 'anthropic'."
+    )
 
 
 def get_agent() -> Agent:
@@ -125,20 +140,20 @@ def get_agent() -> Agent:
     tavily_key = get_tavily_api_key()
     os.environ["TAVILY_API_KEY"] = tavily_key
 
-    model_id = get_model_id()
+    model = get_model()
 
     tools: list[object] = [current_time, http_request, tavily_search]
     system_prompt = SYSTEM_PROMPT
     sns_topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
     if sns_topic_arn:
-        tools.append(use_aws)
-        system_prompt += SNS_NOTIFICATION_PROMPT.format(topic_arn=sns_topic_arn)
+        tools.append(send_job_alert)
+        system_prompt += SNS_NOTIFICATION_PROMPT
         logging.info(f"SNS notifications enabled for topic: {sns_topic_arn}")
     else:
         logging.info("SNS_TOPIC_ARN not configured, notifications disabled")
 
     return Agent(
-        model=model_id,
+        model=model,
         tools=tools,
         system_prompt=system_prompt,
     )
@@ -192,7 +207,8 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
         agent = get_agent()
 
         response = agent(prompt)
-        response_text = response.message["content"][0]["text"]
+        # content can lead with thinking blocks; str() joins only the text blocks
+        response_text = str(response)
 
         logging.info(f"Agent response generated (length: {len(response_text)} chars)")
         logging.info(f"Hiring result for {company}: {response_text}")

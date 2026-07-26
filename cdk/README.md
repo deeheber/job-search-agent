@@ -4,14 +4,21 @@ The TypeScript side that deploys everything to AWS. This creates the AgentCore R
 
 ## Prerequisites
 
-Get a Tavily API key at [tavily.com](https://tavily.com) (free tier available), then store it in SSM Parameter Store before deploying:
+Store your API keys in SSM Parameter Store before deploying: an Anthropic key ([console.anthropic.com](https://console.anthropic.com)) for the model and a Tavily key ([tavily.com](https://tavily.com), free tier available) for web search:
 
 ```bash
+aws ssm put-parameter \
+  --name "/job-search-agent/anthropic-api-key" \
+  --value "sk-ant-xxxxx" \
+  --type SecureString
+
 aws ssm put-parameter \
   --name "/job-search-agent/tavily-api-key" \
   --value "tvly-xxxxx" \
   --type SecureString
 ```
+
+The Anthropic parameter isn't needed when deploying with `MODEL_PROVIDER=bedrock`.
 
 ## Deploy
 
@@ -25,12 +32,12 @@ Takes a few minutes. The stack builds a Docker image from `../agent`, pushes it 
 ## What Gets Created
 
 - **AgentCore Runtime** - Serverless container that runs your agent
-- **IAM Role** - Permissions for Bedrock models, SSM parameter read, KMS decrypt (for SSM), and SNS publish
+- **IAM Role** - Permissions for Bedrock models, SSM parameter reads (Tavily + Anthropic API keys), KMS decrypt (for SSM), and SNS publish
 - **ECR Repository** - Auto-created by the Docker asset to store the agent image
 - **SNS Topic** - Receives hiring notifications; email subscriptions added when `NOTIFICATION_EMAILS` is set
 - **EventBridge Schedules + SQS DLQ** _(optional)_ - Created when `SCHEDULES` is set, one schedule per entry
 
-The stack outputs `RuntimeId`, `RuntimeArn`, `TavilyApiKeyParameter`, and `NotificationTopicArn`.
+The stack outputs `RuntimeId`, `RuntimeArn`, `TavilyApiKeyParameter`, `AnthropicApiKeyParameter`, and `NotificationTopicArn`.
 
 ## Development
 
@@ -50,13 +57,13 @@ The stack follows this pattern:
 
 1. **IAM roles** - Set up permissions first
 2. **Core resources** - AgentCore Runtime with Docker build
-3. **Outputs** - Export RuntimeId, RuntimeArn, TavilyApiKeyParameter, and NotificationTopicArn
+3. **Outputs** - Export RuntimeId, RuntimeArn, TavilyApiKeyParameter, AnthropicApiKeyParameter, and NotificationTopicArn
 
 All imports are explicit (no wildcards), and we use TypeScript strict mode.
 
 ## Customization
 
-Want to change the model? Set `BEDROCK_MODEL_ID` in `agent/.env`, then run `npm run cdk:deploy`.
+Want to change the model or provider? Set `MODEL_PROVIDER` (`anthropic` default, or `bedrock`) and optionally `ANTHROPIC_MODEL_ID` / `BEDROCK_MODEL_ID` in `agent/.env`, then run `npm run cdk:deploy`.
 
 ## Next Steps
 

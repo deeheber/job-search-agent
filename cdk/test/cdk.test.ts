@@ -51,9 +51,14 @@ describe('JobSearchAgentStack', () => {
             Match.objectLike({
               Action: 'ssm:GetParameter',
               Effect: 'Allow',
-              Resource: Match.stringLikeRegexp(
-                'arn:aws:ssm:.+:.+:parameter/job-search-agent/tavily-api-key'
-              ),
+              Resource: [
+                Match.stringLikeRegexp(
+                  'arn:aws:ssm:.+:.+:parameter/job-search-agent/tavily-api-key'
+                ),
+                Match.stringLikeRegexp(
+                  'arn:aws:ssm:.+:.+:parameter/job-search-agent/anthropic-api-key'
+                ),
+              ],
             }),
             Match.objectLike({
               Action: 'kms:Decrypt',
@@ -99,10 +104,41 @@ describe('JobSearchAgentStack', () => {
           AWS_REGION: 'us-west-2',
           AWS_DEFAULT_REGION: 'us-west-2',
           LOG_LEVEL: 'INFO',
+          MODEL_PROVIDER: 'anthropic',
+          TAVILY_API_KEY_SSM_PARAMETER: '/job-search-agent/tavily-api-key',
+          ANTHROPIC_API_KEY_SSM_PARAMETER: '/job-search-agent/anthropic-api-key',
           SNS_TOPIC_ARN: {
             Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
           },
         },
+      })
+    })
+
+    it('does not set model ID env vars by default', () => {
+      template.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
+        EnvironmentVariables: Match.objectLike({
+          BEDROCK_MODEL_ID: Match.absent(),
+          ANTHROPIC_MODEL_ID: Match.absent(),
+        }),
+      })
+    })
+
+    it('passes model provider and model ID overrides to the runtime', () => {
+      const providerApp = new App()
+      const providerStack = new JobSearchAgentStack(providerApp, 'TestProviderStack', {
+        modelProvider: 'bedrock',
+        bedrockModelID: 'custom-bedrock-model',
+        anthropicModelID: 'claude-opus-5',
+        env: { account: '123456789012', region: 'us-west-2' },
+      })
+      const providerTemplate = Template.fromStack(providerStack)
+
+      providerTemplate.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
+        EnvironmentVariables: Match.objectLike({
+          MODEL_PROVIDER: 'bedrock',
+          BEDROCK_MODEL_ID: 'custom-bedrock-model',
+          ANTHROPIC_MODEL_ID: 'claude-opus-5',
+        }),
       })
     })
 
@@ -119,6 +155,11 @@ describe('JobSearchAgentStack', () => {
         Value: {
           'Fn::GetAtt': [Match.stringLikeRegexp('JobSearchAgentRuntime.*'), 'AgentRuntimeArn'],
         },
+      })
+
+      template.hasOutput('AnthropicApiKeyParameter', {
+        Description: Match.stringLikeRegexp('SSM Parameter name for Anthropic API Key.*'),
+        Value: '/job-search-agent/anthropic-api-key',
       })
 
       template.hasOutput('NotificationTopicArn', {

@@ -90,5 +90,7 @@ jobs:
         env:
           NOTIFICATION_EMAILS: ${{ vars.NOTIFICATION_EMAILS }}
           SCHEDULES: ${{ vars.SCHEDULES }}
+          MODEL_PROVIDER: ${{ vars.MODEL_PROVIDER }}
           BEDROCK_MODEL_ID: ${{ vars.BEDROCK_MODEL_ID }}
+          ANTHROPIC_MODEL_ID: ${{ vars.ANTHROPIC_MODEL_ID }}
           STACK_NAME: ${{ vars.STACK_NAME }}
