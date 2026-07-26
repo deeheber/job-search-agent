@@ -12,6 +12,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
 - **Docker** (for deployment)
 - **AWS CLI** configured with appropriate permissions
 - **Tavily API key** (sign up at [tavily.com](https://tavily.com) - free tier available)
+- **Anthropic API key** (sign up at [console.anthropic.com](https://console.anthropic.com)), or Bedrock model access in your AWS account when using `MODEL_PROVIDER=bedrock`
 - **Git** for version control
 
 ### Initial Setup
@@ -41,7 +42,7 @@ Thank you for your interest in contributing to the job search agent! This guide 
    ```bash
    cd agent
    cp .env.example .env
-   # Edit .env and add your Tavily API key (get one at tavily.com)
+   # Edit .env and add your Tavily and Anthropic API keys
    ```
 
 ## Development Workflow
@@ -125,7 +126,7 @@ import * as cdk from "aws-cdk-lib";
 
 ### Adding New Job Search Tools
 
-1. **Create tool file** in `agent/src/tools/` (currently empty, using community tools)
+1. **Create tool file** in `agent/src/tools/` (see `sns_tools.py` for an existing example)
 2. **Implement with `@tool` decorator** and proper type hints for job search functionality
 3. **Export in `__init__.py`**
 4. **Add tests** in `agent/tests/test_tools/`
@@ -151,7 +152,7 @@ The agent uses community tools from `strands-agents-tools`:
 - `tavily_search` - For searching the web for career pages and job listings
 - `http_request` - For fetching specific URLs found by search
 - `current_time` - For timestamping search results
-- `use_aws` - For publishing SNS notifications (conditionally loaded when `SNS_TOPIC_ARN` is set)
+- `send_job_alert` - Custom tool in `agent/src/tools/sns_tools.py` that publishes SNS notifications (conditionally loaded when `SNS_TOPIC_ARN` is set)
 
 ### Testing Guidelines
 
@@ -223,19 +224,20 @@ Create a pull request with:
 
 Our GitHub Actions workflows will automatically:
 
-**Python Agent CI (`agent-ci.yml`):**
+**Agent CI (`agent-ci.yml`):**
 
 - Run pytest
 - Type check with mypy
 - Lint with ruff
 - Format check with black
 
-**CDK Infrastructure CI (`cdk-ci-cd.yml`):**
+**CDK CI/CD (`cdk-ci-cd.yml`):**
 
 - Build TypeScript
 - Run Vitest tests
 - Lint with ESLint
 - Format check with Prettier
+- Run `cdk synth`, then deploy to AWS on push to main
 
 All checks must pass before merging.
 
@@ -244,7 +246,7 @@ All checks must pass before merging.
 We use `strands-agents-tools` for common functionality:
 
 ```python
-from strands_tools import current_time, http_request, use_aws
+from strands_tools import current_time, http_request
 from strands_tools.tavily import tavily_search
 ```
 

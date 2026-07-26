@@ -15,7 +15,8 @@ import { Runtime, AgentRuntimeArtifact } from 'aws-cdk-lib/aws-bedrockagentcore'
 import * as path from 'path'
 import { Queue } from 'aws-cdk-lib/aws-sqs'
 
-// SSM parameter names (must be created manually before deployment)
+// SSM parameter names, created out-of-band (never by this stack); read by the agent at
+// invocation time (the Anthropic one only when MODEL_PROVIDER=anthropic)
 const TAVILY_API_KEY_SSM_PARAMETER = '/job-search-agent/tavily-api-key'
 const ANTHROPIC_API_KEY_SSM_PARAMETER = '/job-search-agent/anthropic-api-key'
 
