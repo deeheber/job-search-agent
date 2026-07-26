@@ -21,7 +21,7 @@ dev = [
     "ruff~=0.15",
     "mypy~=2.3",
     "black~=26.5",
-    "boto3-stubs[ssm]~=1.43",
+    "boto3-stubs[ssm,sns]~=1.43",
 ]
 
 [tool.uv]

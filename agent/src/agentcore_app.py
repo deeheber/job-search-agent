@@ -7,10 +7,11 @@ from typing import Any
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
 from strands.models.anthropic import AnthropicModel
-from strands_tools import current_time, http_request, use_aws  # type: ignore[import-untyped]
+from strands_tools import current_time, http_request  # type: ignore[import-untyped]
 from strands_tools.tavily import tavily_search  # type: ignore[import-untyped]
 
 from secret_utils import get_anthropic_api_key, get_tavily_api_key
+from tools import send_job_alert
 
 DEFAULT_MODEL_PROVIDER = "anthropic"
 DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
@@ -101,11 +102,10 @@ RECOGNIZING JOB LISTINGS:
 
 SNS_NOTIFICATION_PROMPT = """
 NOTIFICATION INSTRUCTIONS:
-After completing your response, if **Hiring Status** is Yes, send exactly ONE SNS notification:
-1. Use the use_aws tool with service_name="sns", operation_name="publish"
-2. Parameters: TopicArn="{topic_arn}", Subject="Job Alert: [COMPANY] is hiring!", Message=your full response text
-3. If the notification fails, still return your normal response - notification is best-effort
-4. Do NOT send more than one notification per request - never retry or send duplicate messages
+After completing your response, if **Hiring Status** is Yes, send exactly ONE notification:
+1. Use the send_job_alert tool with subject="Job Alert: [COMPANY] is hiring!" and message=your full response text
+2. If the notification fails, still return your normal response - notification is best-effort
+3. Do NOT send more than one notification per request - never retry or send duplicate messages
 """
 # fmt: on
 
@@ -146,8 +146,8 @@ def get_agent() -> Agent:
     system_prompt = SYSTEM_PROMPT
     sns_topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
     if sns_topic_arn:
-        tools.append(use_aws)
-        system_prompt += SNS_NOTIFICATION_PROMPT.format(topic_arn=sns_topic_arn)
+        tools.append(send_job_alert)
+        system_prompt += SNS_NOTIFICATION_PROMPT
         logging.info(f"SNS notifications enabled for topic: {sns_topic_arn}")
     else:
         logging.info("SNS_TOPIC_ARN not configured, notifications disabled")
