@@ -6,8 +6,9 @@ from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
-# Default SSM parameter name for Tavily API key
+# Default SSM parameter names (must be created manually before deployment)
 DEFAULT_TAVILY_SSM_PARAMETER = "/job-search-agent/tavily-api-key"
+DEFAULT_ANTHROPIC_SSM_PARAMETER = "/job-search-agent/anthropic-api-key"
 
 
 def is_aws_environment() -> bool:
@@ -27,40 +28,48 @@ def is_aws_environment() -> bool:
 
 
 def get_tavily_api_key() -> str:
+    """Retrieve the Tavily API key (env var locally, SSM in AWS)."""
+    return _get_api_key(
+        env_var="TAVILY_API_KEY",
+        ssm_param_env_var="TAVILY_API_KEY_SSM_PARAMETER",
+        default_parameter=DEFAULT_TAVILY_SSM_PARAMETER,
+    )
+
+
+def get_anthropic_api_key() -> str:
+    """Retrieve the Anthropic API key (env var locally, SSM in AWS)."""
+    return _get_api_key(
+        env_var="ANTHROPIC_API_KEY",
+        ssm_param_env_var="ANTHROPIC_API_KEY_SSM_PARAMETER",
+        default_parameter=DEFAULT_ANTHROPIC_SSM_PARAMETER,
+    )
+
+
+def _get_api_key(env_var: str, ssm_param_env_var: str, default_parameter: str) -> str:
     """
-    Retrieve the Tavily API key from the appropriate source.
-
-    - AWS deployment: Fetches from SSM Parameter Store (cached)
-    - Local development: Checks env var first, then falls back to SSM
-
-    Returns:
-        str: The Tavily API key
+    Retrieve an API key: env var first when running locally, SSM in AWS.
 
     Raises:
         ValueError: If the API key cannot be retrieved
     """
     if not is_aws_environment():
-        env_key = os.environ.get("TAVILY_API_KEY")
+        env_key = os.environ.get(env_var)
         if env_key:
-            logger.info("Using TAVILY_API_KEY from environment variable")
+            logger.info(f"Using {env_var} from environment variable")
             return env_key
-        logger.info("TAVILY_API_KEY not in environment, attempting SSM...")
+        logger.info(f"{env_var} not in environment, attempting SSM...")
 
-    return _get_from_ssm()
+    parameter_name = os.environ.get(ssm_param_env_var, default_parameter)
+    return _get_from_ssm(parameter_name)
 
 
-@lru_cache(maxsize=1)
-def _get_from_ssm() -> str:
-    """Fetch the Tavily API key from SSM Parameter Store (cached)."""
+@lru_cache(maxsize=8)
+def _get_from_ssm(parameter_name: str) -> str:
+    """Fetch a secret from SSM Parameter Store (cached per parameter name)."""
     import boto3
     from botocore.exceptions import ClientError, NoCredentialsError
 
-    parameter_name = os.environ.get(
-        "TAVILY_API_KEY_SSM_PARAMETER",
-        DEFAULT_TAVILY_SSM_PARAMETER,
-    )
-
-    logger.info(f"Fetching Tavily API key from SSM Parameter: {parameter_name}")
+    logger.info(f"Fetching API key from SSM Parameter: {parameter_name}")
 
     try:
         ssm_client = boto3.client("ssm")

@@ -3,12 +3,25 @@
 import os
 from unittest.mock import patch
 
-from src.agentcore_app import DEFAULT_MODEL_ID, construct_job_search_prompt, get_agent, get_model_id
+import pytest
+from strands.models.anthropic import AnthropicModel
+
+from src.agentcore_app import (
+    ANTHROPIC_MAX_TOKENS,
+    DEFAULT_ANTHROPIC_MODEL_ID,
+    DEFAULT_BEDROCK_MODEL_ID,
+    construct_job_search_prompt,
+    get_agent,
+    get_model,
+)
 
 
 def test_agent_has_tools() -> None:
     """Test agent has expected tools registered."""
-    with patch("src.agentcore_app.get_tavily_api_key", return_value="mock-api-key"):
+    with (
+        patch("src.agentcore_app.get_tavily_api_key", return_value="mock-api-key"),
+        patch("src.agentcore_app.get_anthropic_api_key", return_value="mock-anthropic-key"),
+    ):
         agent = get_agent()
     tool_names = agent.tool_names
     assert "current_time" in tool_names
@@ -16,11 +29,50 @@ def test_agent_has_tools() -> None:
     assert "tavily_search" in tool_names
 
 
-def test_get_model_id_fallback() -> None:
-    """Test get_model_id returns the default when environment variable is not set."""
-    with patch.dict(os.environ, {}, clear=True):
-        model_id = get_model_id()
-        assert model_id == DEFAULT_MODEL_ID
+def test_get_model_default_is_anthropic() -> None:
+    """Test get_model returns an AnthropicModel with defaults when env is unset."""
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        patch("src.agentcore_app.get_anthropic_api_key", return_value="mock-anthropic-key"),
+    ):
+        model = get_model()
+    assert isinstance(model, AnthropicModel)
+    config = model.get_config()
+    assert config["model_id"] == DEFAULT_ANTHROPIC_MODEL_ID
+    assert config["max_tokens"] == ANTHROPIC_MAX_TOKENS
+
+
+def test_get_model_anthropic_model_id_override() -> None:
+    """Test ANTHROPIC_MODEL_ID overrides the default Anthropic model."""
+    with (
+        patch.dict(os.environ, {"ANTHROPIC_MODEL_ID": "claude-opus-5"}, clear=True),
+        patch("src.agentcore_app.get_anthropic_api_key", return_value="mock-anthropic-key"),
+    ):
+        model = get_model()
+    assert isinstance(model, AnthropicModel)
+    assert model.get_config()["model_id"] == "claude-opus-5"
+
+
+def test_get_model_bedrock_provider() -> None:
+    """Test MODEL_PROVIDER=bedrock returns the default Bedrock model ID string."""
+    with patch.dict(os.environ, {"MODEL_PROVIDER": "bedrock"}, clear=True):
+        model = get_model()
+    assert model == DEFAULT_BEDROCK_MODEL_ID
+
+
+def test_get_model_bedrock_model_id_override() -> None:
+    """Test BEDROCK_MODEL_ID overrides the default Bedrock model."""
+    env = {"MODEL_PROVIDER": "bedrock", "BEDROCK_MODEL_ID": "custom-model-id"}
+    with patch.dict(os.environ, env, clear=True):
+        model = get_model()
+    assert model == "custom-model-id"
+
+
+def test_get_model_unknown_provider_raises() -> None:
+    """Test an unsupported MODEL_PROVIDER fails fast with a clear error."""
+    with patch.dict(os.environ, {"MODEL_PROVIDER": "openai"}, clear=True):
+        with pytest.raises(ValueError, match="Unsupported MODEL_PROVIDER"):
+            get_model()
 
 
 def test_system_prompt_contains_filtering_rules() -> None:
@@ -63,6 +115,7 @@ def test_agent_with_sns_has_use_aws_tool() -> None:
     """Test agent includes use_aws tool when SNS_TOPIC_ARN is configured."""
     with (
         patch("src.agentcore_app.get_tavily_api_key", return_value="mock-api-key"),
+        patch("src.agentcore_app.get_anthropic_api_key", return_value="mock-anthropic-key"),
         patch.dict(os.environ, {"SNS_TOPIC_ARN": "arn:aws:sns:us-west-2:123456789012:test-topic"}),
     ):
         agent = get_agent()
@@ -74,6 +127,7 @@ def test_system_prompt_includes_sns_when_configured() -> None:
     topic_arn = "arn:aws:sns:us-west-2:123456789012:test-topic"
     with (
         patch("src.agentcore_app.get_tavily_api_key", return_value="mock-api-key"),
+        patch("src.agentcore_app.get_anthropic_api_key", return_value="mock-anthropic-key"),
         patch.dict(os.environ, {"SNS_TOPIC_ARN": topic_arn}),
     ):
         agent = get_agent()

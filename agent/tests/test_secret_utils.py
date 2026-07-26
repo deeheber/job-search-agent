@@ -5,7 +5,13 @@ from unittest.mock import patch
 
 import pytest
 
-from src.secret_utils import clear_ssm_cache, get_tavily_api_key
+from src.secret_utils import (
+    DEFAULT_ANTHROPIC_SSM_PARAMETER,
+    DEFAULT_TAVILY_SSM_PARAMETER,
+    clear_ssm_cache,
+    get_anthropic_api_key,
+    get_tavily_api_key,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -25,7 +31,7 @@ def test_aws_environment_uses_ssm_directly():
         result = get_tavily_api_key()
 
         assert result == "ssm-key"
-        mock_ssm.assert_called_once()
+        mock_ssm.assert_called_once_with(DEFAULT_TAVILY_SSM_PARAMETER)
 
 
 def test_local_uses_env_var_when_set():
@@ -67,3 +73,55 @@ def test_local_error_when_both_fail():
             get_tavily_api_key()
 
         assert "Parameter not found" in str(exc_info.value)
+
+
+def test_get_anthropic_api_key_local_env_var():
+    """Locally, should use ANTHROPIC_API_KEY env var without calling SSM."""
+    with (
+        patch("src.secret_utils.is_aws_environment", return_value=False),
+        patch.dict(os.environ, {"ANTHROPIC_API_KEY": "env-anthropic-key"}),
+        patch("src.secret_utils._get_from_ssm") as mock_ssm,
+    ):
+        result = get_anthropic_api_key()
+
+        assert result == "env-anthropic-key"
+        mock_ssm.assert_not_called()
+
+
+def test_get_anthropic_api_key_aws_uses_ssm():
+    """In AWS, should fetch the Anthropic key from its own SSM parameter."""
+    with (
+        patch("src.secret_utils.is_aws_environment", return_value=True),
+        patch("src.secret_utils._get_from_ssm", return_value="ssm-anthropic-key") as mock_ssm,
+    ):
+        result = get_anthropic_api_key()
+
+        assert result == "ssm-anthropic-key"
+        mock_ssm.assert_called_once_with(DEFAULT_ANTHROPIC_SSM_PARAMETER)
+
+
+def test_anthropic_ssm_parameter_env_override():
+    """ANTHROPIC_API_KEY_SSM_PARAMETER should override the default parameter name."""
+    with (
+        patch("src.secret_utils.is_aws_environment", return_value=True),
+        patch.dict(os.environ, {"ANTHROPIC_API_KEY_SSM_PARAMETER": "/custom/param"}),
+        patch("src.secret_utils._get_from_ssm", return_value="ssm-key") as mock_ssm,
+    ):
+        get_anthropic_api_key()
+
+        mock_ssm.assert_called_once_with("/custom/param")
+
+
+def test_ssm_cache_isolated_per_parameter():
+    """Distinct parameter names are cached independently; repeats hit the cache."""
+    from src.secret_utils import _get_from_ssm
+
+    with patch("boto3.client") as mock_boto:
+        mock_boto.return_value.get_parameter.side_effect = lambda **kw: {
+            "Parameter": {"Value": f"value-for-{kw['Name']}"}
+        }
+        assert _get_from_ssm("/param/a") == "value-for-/param/a"
+        assert _get_from_ssm("/param/b") == "value-for-/param/b"
+        assert _get_from_ssm("/param/a") == "value-for-/param/a"
+
+    assert mock_boto.return_value.get_parameter.call_count == 2

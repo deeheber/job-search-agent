@@ -15,8 +15,9 @@ import { Runtime, AgentRuntimeArtifact } from 'aws-cdk-lib/aws-bedrockagentcore'
 import * as path from 'path'
 import { Queue } from 'aws-cdk-lib/aws-sqs'
 
-// SSM parameter name for Tavily API key (must be created manually before deployment)
+// SSM parameter names (must be created manually before deployment)
 const TAVILY_API_KEY_SSM_PARAMETER = '/job-search-agent/tavily-api-key'
+const ANTHROPIC_API_KEY_SSM_PARAMETER = '/job-search-agent/anthropic-api-key'
 
 export interface ScheduleConfig {
   company: string
@@ -26,7 +27,9 @@ export interface ScheduleConfig {
 }
 
 interface AgentStackProps extends StackProps {
+  modelProvider?: 'bedrock' | 'anthropic' | undefined
   bedrockModelID?: string | undefined
+  anthropicModelID?: string | undefined
   notificationEmails?: string[] | undefined
   schedules?: ScheduleConfig[] | undefined
 }
@@ -57,6 +60,7 @@ export class JobSearchAgentStack extends Stack {
         actions: ['ssm:GetParameter'],
         resources: [
           `arn:aws:ssm:${this.region}:${this.account}:parameter${TAVILY_API_KEY_SSM_PARAMETER}`,
+          `arn:aws:ssm:${this.region}:${this.account}:parameter${ANTHROPIC_API_KEY_SSM_PARAMETER}`,
         ],
       })
     )
@@ -101,9 +105,12 @@ export class JobSearchAgentStack extends Stack {
         AWS_REGION: this.region,
         AWS_DEFAULT_REGION: this.region,
         LOG_LEVEL: 'INFO',
+        MODEL_PROVIDER: props.modelProvider ?? 'anthropic',
         TAVILY_API_KEY_SSM_PARAMETER: TAVILY_API_KEY_SSM_PARAMETER,
+        ANTHROPIC_API_KEY_SSM_PARAMETER: ANTHROPIC_API_KEY_SSM_PARAMETER,
         SNS_TOPIC_ARN: notificationTopic.topicArn,
         ...(props.bedrockModelID && { BEDROCK_MODEL_ID: props.bedrockModelID }),
+        ...(props.anthropicModelID && { ANTHROPIC_MODEL_ID: props.anthropicModelID }),
       },
     })
 
@@ -160,6 +167,12 @@ export class JobSearchAgentStack extends Stack {
     new CfnOutput(this, 'TavilyApiKeyParameter', {
       description: 'SSM Parameter name for Tavily API Key (must be created before deployment)',
       value: TAVILY_API_KEY_SSM_PARAMETER,
+    })
+
+    new CfnOutput(this, 'AnthropicApiKeyParameter', {
+      description:
+        'SSM Parameter name for Anthropic API Key (must be created before deployment when MODEL_PROVIDER is anthropic)',
+      value: ANTHROPIC_API_KEY_SSM_PARAMETER,
     })
 
     new CfnOutput(this, 'NotificationTopicArn', {

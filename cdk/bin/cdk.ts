@@ -10,7 +10,16 @@ const envSchema = z
     CDK_DEFAULT_REGION: z.string().optional(),
     AWS_DEFAULT_ACCOUNT_ID: z.string().optional(),
     AWS_DEFAULT_REGION: z.string().optional(),
+    MODEL_PROVIDER: z
+      .string()
+      .transform((s) => (s === '' ? undefined : s))
+      .pipe(z.enum(['bedrock', 'anthropic']).optional())
+      .optional(),
     BEDROCK_MODEL_ID: z
+      .string()
+      .transform((s) => (s === '' ? undefined : s))
+      .optional(),
+    ANTHROPIC_MODEL_ID: z
       .string()
       .transform((s) => (s === '' ? undefined : s))
       .optional(),
@@ -41,7 +50,9 @@ const env = envSchema.parse(process.env)
 
 const account = (env.CDK_DEFAULT_ACCOUNT ?? env.AWS_DEFAULT_ACCOUNT_ID)!
 const region = (env.CDK_DEFAULT_REGION ?? env.AWS_DEFAULT_REGION)!
+const modelProvider = env.MODEL_PROVIDER ?? undefined
 const bedrockModelID = env.BEDROCK_MODEL_ID ?? undefined
+const anthropicModelID = env.ANTHROPIC_MODEL_ID ?? undefined
 const notificationEmails = env.NOTIFICATION_EMAILS?.split(',')
   .map((e) => e.trim())
   .filter(Boolean)
@@ -52,7 +63,9 @@ const schedules: ScheduleConfig[] | undefined = env.SCHEDULES
 const app = new App()
 new JobSearchAgentStack(app, env.STACK_NAME, {
   description: 'Job Search Agent infrastructure',
+  modelProvider,
   bedrockModelID,
+  anthropicModelID,
   notificationEmails,
   schedules,
   env: { account, region },
