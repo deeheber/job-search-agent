@@ -12,12 +12,13 @@ from strands_tools import current_time  # type: ignore[import-untyped]
 from strands_tools.tavily import tavily_extract, tavily_search  # type: ignore[import-untyped]
 
 from secret_utils import get_anthropic_api_key, get_tavily_api_key
-from tools import send_job_alert
+from tools import send_failure_alert, send_job_alert
 
 DEFAULT_MODEL_PROVIDER = "anthropic"
 DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 DEFAULT_ANTHROPIC_MODEL_ID = "claude-sonnet-5"
 ANTHROPIC_MAX_TOKENS = 8192
+JOB_SEARCH_TIMEOUT_SECONDS = 900
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
@@ -217,11 +218,17 @@ async def run_job_search(company: str, title: str, location: str) -> dict[str, A
 _background_tasks: set[asyncio.Task[Any]] = set()
 
 
-async def _tracked_job_search(company: str, title: str, location: str) -> None:
-    """Run the job search as a tracked async task so ping reports HealthyBusy."""
-    task_id = app.add_async_task("job_search")
+async def _tracked_job_search(task_id: int, company: str, title: str, location: str) -> None:
+    """Run the job search, alerting on failure since the async caller discards the result."""
     try:
-        await run_job_search(company, title, location)
+        result = await asyncio.wait_for(
+            run_job_search(company, title, location), timeout=JOB_SEARCH_TIMEOUT_SECONDS
+        )
+        if result.get("status") != "success":
+            send_failure_alert(company)
+    except Exception:
+        logging.error(f"Background job search for {company} failed", exc_info=True)
+        send_failure_alert(company)
     finally:
         app.complete_async_task(task_id)
 
@@ -246,8 +253,10 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload.get("sync"):
         return await run_job_search(company, title, location)
 
-    # Respond before EventBridge Scheduler's ~30s call timeout DLQs the invocation
-    task = asyncio.create_task(_tracked_job_search(company, title, location))
+    # Respond before EventBridge Scheduler's ~30s call timeout DLQs the invocation.
+    # Register the task before returning so /ping reports HealthyBusy while the search runs.
+    task_id = app.add_async_task("job_search")
+    task = asyncio.create_task(_tracked_job_search(task_id, company, title, location))
     _background_tasks.add(task)
     task.add_done_callback(_background_tasks.discard)
 

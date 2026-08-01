@@ -160,6 +160,22 @@ def test_invoke_default_returns_accepted_and_runs_search_in_background() -> None
     mock_search.assert_awaited_once_with("Stripe", "Engineer", "")
 
 
+def test_invoke_background_failure_sends_alert() -> None:
+    """Test a failed background search publishes a failure alert."""
+    mock_search = AsyncMock(return_value={"status": "error", "error": "Internal processing error"})
+
+    async def scenario() -> None:
+        with (
+            patch("src.agentcore_app.run_job_search", mock_search),
+            patch("src.agentcore_app.send_failure_alert") as mock_alert,
+        ):
+            await invoke({"company": "Stripe"})
+            await asyncio.gather(*_background_tasks)
+            mock_alert.assert_called_once_with("Stripe")
+
+    asyncio.run(scenario())
+
+
 def test_invoke_sync_returns_full_result() -> None:
     """Test the sync flag runs the search inline and returns its result."""
     full_result = {"status": "success", "response": "**Hiring Status**: Yes"}

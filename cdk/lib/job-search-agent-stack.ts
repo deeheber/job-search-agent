@@ -1,4 +1,6 @@
 import { Stack, StackProps, CfnOutput, Duration } from 'aws-cdk-lib'
+import { Alarm, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch'
+import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions'
 import { Role, ServicePrincipal, PolicyStatement } from 'aws-cdk-lib/aws-iam'
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets'
 import { Topic } from 'aws-cdk-lib/aws-sns'
@@ -120,6 +122,15 @@ export class JobSearchAgentStack extends Stack {
         queueName: `${this.stackName}-scheduler-dlq`,
         retentionPeriod: Duration.days(14),
       })
+
+      new Alarm(this, 'SchedulerDlqAlarm', {
+        alarmName: `${this.stackName}-scheduler-dlq-alarm`,
+        alarmDescription: 'Scheduled job search invocations are failing and landing in the DLQ',
+        metric: dlq.metricApproximateNumberOfMessagesVisible(),
+        threshold: 1,
+        evaluationPeriods: 1,
+        treatMissingData: TreatMissingData.NOT_BREACHING,
+      }).addAlarmAction(new SnsAction(notificationTopic))
 
       for (const [index, config] of props.schedules.entries()) {
         const payload: Record<string, string> = { company: config.company }
