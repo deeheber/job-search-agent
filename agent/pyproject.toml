@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "job-search-agent"
-version = "0.0.1"
+version = "2.0.0"
 description = "A Strands AI agent"
 requires-python = ">=3.14"
 dependencies = [
