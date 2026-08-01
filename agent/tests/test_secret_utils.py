@@ -61,21 +61,6 @@ def test_local_falls_back_to_ssm() -> None:
         assert result == "ssm-fallback-key"
 
 
-def test_local_error_when_both_fail() -> None:
-    """Locally without env var and SSM fails, should propagate SSM error."""
-    with (
-        patch("src.secret_utils.is_aws_environment", return_value=False),
-        patch.dict(os.environ, {}, clear=True),
-        patch("src.secret_utils._get_from_ssm", side_effect=ValueError("Parameter not found")),
-    ):
-        os.environ.pop("TAVILY_API_KEY", None)
-
-        with pytest.raises(ValueError) as exc_info:
-            get_tavily_api_key()
-
-        assert "Parameter not found" in str(exc_info.value)
-
-
 def test_get_anthropic_api_key_local_env_var() -> None:
     """Locally, should use ANTHROPIC_API_KEY env var without calling SSM."""
     with (

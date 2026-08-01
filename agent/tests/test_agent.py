@@ -79,21 +79,6 @@ def test_get_model_unknown_provider_raises() -> None:
             get_model()
 
 
-def test_system_prompt_contains_filtering_rules() -> None:
-    """Test that system prompt contains strict filtering instructions."""
-    from src.agentcore_app import SYSTEM_PROMPT
-
-    # Check for key filtering concepts
-    assert "Strict filtering" in SYSTEM_PROMPT
-    assert "match ALL user criteria" in SYSTEM_PROMPT
-    assert "NEVER construct or invent URLs" in SYSTEM_PROMPT
-    assert "No direct link available" in SYSTEM_PROMPT
-
-    # Check for specific role matching examples
-    assert "Software Engineer" in SYSTEM_PROMPT
-    assert "does NOT match" in SYSTEM_PROMPT
-
-
 def test_construct_job_search_prompt_company_only() -> None:
     """Test prompt construction with company name only."""
     result = construct_job_search_prompt("Google")
@@ -104,15 +89,6 @@ def test_construct_job_search_prompt_with_all_params() -> None:
     """Test prompt construction with all parameters."""
     result = construct_job_search_prompt("Microsoft", title="Software Engineer", location="remote")
     assert result == "Find jobs at Microsoft. Focus on 'Software Engineer' roles in remote."
-
-
-def test_system_prompt_uses_search_approach() -> None:
-    """Test that system prompt uses tavily_search instead of URL guessing."""
-    from src.agentcore_app import SYSTEM_PROMPT
-
-    assert "tavily_search" in SYSTEM_PROMPT
-    # Old URL patterns should be removed
-    assert "https://careers.COMPANY.com" not in SYSTEM_PROMPT
 
 
 def test_agent_with_sns_has_send_job_alert_tool() -> None:

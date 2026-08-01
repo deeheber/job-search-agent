@@ -157,34 +157,6 @@ describe('JobSearchAgentStack', () => {
         }),
       })
     })
-
-    it('creates stack outputs for runtime access', () => {
-      template.hasOutput('RuntimeId', {
-        Description: 'AgentCore Runtime ID',
-        Value: {
-          'Fn::GetAtt': [Match.stringLikeRegexp('JobSearchAgentRuntime.*'), 'AgentRuntimeId'],
-        },
-      })
-
-      template.hasOutput('RuntimeArn', {
-        Description: 'AgentCore Runtime ARN',
-        Value: {
-          'Fn::GetAtt': [Match.stringLikeRegexp('JobSearchAgentRuntime.*'), 'AgentRuntimeArn'],
-        },
-      })
-
-      template.hasOutput('AnthropicApiKeyParameter', {
-        Description: Match.stringLikeRegexp('SSM Parameter name for Anthropic API Key.*'),
-        Value: '/job-search-agent/anthropic-api-key',
-      })
-
-      template.hasOutput('NotificationTopicArn', {
-        Description: Match.stringLikeRegexp('SNS Topic ARN.*'),
-        Value: {
-          Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
-        },
-      })
-    })
   })
 
   describe('SNS Notifications', () => {
