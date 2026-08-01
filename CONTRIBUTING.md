@@ -257,8 +257,7 @@ When adding tools, consider if they should be:
 
 ## Getting Help
 
-- **Issues**: Create GitHub issues for bugs or feature requests
-- **Discussions**: Use GitHub Discussions for questions and ideas
+- **Issues**: Create GitHub issues for bugs, feature requests, or questions
 - **Documentation**: Check README.md and DEPLOYMENT.md for guidance
 
 ## Code of Conduct
