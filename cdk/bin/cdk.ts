@@ -4,6 +4,16 @@ import { z } from 'zod'
 
 import { JobSearchAgentStack, ScheduleConfig } from '../lib/job-search-agent-stack'
 
+const scheduleSchema = z.object({
+  company: z.string().min(1),
+  title: z.string().optional(),
+  location: z.string().optional(),
+  schedule: z
+    .string()
+    .regex(/^(cron|rate)\(/, 'must be a cron(...) or rate(...) expression')
+    .optional(),
+})
+
 const envSchema = z
   .object({
     CDK_DEFAULT_ACCOUNT: z.string().optional(),
@@ -30,7 +40,17 @@ const envSchema = z
     SCHEDULES: z
       .string()
       .transform((s) => (s === '' ? undefined : s))
-      .optional(),
+      .optional()
+      .transform((s, ctx) => {
+        if (s === undefined) return undefined
+        try {
+          return JSON.parse(s) as unknown
+        } catch {
+          ctx.addIssue({ code: 'custom', message: 'must be valid JSON' })
+          return z.NEVER
+        }
+      })
+      .pipe(z.array(scheduleSchema).optional()),
     STACK_NAME: z
       .string()
       .transform((s) => (s === '' ? undefined : s))
@@ -46,7 +66,12 @@ const envSchema = z
       '❌ AWS region not found. Please configure AWS CLI credentials by running "aws configure", set AWS_PROFILE environment variable, or set CDK_DEFAULT_REGION environment variable.',
   })
 
-const env = envSchema.parse(process.env)
+const parsed = envSchema.safeParse(process.env)
+if (!parsed.success) {
+  console.error(z.prettifyError(parsed.error))
+  process.exit(1)
+}
+const env = parsed.data
 
 const account = (env.CDK_DEFAULT_ACCOUNT ?? env.AWS_DEFAULT_ACCOUNT_ID)!
 const region = (env.CDK_DEFAULT_REGION ?? env.AWS_DEFAULT_REGION)!
@@ -57,8 +82,6 @@ const notificationEmails = env.NOTIFICATION_EMAILS?.split(',')
   .map((e) => e.trim())
   .filter(Boolean)
 const schedules: ScheduleConfig[] | undefined = env.SCHEDULES
-  ? (JSON.parse(env.SCHEDULES) as ScheduleConfig[])
-  : undefined
 
 const app = new App()
 new JobSearchAgentStack(app, env.STACK_NAME, {

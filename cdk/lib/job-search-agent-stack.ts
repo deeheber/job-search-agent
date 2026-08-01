@@ -24,9 +24,9 @@ const ANTHROPIC_API_KEY_SSM_PARAMETER = '/job-search-agent/anthropic-api-key'
 
 export interface ScheduleConfig {
   company: string
-  title?: string
-  location?: string
-  schedule?: string // EventBridge expression, e.g. "cron(0 12 ? * MON *)" or "rate(14 days)"
+  title?: string | undefined
+  location?: string | undefined
+  schedule?: string | undefined // EventBridge expression, e.g. "cron(0 12 ? * MON *)" or "rate(14 days)"
 }
 
 interface AgentStackProps extends StackProps {
@@ -51,7 +51,8 @@ export class JobSearchAgentStack extends Stack {
         sid: 'BedrockModels',
         actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
         resources: [
-          'arn:aws:bedrock:*::foundation-model/*',
+          // region wildcard: cross-region inference profiles invoke the model outside this.region
+          'arn:aws:bedrock:*::foundation-model/anthropic.*',
           `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/*`,
         ],
       })
@@ -132,7 +133,9 @@ export class JobSearchAgentStack extends Stack {
         treatMissingData: TreatMissingData.NOT_BREACHING,
       }).addAlarmAction(new SnsAction(notificationTopic))
 
-      for (const [index, config] of props.schedules.entries()) {
+      // Company-keyed IDs so reordering SCHEDULES doesn't retarget deployed schedules
+      const scheduleIdCounts = new Map<string, number>()
+      for (const config of props.schedules) {
         const payload: Record<string, string> = { company: config.company }
         if (config.title) payload.title = config.title
         if (config.location) payload.location = config.location
@@ -141,9 +144,14 @@ export class JobSearchAgentStack extends Stack {
           ? ScheduleExpression.expression(config.schedule)
           : ScheduleExpression.rate(Duration.days(7))
 
-        new Schedule(this, `Schedule-${index}`, {
+        const base = config.company.replace(/[^A-Za-z0-9_-]/g, '-').slice(0, 30)
+        const count = scheduleIdCounts.get(base) ?? 0
+        scheduleIdCounts.set(base, count + 1)
+        const scheduleId = count === 0 ? base : `${base}-${count + 1}`
+
+        new Schedule(this, `Schedule-${scheduleId}`, {
           schedule: scheduleExpr,
-          scheduleName: `${this.stackName}-Schedule-${index}`,
+          scheduleName: `${this.stackName}-Schedule-${scheduleId}`,
           target: new Universal({
             service: 'bedrockagentcore',
             action: 'invokeAgentRuntime',
@@ -154,7 +162,7 @@ export class JobSearchAgentStack extends Stack {
             policyStatements: [
               new PolicyStatement({
                 actions: ['bedrock-agentcore:InvokeAgentRuntime'],
-                resources: [`${runtime.agentRuntimeArn}*`],
+                resources: [runtime.agentRuntimeArn, `${runtime.agentRuntimeArn}/*`],
               }),
             ],
             retryAttempts: 2,

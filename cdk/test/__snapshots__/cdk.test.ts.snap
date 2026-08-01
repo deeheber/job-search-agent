@@ -73,7 +73,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:bedrock:*::foundation-model/*",
+                "arn:aws:bedrock:*::foundation-model/anthropic.*",
                 "arn:aws:bedrock:us-west-2:123456789012:inference-profile/*",
               ],
               "Sid": "BedrockModels",
@@ -302,6 +302,588 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
         "TopicName": "TestJobSearchAgentStack-notify",
       },
       "Type": "AWS::SNS::Topic",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the expected template structure with schedules 1`] = `
+{
+  "Outputs": {
+    "AnthropicApiKeyParameter": {
+      "Description": "SSM Parameter name for Anthropic API Key (must be created before deployment when MODEL_PROVIDER is anthropic)",
+      "Value": "/job-search-agent/anthropic-api-key",
+    },
+    "NotificationTopicArn": {
+      "Description": "SNS Topic ARN for job search notifications",
+      "Value": {
+        "Ref": "JobSearchNotificationTopicA750FAD4",
+      },
+    },
+    "RuntimeArn": {
+      "Description": "AgentCore Runtime ARN",
+      "Value": {
+        "Fn::GetAtt": [
+          "JobSearchAgentRuntime978502A3",
+          "AgentRuntimeArn",
+        ],
+      },
+    },
+    "RuntimeId": {
+      "Description": "AgentCore Runtime ID",
+      "Value": {
+        "Fn::GetAtt": [
+          "JobSearchAgentRuntime978502A3",
+          "AgentRuntimeId",
+        ],
+      },
+    },
+    "TavilyApiKeyParameter": {
+      "Description": "SSM Parameter name for Tavily API Key (must be created before deployment)",
+      "Value": "/job-search-agent/tavily-api-key",
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AgentCoreRoleD989E366": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "bedrock-agentcore.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "RoleName": "TestScheduleStack-AgentCoreRole",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AgentCoreRoleDefaultPolicyEB23C10B": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "bedrock:InvokeModel",
+                "bedrock:InvokeModelWithResponseStream",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:bedrock:*::foundation-model/anthropic.*",
+                "arn:aws:bedrock:us-west-2:123456789012:inference-profile/*",
+              ],
+              "Sid": "BedrockModels",
+            },
+            {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:ssm:us-west-2:123456789012:parameter/job-search-agent/tavily-api-key",
+                "arn:aws:ssm:us-west-2:123456789012:parameter/job-search-agent/anthropic-api-key",
+              ],
+              "Sid": "SSMParameterAccess",
+            },
+            {
+              "Action": "kms:Decrypt",
+              "Condition": {
+                "StringEquals": {
+                  "kms:ViaService": "ssm.us-west-2.amazonaws.com",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": "*",
+              "Sid": "KMSDecrypt",
+            },
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "JobSearchNotificationTopicA750FAD4",
+              },
+            },
+            {
+              "Action": [
+                "logs:DescribeLogStreams",
+                "logs:CreateLogGroup",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/*",
+                  ],
+                ],
+              },
+              "Sid": "LogGroupAccess",
+            },
+            {
+              "Action": "logs:DescribeLogGroups",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":logs:us-west-2:123456789012:log-group:*",
+                  ],
+                ],
+              },
+              "Sid": "DescribeLogGroups",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*",
+                  ],
+                ],
+              },
+              "Sid": "LogStreamAccess",
+            },
+            {
+              "Action": [
+                "xray:PutTraceSegments",
+                "xray:PutTelemetryRecords",
+                "xray:GetSamplingRules",
+                "xray:GetSamplingTargets",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+              "Sid": "XRayAccess",
+            },
+            {
+              "Action": "cloudwatch:PutMetricData",
+              "Condition": {
+                "StringEquals": {
+                  "cloudwatch:namespace": "bedrock-agentcore",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": "*",
+              "Sid": "CloudWatchMetrics",
+            },
+            {
+              "Action": [
+                "bedrock-agentcore:GetWorkloadAccessToken",
+                "bedrock-agentcore:GetWorkloadAccessTokenForJWT",
+                "bedrock-agentcore:GetWorkloadAccessTokenForUserId",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":bedrock-agentcore:us-west-2:123456789012:workload-identity-directory/default",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":bedrock-agentcore:us-west-2:123456789012:workload-identity-directory/default/workload-identity/*",
+                    ],
+                  ],
+                },
+              ],
+              "Sid": "GetAgentAccessToken",
+            },
+            {
+              "Action": [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":ecr:us-west-2:123456789012:repository/cdk-hnb659fds-container-assets-123456789012-us-west-2",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "ecr:GetAuthorizationToken",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AgentCoreRoleDefaultPolicyEB23C10B",
+        "Roles": [
+          {
+            "Ref": "AgentCoreRoleD989E366",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "JobSearchAgentRuntime978502A3": {
+      "DependsOn": [
+        "AgentCoreRoleDefaultPolicyEB23C10B",
+        "AgentCoreRoleD989E366",
+      ],
+      "Properties": {
+        "AgentRuntimeArtifact": {
+          "ContainerConfiguration": {
+            "ContainerUri": {
+              "Fn::Sub": "123456789012.dkr.ecr.us-west-2.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-123456789012-us-west-2:MOCKED_CONTAINER_HASH",
+            },
+          },
+        },
+        "AgentRuntimeName": "TestScheduleStack_JobSearchAgent",
+        "Description": "Job search agent with web search, page extraction, and time",
+        "EnvironmentVariables": {
+          "ANTHROPIC_API_KEY_SSM_PARAMETER": "/job-search-agent/anthropic-api-key",
+          "AWS_DEFAULT_REGION": "us-west-2",
+          "AWS_REGION": "us-west-2",
+          "LOG_LEVEL": "INFO",
+          "MODEL_PROVIDER": "anthropic",
+          "SNS_TOPIC_ARN": {
+            "Ref": "JobSearchNotificationTopicA750FAD4",
+          },
+          "TAVILY_API_KEY_SSM_PARAMETER": "/job-search-agent/tavily-api-key",
+        },
+        "LifecycleConfiguration": {},
+        "NetworkConfiguration": {
+          "NetworkMode": "PUBLIC",
+        },
+        "ProtocolConfiguration": "HTTP",
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "AgentCoreRoleD989E366",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::BedrockAgentCore::Runtime",
+    },
+    "JobSearchNotificationTopicA750FAD4": {
+      "Properties": {
+        "DisplayName": "Job Search Agent Notifications",
+        "TopicName": "TestScheduleStack-notify",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "ScheduleGoogle3B516CEE": {
+      "Properties": {
+        "Description": "Job search: Google",
+        "FlexibleTimeWindow": {
+          "MaximumWindowInMinutes": 120,
+          "Mode": "FLEXIBLE",
+        },
+        "Name": "TestScheduleStack-Schedule-Google",
+        "ScheduleExpression": "rate(7 days)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":scheduler:::aws-sdk:bedrockagentcore:invokeAgentRuntime",
+              ],
+            ],
+          },
+          "DeadLetterConfig": {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SchedulerdlqFAB10257",
+                "Arn",
+              ],
+            },
+          },
+          "Input": {
+            "Fn::Join": [
+              "",
+              [
+                "{"AgentRuntimeArn":"",
+                {
+                  "Fn::GetAtt": [
+                    "JobSearchAgentRuntime978502A3",
+                    "AgentRuntimeArn",
+                  ],
+                },
+                "","Payload":"{\\"company\\":\\"Google\\",\\"title\\":\\"Software Engineer\\",\\"location\\":\\"Remote\\"}"}",
+              ],
+            ],
+          },
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 2,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTargeta5797e5F63D8AB",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "ScheduleMeta9F41F9A3": {
+      "Properties": {
+        "Description": "Job search: Meta",
+        "FlexibleTimeWindow": {
+          "MaximumWindowInMinutes": 120,
+          "Mode": "FLEXIBLE",
+        },
+        "Name": "TestScheduleStack-Schedule-Meta",
+        "ScheduleExpression": "cron(0 12 ? * MON *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":scheduler:::aws-sdk:bedrockagentcore:invokeAgentRuntime",
+              ],
+            ],
+          },
+          "DeadLetterConfig": {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SchedulerdlqFAB10257",
+                "Arn",
+              ],
+            },
+          },
+          "Input": {
+            "Fn::Join": [
+              "",
+              [
+                "{"AgentRuntimeArn":"",
+                {
+                  "Fn::GetAtt": [
+                    "JobSearchAgentRuntime978502A3",
+                    "AgentRuntimeArn",
+                  ],
+                },
+                "","Payload":"{\\"company\\":\\"Meta\\"}"}",
+              ],
+            ],
+          },
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 2,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTargeta5797e5F63D8AB",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
+    "SchedulerDlqAlarm0171B2A8": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "JobSearchNotificationTopicA750FAD4",
+          },
+        ],
+        "AlarmDescription": "Scheduled job search invocations are failing and landing in the DLQ",
+        "AlarmName": "TestScheduleStack-scheduler-dlq-alarm",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "QueueName",
+            "Value": {
+              "Fn::GetAtt": [
+                "SchedulerdlqFAB10257",
+                "QueueName",
+              ],
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "ApproximateNumberOfMessagesVisible",
+        "Namespace": "AWS/SQS",
+        "Period": 300,
+        "Statistic": "Maximum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "SchedulerRoleForTargeta5797e5F63D8AB": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":scheduler:us-west-2:123456789012:schedule-group/default",
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTargeta5797eDefaultPolicy274DDE39": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "bedrock-agentcore:InvokeAgentRuntime",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "JobSearchAgentRuntime978502A3",
+                    "AgentRuntimeArn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "JobSearchAgentRuntime978502A3",
+                          "AgentRuntimeArn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "sqs:SendMessage",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "SchedulerdlqFAB10257",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTargeta5797eDefaultPolicy274DDE39",
+        "Roles": [
+          {
+            "Ref": "SchedulerRoleForTargeta5797e5F63D8AB",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SchedulerdlqFAB10257": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "MessageRetentionPeriod": 1209600,
+        "QueueName": "TestScheduleStack-scheduler-dlq",
+      },
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
     },
   },
   "Rules": {
