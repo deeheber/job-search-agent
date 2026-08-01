@@ -15,7 +15,7 @@ from secret_utils import get_anthropic_api_key, get_tavily_api_key
 from tools import send_failure_alert, send_job_alert
 
 DEFAULT_MODEL_PROVIDER = "anthropic"
-DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
+DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-5"
 DEFAULT_ANTHROPIC_MODEL_ID = "claude-sonnet-5"
 ANTHROPIC_MAX_TOKENS = 16000
 JOB_SEARCH_TIMEOUT_SECONDS = 900
