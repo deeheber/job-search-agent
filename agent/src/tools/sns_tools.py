@@ -4,6 +4,7 @@ import logging
 import os
 
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 from strands import tool
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,11 @@ def send_job_alert(subject: str, message: str) -> str:
 
     sns = boto3.client("sns")
     # SNS rejects subjects over 100 characters
-    sns.publish(TopicArn=topic_arn, Subject=subject[:100], Message=message)
+    try:
+        sns.publish(TopicArn=topic_arn, Subject=subject[:100], Message=message)
+    except BotoCoreError, ClientError:
+        logger.error("Failed to publish job alert", exc_info=True)
+        return "Notification failed"
     logger.info(f"Job alert published to {topic_arn}")
     return "Notification sent"
 

@@ -17,15 +17,16 @@ from tools import send_failure_alert, send_job_alert
 DEFAULT_MODEL_PROVIDER = "anthropic"
 DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 DEFAULT_ANTHROPIC_MODEL_ID = "claude-sonnet-5"
-ANTHROPIC_MAX_TOKENS = 8192
+ANTHROPIC_MAX_TOKENS = 16000
 JOB_SEARCH_TIMEOUT_SECONDS = 900
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
-    level=getattr(logging, log_level),
+    level=getattr(logging, log_level, logging.INFO),
     format="%(levelname)s | %(name)s | %(message)s",
 )
 logging.getLogger("strands").setLevel(log_level)
+logger = logging.getLogger(__name__)
 
 app = BedrockAgentCoreApp()
 
@@ -118,12 +119,12 @@ def get_model() -> str | AnthropicModel:
 
     if provider == "bedrock":
         model_id = os.getenv("BEDROCK_MODEL_ID", DEFAULT_BEDROCK_MODEL_ID)
-        logging.info(f"Using Bedrock model: {model_id}")
+        logger.info(f"Using Bedrock model: {model_id}")
         return model_id
 
     if provider == "anthropic":
         model_id = os.getenv("ANTHROPIC_MODEL_ID", DEFAULT_ANTHROPIC_MODEL_ID)
-        logging.info(f"Using Anthropic API model: {model_id}")
+        logger.info(f"Using Anthropic API model: {model_id}")
         return AnthropicModel(
             client_args={"api_key": get_anthropic_api_key()},
             model_id=model_id,
@@ -150,9 +151,9 @@ def get_agent() -> Agent:
     if sns_topic_arn:
         tools.append(send_job_alert)
         system_prompt += SNS_NOTIFICATION_PROMPT
-        logging.info(f"SNS notifications enabled for topic: {sns_topic_arn}")
+        logger.info(f"SNS notifications enabled for topic: {sns_topic_arn}")
     else:
-        logging.info("SNS_TOPIC_ARN not configured, notifications disabled")
+        logger.info("SNS_TOPIC_ARN not configured, notifications disabled")
 
     return Agent(
         model=model,
@@ -197,20 +198,19 @@ async def run_job_search(company: str, title: str, location: str) -> dict[str, A
         # content can lead with thinking blocks; str() joins only the text blocks
         response_text = str(response)
 
-        logging.info(f"Agent response generated (length: {len(response_text)} chars)")
-        logging.info(f"Hiring result for {company}: {response_text}")
+        logger.info(f"Agent response generated (length: {len(response_text)} chars)")
 
         result = {
             "status": "success",
             "response": response_text,
             "search_criteria": {"company": company, "title": title, "location": location},
         }
-        logging.info("AgentCore invocation completed successfully")
+        logger.info("AgentCore invocation completed successfully")
 
         return result
 
     except Exception as e:
-        logging.error(f"Error processing request: {e}", exc_info=True)
+        logger.error(f"Error processing request: {e}", exc_info=True)
         return {"status": "error", "error": "Internal processing error"}
 
 
@@ -227,7 +227,7 @@ async def _tracked_job_search(task_id: int, company: str, title: str, location: 
         if result.get("status") != "success":
             send_failure_alert(company)
     except Exception:
-        logging.error(f"Background job search for {company} failed", exc_info=True)
+        logger.error(f"Background job search for {company} failed", exc_info=True)
         send_failure_alert(company)
     finally:
         app.complete_async_task(task_id)
@@ -247,8 +247,7 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if not company:
         return {"status": "error", "error": "Company name is required"}
 
-    logging.info(f"Payload received: {payload}")
-    logging.info(f"Company: {company}, Title: {title}, Location: {location}")
+    logger.info(f"Company: {company}, Title: {title}, Location: {location}")
 
     if payload.get("sync"):
         return await run_job_search(company, title, location)

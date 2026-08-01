@@ -101,7 +101,7 @@ npm run cdk:deploy   # Deploy to AWS
 - **Line length**: 100 characters
 - **Formatter**: Black
 - **Linter**: Ruff with auto-fix enabled
-- **Type checker**: mypy in strict mode
+- **Type checker**: mypy in strict mode (`src/`)
 - **Testing**: pytest
 
 ### TypeScript Code Style
@@ -115,11 +115,11 @@ npm run cdk:deploy   # Deploy to AWS
 
 ```typescript
 // ✅ Good
-import { Stack, StackProps } from "aws-cdk-lib";
-import { Function, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Stack, StackProps, CfnOutput, Duration } from 'aws-cdk-lib'
+import { Runtime, AgentRuntimeArtifact } from 'aws-cdk-lib/aws-bedrockagentcore'
 
 // ❌ Avoid
-import * as cdk from "aws-cdk-lib";
+import * as cdk from 'aws-cdk-lib'
 ```
 
 ## Project Structure
@@ -147,7 +147,7 @@ def search_job_board(company_name: str, position_type: str) -> dict:
 
 ### Current Tool Usage
 
-The agent uses community tools from `strands-agents-tools`:
+The agent uses community tools from `strands-agents-tools`, plus one custom tool:
 
 - `tavily_search` - For searching the web for career pages and job listings
 - `tavily_extract` - For fetching page content from URLs found by search

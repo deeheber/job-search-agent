@@ -34,7 +34,6 @@ cdk.out/
 
 # CDK
 cdk/**/*.js
-!cdk/jest.config.js
 cdk/**/*.d.ts
 cdk/.cdk.staging
 cdk/coverage/

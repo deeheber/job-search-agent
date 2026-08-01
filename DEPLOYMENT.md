@@ -168,14 +168,17 @@ Export it in `agent/src/tools/__init__.py`:
 
 ```python
 from .job_search_tools import parse_greenhouse_api
-__all__ = ["parse_greenhouse_api"]
+from .sns_tools import send_failure_alert, send_job_alert
+
+__all__ = ["parse_greenhouse_api", "send_failure_alert", "send_job_alert"]
 ```
 
-Add to the agent in `agentcore_app.py`:
+Add it to the tool list in `get_agent()` in `agentcore_app.py`:
 
 ```python
 from tools import parse_greenhouse_api
-agent = Agent(tools=[current_time, tavily_search, tavily_extract, parse_greenhouse_api])
+
+tools: list[object] = [current_time, tavily_search, tavily_extract, parse_greenhouse_api]
 ```
 
 ## CI/CD with GitHub Actions
@@ -222,6 +225,8 @@ cd cdk && npm run cdk:deploy
 ```
 
 The agent sends SNS notifications when it finds open positions, so pair this with `NOTIFICATION_EMAILS` for automated alerts.
+
+Scheduled invokes are async — the runtime acks immediately (EventBridge Scheduler's call times out after ~30s) and results arrive via SNS email or CloudWatch logs. Failed invokes land in an SQS dead-letter queue that alarms to the same SNS topic; failures inside the agent send their own SNS alert. To spread load, each schedule fires within a 2-hour window after its scheduled time, not at the exact minute.
 
 ## Clean Up
 

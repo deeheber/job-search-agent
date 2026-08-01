@@ -1,6 +1,7 @@
 """Tests for secret_utils module."""
 
 import os
+from collections.abc import Iterator
 from unittest.mock import patch
 
 import pytest
@@ -15,14 +16,14 @@ from src.secret_utils import (
 
 
 @pytest.fixture(autouse=True)
-def clear_cache():
+def clear_cache() -> Iterator[None]:
     """Clear SSM cache before each test."""
     clear_ssm_cache()
     yield
     clear_ssm_cache()
 
 
-def test_aws_environment_uses_ssm_directly():
+def test_aws_environment_uses_ssm_directly() -> None:
     """In AWS, should fetch from SSM without checking env var."""
     with (
         patch("src.secret_utils.is_aws_environment", return_value=True),
@@ -34,7 +35,7 @@ def test_aws_environment_uses_ssm_directly():
         mock_ssm.assert_called_once_with(DEFAULT_TAVILY_SSM_PARAMETER)
 
 
-def test_local_uses_env_var_when_set():
+def test_local_uses_env_var_when_set() -> None:
     """Locally, should use env var if available without calling SSM."""
     with (
         patch("src.secret_utils.is_aws_environment", return_value=False),
@@ -47,7 +48,7 @@ def test_local_uses_env_var_when_set():
         mock_ssm.assert_not_called()
 
 
-def test_local_falls_back_to_ssm():
+def test_local_falls_back_to_ssm() -> None:
     """Locally without env var, should try SSM."""
     with (
         patch("src.secret_utils.is_aws_environment", return_value=False),
@@ -60,7 +61,7 @@ def test_local_falls_back_to_ssm():
         assert result == "ssm-fallback-key"
 
 
-def test_local_error_when_both_fail():
+def test_local_error_when_both_fail() -> None:
     """Locally without env var and SSM fails, should propagate SSM error."""
     with (
         patch("src.secret_utils.is_aws_environment", return_value=False),
@@ -75,7 +76,7 @@ def test_local_error_when_both_fail():
         assert "Parameter not found" in str(exc_info.value)
 
 
-def test_get_anthropic_api_key_local_env_var():
+def test_get_anthropic_api_key_local_env_var() -> None:
     """Locally, should use ANTHROPIC_API_KEY env var without calling SSM."""
     with (
         patch("src.secret_utils.is_aws_environment", return_value=False),
@@ -88,7 +89,7 @@ def test_get_anthropic_api_key_local_env_var():
         mock_ssm.assert_not_called()
 
 
-def test_get_anthropic_api_key_aws_uses_ssm():
+def test_get_anthropic_api_key_aws_uses_ssm() -> None:
     """In AWS, should fetch the Anthropic key from its own SSM parameter."""
     with (
         patch("src.secret_utils.is_aws_environment", return_value=True),
@@ -100,7 +101,7 @@ def test_get_anthropic_api_key_aws_uses_ssm():
         mock_ssm.assert_called_once_with(DEFAULT_ANTHROPIC_SSM_PARAMETER)
 
 
-def test_anthropic_ssm_parameter_env_override():
+def test_anthropic_ssm_parameter_env_override() -> None:
     """ANTHROPIC_API_KEY_SSM_PARAMETER should override the default parameter name."""
     with (
         patch("src.secret_utils.is_aws_environment", return_value=True),
@@ -112,7 +113,7 @@ def test_anthropic_ssm_parameter_env_override():
         mock_ssm.assert_called_once_with("/custom/param")
 
 
-def test_ssm_cache_isolated_per_parameter():
+def test_ssm_cache_isolated_per_parameter() -> None:
     """Distinct parameter names are cached independently; repeats hit the cache."""
     from src.secret_utils import _get_from_ssm
 
