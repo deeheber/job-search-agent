@@ -151,7 +151,7 @@ The quality check runs pytest, mypy, ruff, and black. It'll catch most problems 
 
 ## Add Custom Tools
 
-The agent uses community tools (`tavily_search`, `http_request`, `current_time`) plus a custom `send_job_alert` tool in `agent/src/tools/`. To add your own:
+The agent uses community tools (`tavily_search`, `tavily_extract`, `current_time`) plus a custom `send_job_alert` tool in `agent/src/tools/`. To add your own:
 
 ```python
 # agent/src/tools/job_search_tools.py
@@ -175,7 +175,7 @@ Add to the agent in `agentcore_app.py`:
 
 ```python
 from tools import parse_greenhouse_api
-agent = Agent(tools=[current_time, http_request, tavily_search, parse_greenhouse_api])
+agent = Agent(tools=[current_time, tavily_search, tavily_extract, parse_greenhouse_api])
 ```
 
 ## CI/CD with GitHub Actions

@@ -8,8 +8,8 @@ from typing import Any
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
 from strands.models.anthropic import AnthropicModel
-from strands_tools import current_time, http_request  # type: ignore[import-untyped]
-from strands_tools.tavily import tavily_search  # type: ignore[import-untyped]
+from strands_tools import current_time  # type: ignore[import-untyped]
+from strands_tools.tavily import tavily_extract, tavily_search  # type: ignore[import-untyped]
 
 from secret_utils import get_anthropic_api_key, get_tavily_api_key
 from tools import send_job_alert
@@ -55,7 +55,7 @@ SEARCH PROCESS:
    - Query: "[COMPANY] careers jobs hiring"
    - Set max_results to 5
 4. From search results, identify the actual career page URL (look for URLs containing "careers", "jobs", or similar)
-5. Use http_request to fetch the career page content
+5. Use tavily_extract to fetch the career page content
 6. If career page has no job listings, use tavily_search for job boards:
    - Query: "[COMPANY] jobs site:indeed.com OR site:linkedin.com OR site:greenhouse.io"
 7. Parse all responses for actual job listings with real URLs
@@ -143,7 +143,7 @@ def get_agent() -> Agent:
 
     model = get_model()
 
-    tools: list[object] = [current_time, http_request, tavily_search]
+    tools: list[object] = [current_time, tavily_search, tavily_extract]
     system_prompt = SYSTEM_PROMPT
     sns_topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
     if sns_topic_arn:

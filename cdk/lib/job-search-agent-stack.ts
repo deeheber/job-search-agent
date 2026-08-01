@@ -101,7 +101,7 @@ export class JobSearchAgentStack extends Stack {
       runtimeName: `${this.stackName.replace(/-/g, '_')}_JobSearchAgent`,
       agentRuntimeArtifact: agentArtifact,
       executionRole: agentRole,
-      description: 'Job search agent with web search, time, and http_request',
+      description: 'Job search agent with web search, page extraction, and time',
       environmentVariables: {
         AWS_REGION: this.region,
         AWS_DEFAULT_REGION: this.region,

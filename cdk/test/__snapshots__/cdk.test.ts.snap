@@ -270,7 +270,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
           },
         },
         "AgentRuntimeName": "TestJobSearchAgentStack_JobSearchAgent",
-        "Description": "Job search agent with web search, time, and http_request",
+        "Description": "Job search agent with web search, page extraction, and time",
         "EnvironmentVariables": {
           "ANTHROPIC_API_KEY_SSM_PARAMETER": "/job-search-agent/anthropic-api-key",
           "AWS_DEFAULT_REGION": "us-west-2",

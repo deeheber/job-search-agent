@@ -29,8 +29,8 @@ def test_agent_has_tools() -> None:
         agent = get_agent()
     tool_names = agent.tool_names
     assert "current_time" in tool_names
-    assert "http_request" in tool_names
     assert "tavily_search" in tool_names
+    assert "tavily_extract" in tool_names
 
 
 def test_get_model_default_is_anthropic() -> None:

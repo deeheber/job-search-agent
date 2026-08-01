@@ -150,7 +150,7 @@ def search_job_board(company_name: str, position_type: str) -> dict:
 The agent uses community tools from `strands-agents-tools`:
 
 - `tavily_search` - For searching the web for career pages and job listings
-- `http_request` - For fetching specific URLs found by search
+- `tavily_extract` - For fetching page content from URLs found by search
 - `current_time` - For timestamping search results
 - `send_job_alert` - Custom tool in `agent/src/tools/sns_tools.py` that publishes SNS notifications (conditionally loaded when `SNS_TOPIC_ARN` is set)
 
@@ -246,8 +246,8 @@ All checks must pass before merging.
 We use `strands-agents-tools` for common functionality:
 
 ```python
-from strands_tools import current_time, http_request
-from strands_tools.tavily import tavily_search
+from strands_tools import current_time
+from strands_tools.tavily import tavily_extract, tavily_search
 ```
 
 When adding tools, consider if they should be:
