@@ -65,17 +65,10 @@ After deploying, each address will receive a confirmation email — click the li
 
 ### 3. Bootstrap and Deploy
 
-First time only, bootstrap CDK:
-
 ```bash
 cd cdk
-cdk bootstrap
-```
-
-Then deploy:
-
-```bash
 npm install
+npx cdk bootstrap   # first deploy in this account/region only
 npm run cdk:deploy
 ```
 
@@ -246,7 +239,7 @@ This deletes the AgentCore Runtime and IAM roles. Note that CloudWatch logs and 
 
 **Build failures**: Check the CDK output. Usually it's a missing dependency in `agent/pyproject.toml`.
 
-**Runtime errors**: Check CloudWatch logs. The agent logs every request and tool call.
+**Runtime errors**: Check CloudWatch logs (see [Check the Logs](#check-the-logs)).
 
 **Model access (anthropic provider)**: If invocations fail with an SSM `ParameterNotFound` error, create the `/job-search-agent/anthropic-api-key` parameter (see [Store the API Keys](#1-store-the-api-keys)). Authentication errors mean the stored key is invalid.
 
