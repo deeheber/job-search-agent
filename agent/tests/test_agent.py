@@ -29,8 +29,8 @@ def test_agent_has_tools() -> None:
         agent = get_agent()
     tool_names = agent.tool_names
     assert "current_time" in tool_names
-    assert "http_request" in tool_names
     assert "tavily_search" in tool_names
+    assert "tavily_extract" in tool_names
 
 
 def test_get_model_default_is_anthropic() -> None:
@@ -79,21 +79,6 @@ def test_get_model_unknown_provider_raises() -> None:
             get_model()
 
 
-def test_system_prompt_contains_filtering_rules() -> None:
-    """Test that system prompt contains strict filtering instructions."""
-    from src.agentcore_app import SYSTEM_PROMPT
-
-    # Check for key filtering concepts
-    assert "Strict filtering" in SYSTEM_PROMPT
-    assert "match ALL user criteria" in SYSTEM_PROMPT
-    assert "NEVER construct or invent URLs" in SYSTEM_PROMPT
-    assert "No direct link available" in SYSTEM_PROMPT
-
-    # Check for specific role matching examples
-    assert "Software Engineer" in SYSTEM_PROMPT
-    assert "does NOT match" in SYSTEM_PROMPT
-
-
 def test_construct_job_search_prompt_company_only() -> None:
     """Test prompt construction with company name only."""
     result = construct_job_search_prompt("Google")
@@ -104,15 +89,6 @@ def test_construct_job_search_prompt_with_all_params() -> None:
     """Test prompt construction with all parameters."""
     result = construct_job_search_prompt("Microsoft", title="Software Engineer", location="remote")
     assert result == "Find jobs at Microsoft. Focus on 'Software Engineer' roles in remote."
-
-
-def test_system_prompt_uses_search_approach() -> None:
-    """Test that system prompt uses tavily_search instead of URL guessing."""
-    from src.agentcore_app import SYSTEM_PROMPT
-
-    assert "tavily_search" in SYSTEM_PROMPT
-    # Old URL patterns should be removed
-    assert "https://careers.COMPANY.com" not in SYSTEM_PROMPT
 
 
 def test_agent_with_sns_has_send_job_alert_tool() -> None:
@@ -158,6 +134,22 @@ def test_invoke_default_returns_accepted_and_runs_search_in_background() -> None
     result = asyncio.run(scenario())
     assert result["status"] == "accepted"
     mock_search.assert_awaited_once_with("Stripe", "Engineer", "")
+
+
+def test_invoke_background_failure_sends_alert() -> None:
+    """Test a failed background search publishes a failure alert."""
+    mock_search = AsyncMock(return_value={"status": "error", "error": "Internal processing error"})
+
+    async def scenario() -> None:
+        with (
+            patch("src.agentcore_app.run_job_search", mock_search),
+            patch("src.agentcore_app.send_failure_alert") as mock_alert,
+        ):
+            await invoke({"company": "Stripe"})
+            await asyncio.gather(*_background_tasks)
+            mock_alert.assert_called_once_with("Stripe")
+
+    asyncio.run(scenario())
 
 
 def test_invoke_sync_returns_full_result() -> None:

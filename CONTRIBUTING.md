@@ -1,6 +1,6 @@
 # Contributing to Job Search Agent
 
-Thank you for your interest in contributing to the job search agent! This guide will help you get started with development and ensure your contributions align with our project standards.
+How to set up a development environment and get changes merged.
 
 ## Getting Started
 
@@ -13,7 +13,6 @@ Thank you for your interest in contributing to the job search agent! This guide 
 - **AWS CLI** configured with appropriate permissions
 - **Tavily API key** (sign up at [tavily.com](https://tavily.com) - free tier available)
 - **Anthropic API key** (sign up at [console.anthropic.com](https://console.anthropic.com)), or Bedrock model access in your AWS account when using `MODEL_PROVIDER=bedrock`
-- **Git** for version control
 
 ### Initial Setup
 
@@ -34,13 +33,13 @@ Thank you for your interest in contributing to the job search agent! This guide 
 3. **Set up the CDK environment**
 
    ```bash
-   cd cdk
+   cd ../cdk
    npm install
    ```
 
 4. **Configure environment variables**
    ```bash
-   cd agent
+   cd ../agent
    cp .env.example .env
    # Edit .env and add your Tavily and Anthropic API keys
    ```
@@ -101,7 +100,7 @@ npm run cdk:deploy   # Deploy to AWS
 - **Line length**: 100 characters
 - **Formatter**: Black
 - **Linter**: Ruff with auto-fix enabled
-- **Type checker**: mypy in strict mode
+- **Type checker**: mypy in strict mode (`src/`)
 - **Testing**: pytest
 
 ### TypeScript Code Style
@@ -115,11 +114,11 @@ npm run cdk:deploy   # Deploy to AWS
 
 ```typescript
 // ✅ Good
-import { Stack, StackProps } from "aws-cdk-lib";
-import { Function, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Stack, StackProps, CfnOutput, Duration } from 'aws-cdk-lib'
+import { Runtime, AgentRuntimeArtifact } from 'aws-cdk-lib/aws-bedrockagentcore'
 
 // ❌ Avoid
-import * as cdk from "aws-cdk-lib";
+import * as cdk from 'aws-cdk-lib'
 ```
 
 ## Project Structure
@@ -147,10 +146,10 @@ def search_job_board(company_name: str, position_type: str) -> dict:
 
 ### Current Tool Usage
 
-The agent uses community tools from `strands-agents-tools`:
+The agent uses community tools from `strands-agents-tools`, plus one custom tool:
 
 - `tavily_search` - For searching the web for career pages and job listings
-- `http_request` - For fetching specific URLs found by search
+- `tavily_extract` - For fetching page content from URLs found by search
 - `current_time` - For timestamping search results
 - `send_job_alert` - Custom tool in `agent/src/tools/sns_tools.py` that publishes SNS notifications (conditionally loaded when `SNS_TOPIC_ARN` is set)
 
@@ -159,8 +158,8 @@ The agent uses community tools from `strands-agents-tools`:
 **Python tests:**
 
 - Mirror source structure in `tests/` directory
-- Use pytest fixtures and parametrize for comprehensive coverage
 - Test both success and error cases
+- Test this project's logic, not framework behavior — skip tests that only restate constants or assert things the language/CDK guarantees
 
 **CDK tests:**
 
@@ -200,13 +199,7 @@ npm run build && npm test && npm run lint
 
 ### 4. Commit Your Changes
 
-Use conventional commit messages:
-
-```bash
-git commit -m "feat: add new custom tool for data processing"
-git commit -m "fix: resolve memory leak in agent execution"
-git commit -m "docs: update deployment instructions"
-```
+Write commit messages as short plain sentences describing the change, e.g. "Add async invoke path for eventbridge universal target".
 
 ### 5. Push and Create Pull Request
 
@@ -246,8 +239,8 @@ All checks must pass before merging.
 We use `strands-agents-tools` for common functionality:
 
 ```python
-from strands_tools import current_time, http_request
-from strands_tools.tavily import tavily_search
+from strands_tools import current_time
+from strands_tools.tavily import tavily_extract, tavily_search
 ```
 
 When adding tools, consider if they should be:
@@ -257,8 +250,7 @@ When adding tools, consider if they should be:
 
 ## Getting Help
 
-- **Issues**: Create GitHub issues for bugs or feature requests
-- **Discussions**: Use GitHub Discussions for questions and ideas
+- **Issues**: Create GitHub issues for bugs, feature requests, or questions
 - **Documentation**: Check README.md and DEPLOYMENT.md for guidance
 
 ## Code of Conduct
@@ -267,5 +259,3 @@ When adding tools, consider if they should be:
 - Focus on constructive feedback
 - Help others learn and grow
 - Follow our coding standards consistently
-
-Thank you for contributing to make this template better for everyone!

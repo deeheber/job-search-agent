@@ -35,7 +35,7 @@ Takes a few minutes. The stack builds a Docker image from `../agent`, pushes it 
 - **IAM Role** - Permissions for Bedrock models, SSM parameter reads (Tavily + Anthropic API keys), KMS decrypt (for SSM), and SNS publish
 - **ECR Image** - The agent image is pushed to the shared ECR repository that `cdk bootstrap` manages (the stack doesn't create its own repository)
 - **SNS Topic** - Receives hiring notifications; email subscriptions added when `NOTIFICATION_EMAILS` is set
-- **EventBridge Schedules + SQS DLQ** _(optional)_ - Created when `SCHEDULES` is set, one schedule per entry
+- **EventBridge Schedules + SQS DLQ** _(optional)_ - Created when `SCHEDULES` is set, one schedule per entry, with a CloudWatch alarm that notifies the SNS topic when invokes land in the DLQ
 
 The stack outputs `RuntimeId`, `RuntimeArn`, `TavilyApiKeyParameter`, `AnthropicApiKeyParameter`, and `NotificationTopicArn`.
 
@@ -50,16 +50,6 @@ npm run cdk:diff      # See what changed
 ```
 
 Tests validate IAM permissions, resource properties, and security configurations. Snapshots catch unintended infrastructure changes.
-
-## Stack Structure
-
-The stack follows this pattern:
-
-1. **IAM roles** - Set up permissions first
-2. **Core resources** - AgentCore Runtime with Docker build
-3. **Outputs** - Export RuntimeId, RuntimeArn, TavilyApiKeyParameter, AnthropicApiKeyParameter, and NotificationTopicArn
-
-All imports are explicit (no wildcards), and we use TypeScript strict mode.
 
 ## Customization
 

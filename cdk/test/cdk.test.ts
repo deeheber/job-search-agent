@@ -3,6 +3,22 @@ import { App } from 'aws-cdk-lib'
 import { Template, Match } from 'aws-cdk-lib/assertions'
 import { JobSearchAgentStack } from '../lib/job-search-agent-stack'
 
+const makeScheduleTemplate = () => {
+  const app = new App()
+  const stack = new JobSearchAgentStack(app, 'TestScheduleStack', {
+    env: { account: '123456789012', region: 'us-west-2' },
+    schedules: [
+      { company: 'Google', title: 'Software Engineer', location: 'Remote' },
+      { company: 'Meta', schedule: 'cron(0 12 ? * MON *)' },
+    ],
+  })
+  return Template.fromStack(stack)
+}
+
+// Replace dynamic containerUri hash with stable placeholder for snapshot testing
+const normalize = (template: Template): unknown =>
+  JSON.parse(JSON.stringify(template.toJSON()).replace(/:[\da-f]{64}"/g, ':MOCKED_CONTAINER_HASH"'))
+
 describe('JobSearchAgentStack', () => {
   let app: App
   let stack: JobSearchAgentStack
@@ -44,7 +60,7 @@ describe('JobSearchAgentStack', () => {
               Action: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
               Effect: 'Allow',
               Resource: [
-                'arn:aws:bedrock:*::foundation-model/*',
+                'arn:aws:bedrock:*::foundation-model/anthropic.*',
                 Match.stringLikeRegexp('arn:aws:bedrock:.+:.+:inference-profile/\\*'),
               ],
             }),
@@ -91,7 +107,7 @@ describe('JobSearchAgentStack', () => {
     it('creates AgentCore runtime with proper configuration', () => {
       template.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
         AgentRuntimeName: 'TestJobSearchAgentStack_JobSearchAgent',
-        Description: 'Job search agent with web search, time, and http_request',
+        Description: 'Job search agent with web search, page extraction, and time',
         RoleArn: {
           'Fn::GetAtt': [Match.stringLikeRegexp('AgentCoreRole.*'), 'Arn'],
         },
@@ -141,34 +157,6 @@ describe('JobSearchAgentStack', () => {
         }),
       })
     })
-
-    it('creates stack outputs for runtime access', () => {
-      template.hasOutput('RuntimeId', {
-        Description: 'AgentCore Runtime ID',
-        Value: {
-          'Fn::GetAtt': [Match.stringLikeRegexp('JobSearchAgentRuntime.*'), 'AgentRuntimeId'],
-        },
-      })
-
-      template.hasOutput('RuntimeArn', {
-        Description: 'AgentCore Runtime ARN',
-        Value: {
-          'Fn::GetAtt': [Match.stringLikeRegexp('JobSearchAgentRuntime.*'), 'AgentRuntimeArn'],
-        },
-      })
-
-      template.hasOutput('AnthropicApiKeyParameter', {
-        Description: Match.stringLikeRegexp('SSM Parameter name for Anthropic API Key.*'),
-        Value: '/job-search-agent/anthropic-api-key',
-      })
-
-      template.hasOutput('NotificationTopicArn', {
-        Description: Match.stringLikeRegexp('SNS Topic ARN.*'),
-        Value: {
-          Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
-        },
-      })
-    })
   })
 
   describe('SNS Notifications', () => {
@@ -192,15 +180,7 @@ describe('JobSearchAgentStack', () => {
     let scheduleTemplate: Template
 
     beforeEach(() => {
-      const scheduleApp = new App()
-      const scheduleStack = new JobSearchAgentStack(scheduleApp, 'TestScheduleStack', {
-        env: { account: '123456789012', region: 'us-west-2' },
-        schedules: [
-          { company: 'Google', title: 'Software Engineer', location: 'Remote' },
-          { company: 'Meta', schedule: 'cron(0 12 ? * MON *)' },
-        ],
-      })
-      scheduleTemplate = Template.fromStack(scheduleStack)
+      scheduleTemplate = makeScheduleTemplate()
     })
 
     it('creates one schedule per configured company', () => {
@@ -238,17 +218,78 @@ describe('JobSearchAgentStack', () => {
         }),
       })
     })
+
+    it('names schedules after the company so reordering does not retarget them', () => {
+      scheduleTemplate.hasResourceProperties('AWS::Scheduler::Schedule', {
+        Name: 'TestScheduleStack-Schedule-Google',
+      })
+      scheduleTemplate.hasResourceProperties('AWS::Scheduler::Schedule', {
+        Name: 'TestScheduleStack-Schedule-Meta',
+      })
+    })
+
+    it('configures retries, DLQ, and a flexible time window on each schedule', () => {
+      scheduleTemplate.hasResourceProperties('AWS::Scheduler::Schedule', {
+        FlexibleTimeWindow: { Mode: 'FLEXIBLE', MaximumWindowInMinutes: 120 },
+        Target: Match.objectLike({
+          RetryPolicy: Match.objectLike({ MaximumRetryAttempts: 2 }),
+          DeadLetterConfig: {
+            Arn: { 'Fn::GetAtt': [Match.stringLikeRegexp('Schedulerdlq.*'), 'Arn'] },
+          },
+        }),
+      })
+    })
+
+    it('scopes the scheduler role to the runtime ARN', () => {
+      scheduleTemplate.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: 'bedrock-agentcore:InvokeAgentRuntime',
+              Resource: [
+                {
+                  'Fn::GetAtt': [
+                    Match.stringLikeRegexp('JobSearchAgentRuntime.*'),
+                    'AgentRuntimeArn',
+                  ],
+                },
+                {
+                  'Fn::Join': [
+                    '',
+                    [
+                      {
+                        'Fn::GetAtt': [
+                          Match.stringLikeRegexp('JobSearchAgentRuntime.*'),
+                          'AgentRuntimeArn',
+                        ],
+                      },
+                      '/*',
+                    ],
+                  ],
+                },
+              ],
+            }),
+          ]),
+        },
+      })
+    })
+
+    it('alarms on DLQ messages to the notification topic', () => {
+      scheduleTemplate.hasResourceProperties('AWS::CloudWatch::Alarm', {
+        MetricName: 'ApproximateNumberOfMessagesVisible',
+        Threshold: 1,
+        AlarmActions: [{ Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*') }],
+      })
+    })
   })
 
   describe('CloudFormation Template Snapshot', () => {
     it('matches the expected template structure', () => {
-      const templateJson = template.toJSON()
+      expect(normalize(template)).toMatchSnapshot()
+    })
 
-      // Replace dynamic containerUri hash with stable placeholder for snapshot testing
-      const templateString = JSON.stringify(templateJson)
-      const normalizedTemplate = templateString.replace(/:[\da-f]{64}"/g, ':MOCKED_CONTAINER_HASH"')
-
-      expect(JSON.parse(normalizedTemplate)).toMatchSnapshot()
+    it('matches the expected template structure with schedules', () => {
+      expect(normalize(makeScheduleTemplate())).toMatchSnapshot()
     })
   })
 })

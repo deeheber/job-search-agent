@@ -8,23 +8,25 @@ from typing import Any
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
 from strands.models.anthropic import AnthropicModel
-from strands_tools import current_time, http_request  # type: ignore[import-untyped]
-from strands_tools.tavily import tavily_search  # type: ignore[import-untyped]
+from strands_tools import current_time  # type: ignore[import-untyped]
+from strands_tools.tavily import tavily_extract, tavily_search  # type: ignore[import-untyped]
 
 from secret_utils import get_anthropic_api_key, get_tavily_api_key
-from tools import send_job_alert
+from tools import send_failure_alert, send_job_alert
 
 DEFAULT_MODEL_PROVIDER = "anthropic"
-DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
+DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-5"
 DEFAULT_ANTHROPIC_MODEL_ID = "claude-sonnet-5"
-ANTHROPIC_MAX_TOKENS = 8192
+ANTHROPIC_MAX_TOKENS = 16000
+JOB_SEARCH_TIMEOUT_SECONDS = 900
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
-    level=getattr(logging, log_level),
+    level=getattr(logging, log_level, logging.INFO),
     format="%(levelname)s | %(name)s | %(message)s",
 )
 logging.getLogger("strands").setLevel(log_level)
+logger = logging.getLogger(__name__)
 
 app = BedrockAgentCoreApp()
 
@@ -55,7 +57,7 @@ SEARCH PROCESS:
    - Query: "[COMPANY] careers jobs hiring"
    - Set max_results to 5
 4. From search results, identify the actual career page URL (look for URLs containing "careers", "jobs", or similar)
-5. Use http_request to fetch the career page content
+5. Use tavily_extract to fetch the career page content
 6. If career page has no job listings, use tavily_search for job boards:
    - Query: "[COMPANY] jobs site:indeed.com OR site:linkedin.com OR site:greenhouse.io"
 7. Parse all responses for actual job listings with real URLs
@@ -103,10 +105,12 @@ RECOGNIZING JOB LISTINGS:
 
 SNS_NOTIFICATION_PROMPT = """
 NOTIFICATION INSTRUCTIONS:
-After completing your response, if **Hiring Status** is Yes, send exactly ONE notification:
-1. Use the send_job_alert tool with subject="Job Alert: [COMPANY] is hiring!" and message=your full response text
-2. If the notification fails, still return your normal response - notification is best-effort
-3. Do NOT send more than one notification per request - never retry or send duplicate messages
+After completing your response, send exactly ONE notification:
+1. If **Hiring Status** is Yes: use the send_job_alert tool with subject="Job Alert: [COMPANY] is hiring!" and message=your full response text
+2. If you could not complete the search because your tools kept failing: use the send_job_alert tool with subject="Job search failed: [COMPANY]" and message=a brief description of what went wrong
+3. Otherwise (search worked, no matches): do not send a notification
+4. If the notification fails, still return your normal response - notification is best-effort
+5. Do NOT send more than one notification per request - never retry or send duplicate messages
 """
 # fmt: on
 
@@ -117,12 +121,12 @@ def get_model() -> str | AnthropicModel:
 
     if provider == "bedrock":
         model_id = os.getenv("BEDROCK_MODEL_ID", DEFAULT_BEDROCK_MODEL_ID)
-        logging.info(f"Using Bedrock model: {model_id}")
+        logger.info(f"Using Bedrock model: {model_id}")
         return model_id
 
     if provider == "anthropic":
         model_id = os.getenv("ANTHROPIC_MODEL_ID", DEFAULT_ANTHROPIC_MODEL_ID)
-        logging.info(f"Using Anthropic API model: {model_id}")
+        logger.info(f"Using Anthropic API model: {model_id}")
         return AnthropicModel(
             client_args={"api_key": get_anthropic_api_key()},
             model_id=model_id,
@@ -143,15 +147,15 @@ def get_agent() -> Agent:
 
     model = get_model()
 
-    tools: list[object] = [current_time, http_request, tavily_search]
+    tools: list[object] = [current_time, tavily_search, tavily_extract]
     system_prompt = SYSTEM_PROMPT
     sns_topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
     if sns_topic_arn:
         tools.append(send_job_alert)
         system_prompt += SNS_NOTIFICATION_PROMPT
-        logging.info(f"SNS notifications enabled for topic: {sns_topic_arn}")
+        logger.info(f"SNS notifications enabled for topic: {sns_topic_arn}")
     else:
-        logging.info("SNS_TOPIC_ARN not configured, notifications disabled")
+        logger.info("SNS_TOPIC_ARN not configured, notifications disabled")
 
     return Agent(
         model=model,
@@ -196,20 +200,19 @@ async def run_job_search(company: str, title: str, location: str) -> dict[str, A
         # content can lead with thinking blocks; str() joins only the text blocks
         response_text = str(response)
 
-        logging.info(f"Agent response generated (length: {len(response_text)} chars)")
-        logging.info(f"Hiring result for {company}: {response_text}")
+        logger.info(f"Agent response generated (length: {len(response_text)} chars)")
 
         result = {
             "status": "success",
             "response": response_text,
             "search_criteria": {"company": company, "title": title, "location": location},
         }
-        logging.info("AgentCore invocation completed successfully")
+        logger.info("AgentCore invocation completed successfully")
 
         return result
 
     except Exception as e:
-        logging.error(f"Error processing request: {e}", exc_info=True)
+        logger.error(f"Error processing request: {e}", exc_info=True)
         return {"status": "error", "error": "Internal processing error"}
 
 
@@ -217,11 +220,17 @@ async def run_job_search(company: str, title: str, location: str) -> dict[str, A
 _background_tasks: set[asyncio.Task[Any]] = set()
 
 
-async def _tracked_job_search(company: str, title: str, location: str) -> None:
-    """Run the job search as a tracked async task so ping reports HealthyBusy."""
-    task_id = app.add_async_task("job_search")
+async def _tracked_job_search(task_id: int, company: str, title: str, location: str) -> None:
+    """Run the job search, alerting on failure since the async caller discards the result."""
     try:
-        await run_job_search(company, title, location)
+        result = await asyncio.wait_for(
+            run_job_search(company, title, location), timeout=JOB_SEARCH_TIMEOUT_SECONDS
+        )
+        if result.get("status") != "success":
+            send_failure_alert(company)
+    except Exception:
+        logger.error(f"Background job search for {company} failed", exc_info=True)
+        send_failure_alert(company)
     finally:
         app.complete_async_task(task_id)
 
@@ -240,14 +249,15 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if not company:
         return {"status": "error", "error": "Company name is required"}
 
-    logging.info(f"Payload received: {payload}")
-    logging.info(f"Company: {company}, Title: {title}, Location: {location}")
+    logger.info(f"Company: {company}, Title: {title}, Location: {location}")
 
     if payload.get("sync"):
         return await run_job_search(company, title, location)
 
-    # Respond before EventBridge Scheduler's ~30s call timeout DLQs the invocation
-    task = asyncio.create_task(_tracked_job_search(company, title, location))
+    # Respond before EventBridge Scheduler's ~30s call timeout DLQs the invocation.
+    # Register the task before returning so /ping reports HealthyBusy while the search runs.
+    task_id = app.add_async_task("job_search")
+    task = asyncio.create_task(_tracked_job_search(task_id, company, title, location))
     _background_tasks.add(task)
     task.add_done_callback(_background_tasks.discard)
 

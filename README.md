@@ -1,5 +1,3 @@
-> **Note:** This project was started before my current employment as a learning exercise. I'm completing it to finish what I started, not as an indication of active job searching.
-
 # Job Search Agent
 
 [![Awesome Strands Agents](https://img.shields.io/badge/Awesome-Strands%20Agents-00FF77?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjkwIiBoZWlnaHQ9IjQ2MyIgdmlld0JveD0iMCAwIDI5MCA0NjMiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik05Ny4yOTAyIDUyLjc4ODRDODUuMDY3NCA0OS4xNjY3IDcyLjIyMzQgNTYuMTM4OSA2OC42MDE3IDY4LjM2MTZDNjQuOTgwMSA4MC41ODQzIDcxLjk1MjQgOTMuNDI4MyA4NC4xNzQ5IDk3LjA1MDFMMjM1LjExNyAxMzkuNzc1QzI0NS4yMjMgMTQyLjc2OSAyNDYuMzU3IDE1Ni42MjggMjM2Ljg3NCAxNjEuMjI2TDMyLjU0NiAyNjAuMjkxQy0xNC45NDM5IDI4My4zMTYgLTkuMTYxMDcgMzUyLjc0IDQxLjQ4MzUgMzY3LjU5MUwxODkuNTUxIDQxMS4wMDlMMTkwLjEyNSA0MTEuMTY5QzIwMi4xODMgNDE0LjM3NiAyMTQuNjY1IDQwNy4zOTYgMjE4LjE5NiAzOTUuMzU1QzIyMS43ODQgMzgzLjEyMiAyMTQuNzc0IDM3MC4yOTYgMjAyLjU0MSAzNjYuNzA5TDU0LjQ3MzggMzIzLjI5MUM0NC4zNDQ3IDMyMC4zMjEgNDMuMTg3OSAzMDYuNDM2IDUyLjY4NTcgMzAxLjgzMUwyNTcuMDE0IDIwMi43NjZDMzA0LjQzMiAxNzkuNzc2IDI5OC43NTggMTEwLjQ4MyAyNDguMjMzIDk1LjUxMkw5Ny4yOTAyIDUyLjc4ODRaIiBmaWxsPSIjRkZGRkZGIi8+CjxwYXRoIGQ9Ik0yNTkuMTQ3IDAuOTgxODEyQzI3MS4zODkgLTIuNTc0OTggMjg0LjE5NyA0LjQ2NTcxIDI4Ny43NTQgMTYuNzA3NEMyOTEuMzExIDI4Ljk0OTIgMjg0LjI3IDQxLjc1NyAyNzIuMDI4IDQ1LjMxMzhMNzEuMTcyNyAxMDMuNjcxQzQwLjcxNDIgMTEyLjUyMSAzNy4xOTc2IDE1NC4yNjIgNjUuNzQ1OSAxNjguMDgzTDI0MS4zNDMgMjUzLjA5M0MzMDcuODcyIDI4NS4zMDIgMjk5Ljc5NCAzODIuNTQ2IDIyOC44NjIgNDAzLjMzNkwzMC40MDQxIDQ2MS41MDJDMTguMTcwNyA0NjUuMDg4IDUuMzQ3MDggNDU4LjA3OCAxLjc2MTUzIDQ0NS44NDRDLTEuODIzOSA0MzMuNjExIDUuMTg2MzcgNDIwLjc4NyAxNy40MTk3IDQxNy4yMDJMMjE1Ljg3OCAzNTkuMDM1QzI0Ni4yNzcgMzUwLjEyNSAyNDkuNzM5IDMwOC40NDkgMjIxLjIyNiAyOTQuNjQ1TDQ1LjYyOTcgMjA5LjYzNUMtMjAuOTgzNCAxNzcuMzg2IC0xMi43NzcyIDc5Ljk4OTMgNTguMjkyOCA1OS4zNDAyTDI1OS4xNDcgMC45ODE4MTJaIiBmaWxsPSIjRkZGRkZGIi8+Cjwvc3ZnPgo=&logoColor=white)](https://github.com/cagataycali/awesome-strands-agents)
@@ -8,7 +6,11 @@ AI agent that tells you who's hiring. Give it a company name, get back open posi
 
 Built with [Strands Agents](https://strandsagents.com) and deployed to Amazon Bedrock AgentCore Runtime. Uses [Tavily](https://www.tavily.com/) web search to find career pages and job boards.
 
+> **Note:** This project was started before my current employment as a learning exercise. I'm completing it to finish what I started, not as an indication of active job searching.
+
 ## Quick Start
+
+Prerequisites: [uv](https://docs.astral.sh/uv/) 0.11, Python 3.14, Node 24, Docker, and AWS CLI credentials — see [DEPLOYMENT.md](DEPLOYMENT.md). Running locally only needs uv and the API keys.
 
 ```bash
 # Get API keys: Anthropic (https://console.anthropic.com)
@@ -36,8 +38,10 @@ aws ssm put-parameter \
   --value "tvly-xxxxx" \
   --type SecureString
 
-# Deploy to AWS
-cd cdk && npm run cdk:deploy
+# Deploy to AWS (first deploy in an account/region: npx cdk bootstrap)
+cd ../cdk
+npm install
+npm run cdk:deploy
 ```
 
 That's it. The agent fetches live job postings, extracts titles and links, and returns structured results.
@@ -52,6 +56,19 @@ That's it. The agent fetches live job postings, extracts titles and links, and r
 - Timestamps each search so you know how fresh the results are
 
 **Example:** `{"company": "Stripe", "title": "Engineer"}` → List of engineering roles at Stripe with application links.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Scheduler[EventBridge Scheduler] -->|async invoke| Runtime[AgentCore Runtime<br/>Strands agent]
+    Scheduler -.->|failed invokes| DLQ[SQS dead-letter queue]
+    Runtime -->|search + extract| Tavily[Tavily API]
+    Runtime -->|inference| Model[Anthropic API or Bedrock]
+    Runtime -->|job alerts + failure alerts| Topic[SNS topic]
+    DLQ -.->|CloudWatch alarm| Topic
+    Topic -->|email| You([You])
+```
 
 ## Project Structure
 

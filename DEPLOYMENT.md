@@ -65,17 +65,10 @@ After deploying, each address will receive a confirmation email — click the li
 
 ### 3. Bootstrap and Deploy
 
-First time only, bootstrap CDK:
-
 ```bash
 cd cdk
-cdk bootstrap
-```
-
-Then deploy:
-
-```bash
 npm install
+npx cdk bootstrap   # first deploy in this account/region only
 npm run cdk:deploy
 ```
 
@@ -131,11 +124,11 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 The agent supports two model providers, selected with `MODEL_PROVIDER` in `agent/.env`:
 
 - **`anthropic`** (default) — calls the Anthropic API directly. Requires the Anthropic API key (SSM parameter above). Override the model with `ANTHROPIC_MODEL_ID` (default: `claude-sonnet-5`); see [Anthropic model IDs](https://docs.claude.com/en/docs/about-claude/models/overview).
-- **`bedrock`** — uses Amazon Bedrock with the runtime's IAM role. Requires Bedrock model access in your account. Override the model with `BEDROCK_MODEL_ID` (default: `us.anthropic.claude-sonnet-4-6`); see [Amazon Bedrock model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
+- **`bedrock`** — uses Amazon Bedrock with the runtime's IAM role. Requires Bedrock model access in your account. Override the model with `BEDROCK_MODEL_ID` (default: `us.anthropic.claude-sonnet-5`); see [Amazon Bedrock model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
 ```bash
 MODEL_PROVIDER=bedrock
-BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
+BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-5
 ```
 
 Then redeploy: `npm run cdk:deploy`
@@ -151,7 +144,7 @@ The quality check runs pytest, mypy, ruff, and black. It'll catch most problems 
 
 ## Add Custom Tools
 
-The agent uses community tools (`tavily_search`, `http_request`, `current_time`) plus a custom `send_job_alert` tool in `agent/src/tools/`. To add your own:
+The agent uses community tools (`tavily_search`, `tavily_extract`, `current_time`) plus a custom `send_job_alert` tool in `agent/src/tools/`. To add your own:
 
 ```python
 # agent/src/tools/job_search_tools.py
@@ -168,14 +161,17 @@ Export it in `agent/src/tools/__init__.py`:
 
 ```python
 from .job_search_tools import parse_greenhouse_api
-__all__ = ["parse_greenhouse_api"]
+from .sns_tools import send_failure_alert, send_job_alert
+
+__all__ = ["parse_greenhouse_api", "send_failure_alert", "send_job_alert"]
 ```
 
-Add to the agent in `agentcore_app.py`:
+Add it to the tool list in `get_agent()` in `agentcore_app.py`:
 
 ```python
 from tools import parse_greenhouse_api
-agent = Agent(tools=[current_time, http_request, tavily_search, parse_greenhouse_api])
+
+tools: list[object] = [current_time, tavily_search, tavily_extract, parse_greenhouse_api]
 ```
 
 ## CI/CD with GitHub Actions
@@ -197,7 +193,7 @@ Set these as GitHub repository **variables** (Settings > Secrets and variables >
 | `SCHEDULES` | JSON array of scheduled searches (see [Scheduled Searches](#set-up-scheduled-searches-optional)) | _(none)_ |
 | `MODEL_PROVIDER` | Model provider: `anthropic` or `bedrock` | `anthropic` |
 | `ANTHROPIC_MODEL_ID` | Anthropic API model (when provider is `anthropic`) | `claude-sonnet-5` |
-| `BEDROCK_MODEL_ID` | Bedrock model (when provider is `bedrock`) | `us.anthropic.claude-sonnet-4-6` |
+| `BEDROCK_MODEL_ID` | Bedrock model (when provider is `bedrock`) | `us.anthropic.claude-sonnet-5` |
 | `STACK_NAME` | CloudFormation stack name | `JobSearchAgentStack` |
 
 ## Set Up Scheduled Searches (Optional)
@@ -223,6 +219,8 @@ cd cdk && npm run cdk:deploy
 
 The agent sends SNS notifications when it finds open positions, so pair this with `NOTIFICATION_EMAILS` for automated alerts.
 
+Scheduled invokes are async — the runtime acks immediately (EventBridge Scheduler's call times out after ~30s) and results arrive via SNS email or CloudWatch logs. Failed invokes land in an SQS dead-letter queue that alarms to the same SNS topic; failures inside the agent send their own SNS alert. To spread load, each schedule fires within a 2-hour window after its scheduled time, not at the exact minute.
+
 ## Clean Up
 
 Done experimenting? Remove everything:
@@ -241,7 +239,7 @@ This deletes the AgentCore Runtime and IAM roles. Note that CloudWatch logs and 
 
 **Build failures**: Check the CDK output. Usually it's a missing dependency in `agent/pyproject.toml`.
 
-**Runtime errors**: Check CloudWatch logs. The agent logs every request and tool call.
+**Runtime errors**: Check CloudWatch logs (see [Check the Logs](#check-the-logs)).
 
 **Model access (anthropic provider)**: If invocations fail with an SSM `ParameterNotFound` error, create the `/job-search-agent/anthropic-api-key` parameter (see [Store the API Keys](#1-store-the-api-keys)). Authentication errors mean the stored key is invalid.
 
