@@ -105,10 +105,12 @@ RECOGNIZING JOB LISTINGS:
 
 SNS_NOTIFICATION_PROMPT = """
 NOTIFICATION INSTRUCTIONS:
-After completing your response, if **Hiring Status** is Yes, send exactly ONE notification:
-1. Use the send_job_alert tool with subject="Job Alert: [COMPANY] is hiring!" and message=your full response text
-2. If the notification fails, still return your normal response - notification is best-effort
-3. Do NOT send more than one notification per request - never retry or send duplicate messages
+After completing your response, send exactly ONE notification:
+1. If **Hiring Status** is Yes: use the send_job_alert tool with subject="Job Alert: [COMPANY] is hiring!" and message=your full response text
+2. If you could not complete the search because your tools kept failing: use the send_job_alert tool with subject="Job search failed: [COMPANY]" and message=a brief description of what went wrong
+3. Otherwise (search worked, no matches): do not send a notification
+4. If the notification fails, still return your normal response - notification is best-effort
+5. Do NOT send more than one notification per request - never retry or send duplicate messages
 """
 # fmt: on
 
