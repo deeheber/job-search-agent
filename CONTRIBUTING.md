@@ -95,6 +95,8 @@ npm run cdk:deploy   # Deploy to AWS
 
 ## Code Standards
 
+Project conventions live in `AGENTS.md`.
+
 ### Python Code Style
 
 - **Line length**: 100 characters
@@ -108,7 +110,6 @@ npm run cdk:deploy   # Deploy to AWS
 - **Formatter**: Prettier
 - **Linter**: ESLint
 - **Testing**: Vitest with snapshot testing
-- **Imports**: Use explicit imports (`import { Stack } from 'aws-cdk-lib'`), never wildcards (`import * as cdk`)
 
 ## Project Structure
 
