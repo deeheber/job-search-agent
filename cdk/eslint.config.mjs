@@ -16,6 +16,17 @@ export default [
     },
   },
   {
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ImportDeclaration[source.value=/^aws-cdk-lib/] > ImportNamespaceSpecifier',
+          message: "Import CDK constructs explicitly, e.g. import { Stack } from 'aws-cdk-lib'.",
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.js', '**/*.mjs'],
     ...tseslint.configs.disableTypeChecked,
   },
