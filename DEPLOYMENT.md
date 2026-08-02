@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Get the job search agent running on AWS in minutes.
+Get the job search agent running on AWS in minutes. Curious what it costs to run? See [COST.md](COST.md).
 
 ## What You Need
 

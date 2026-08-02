@@ -84,4 +84,6 @@ flowchart LR
 
 **Ready to deploy to AWS?** See [DEPLOYMENT.md](DEPLOYMENT.md)
 
+**Wondering what it costs to run?** See [COST.md](COST.md)
+
 **Want a more detailed write up of the background of how this came to be?** Read [this blogpost](https://danielleheberling.xyz/blog/job-search-agent/)
