@@ -13,12 +13,7 @@ DEFAULT_ANTHROPIC_SSM_PARAMETER = "/job-search-agent/anthropic-api-key"
 
 
 def is_aws_environment() -> bool:
-    """
-    Detect if running in AWS environment.
-
-    AgentCore Runtime and other AWS compute services set environment variables
-    that indicate we're running in AWS.
-    """
+    """Detect AWS via env vars set by AgentCore Runtime and other AWS compute services."""
     aws_indicators = [
         "AWS_EXECUTION_ENV",
         "AWS_LAMBDA_FUNCTION_NAME",

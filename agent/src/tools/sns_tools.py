@@ -38,7 +38,7 @@ def send_job_alert(subject: str, message: str) -> str:
 
 
 def send_failure_alert(company: str) -> None:
-    """Alert when a background search fails — the async caller discards the result."""
+    """Alert when a background search fails; the async caller discards the result."""
     topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
     if not topic_arn:
         return
