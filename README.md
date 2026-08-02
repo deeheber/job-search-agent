@@ -10,7 +10,7 @@ Built with [Strands Agents](https://strandsagents.com) and deployed to Amazon Be
 
 ## Quick Start
 
-Prerequisites: [uv](https://docs.astral.sh/uv/) 0.11, Python 3.14, Node 24, Docker, and AWS CLI credentials — see [DEPLOYMENT.md](DEPLOYMENT.md). Running locally only needs uv and the API keys.
+Prerequisites: [uv](https://docs.astral.sh/uv/) 0.11, Python 3.14, Node 24, Docker, and AWS CLI credentials; see [DEPLOYMENT.md](DEPLOYMENT.md). Running locally only needs uv and the API keys.
 
 ```bash
 # Get API keys: Anthropic (https://console.anthropic.com)
@@ -83,5 +83,7 @@ flowchart LR
 **Want to see how the AWS infra is set up?** See [cdk/README.md](cdk/README.md)
 
 **Ready to deploy to AWS?** See [DEPLOYMENT.md](DEPLOYMENT.md)
+
+**Wondering what it costs to run?** See [COST.md](COST.md)
 
 **Want a more detailed write up of the background of how this came to be?** Read [this blogpost](https://danielleheberling.xyz/blog/job-search-agent/)

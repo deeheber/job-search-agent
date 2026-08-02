@@ -19,7 +19,7 @@ DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-5"
 DEFAULT_ANTHROPIC_MODEL_ID = "claude-sonnet-5"
 ANTHROPIC_MAX_TOKENS = 16000
 JOB_SEARCH_TIMEOUT_SECONDS = 900
-# Configure logging
+
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=getattr(logging, log_level, logging.INFO),
@@ -140,8 +140,7 @@ def get_model() -> str | AnthropicModel:
 
 def get_agent() -> Agent:
     """Create and return a Strands agent with configured tools and model."""
-    # Ensure Tavily API key is available (fetches from SSM in AWS, env var locally)
-    # strands_tools.tavily reads from TAVILY_API_KEY env var internally
+    # strands_tools.tavily reads the key from the TAVILY_API_KEY env var internally
     tavily_key = get_tavily_api_key()
     os.environ["TAVILY_API_KEY"] = tavily_key
 
@@ -165,18 +164,7 @@ def get_agent() -> Agent:
 
 
 def construct_job_search_prompt(company: str, title: str = "", location: str = "") -> str:
-    """
-    Construct a job search prompt based on the provided parameters.
-
-    Args:
-        company: Company name to search (required)
-        title: Job title/role to search for (optional)
-        location: Job location (can be "remote", city/state, or country) (optional)
-
-    Returns:
-        str: Formatted prompt for the job search agent
-    """
-
+    """Build the job search prompt from the company plus optional title/location filters."""
     prompt_parts = [f"Find jobs at {company}."]
 
     if title and location:
@@ -241,7 +229,6 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if not payload:
         return {"status": "error", "error": "Payload is required"}
 
-    # Extract parameters from payload
     company = payload.get("company", "")
     title = payload.get("title", "")
     location = payload.get("location", "")

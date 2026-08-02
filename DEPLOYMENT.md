@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Get the job search agent running on AWS in minutes.
+Get the job search agent running on AWS in minutes. Curious what it costs to run? See [COST.md](COST.md).
 
 ## What You Need
 
@@ -8,7 +8,7 @@ Get the job search agent running on AWS in minutes.
 - Docker running locally
 - Node.js 24 and Python 3.14
 - [uv](https://docs.astral.sh/uv/) for Python package management
-- Anthropic API key (sign up at [console.anthropic.com](https://console.anthropic.com)) — or Bedrock model access in your AWS account when using `MODEL_PROVIDER=bedrock`
+- Anthropic API key (sign up at [console.anthropic.com](https://console.anthropic.com)), or Bedrock model access in your AWS account when using `MODEL_PROVIDER=bedrock`
 - Tavily API key (sign up at [tavily.com](https://tavily.com) - free tier available)
 
 Check [Amazon Bedrock AgentCore regions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) to make sure AgentCore is available where you want to deploy.
@@ -61,7 +61,7 @@ To receive email alerts when companies are hiring, add emails to `agent/.env` (c
 NOTIFICATION_EMAILS=your-email@example.com,teammate@example.com
 ```
 
-After deploying, each address will receive a confirmation email — click the link to activate notifications.
+After deploying, each address will receive a confirmation email; click the link to activate notifications.
 
 ### 3. Bootstrap and Deploy
 
@@ -123,8 +123,8 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 
 The agent supports two model providers, selected with `MODEL_PROVIDER` in `agent/.env`:
 
-- **`anthropic`** (default) — calls the Anthropic API directly. Requires the Anthropic API key (SSM parameter above). Override the model with `ANTHROPIC_MODEL_ID` (default: `claude-sonnet-5`); see [Anthropic model IDs](https://docs.claude.com/en/docs/about-claude/models/overview).
-- **`bedrock`** — uses Amazon Bedrock with the runtime's IAM role. Requires Bedrock model access in your account. Override the model with `BEDROCK_MODEL_ID` (default: `us.anthropic.claude-sonnet-5`); see [Amazon Bedrock model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
+- **`anthropic`** (default): calls the Anthropic API directly. Requires the Anthropic API key (SSM parameter above). Override the model with `ANTHROPIC_MODEL_ID` (default: `claude-sonnet-5`); see [Anthropic model IDs](https://docs.claude.com/en/docs/about-claude/models/overview).
+- **`bedrock`**: uses Amazon Bedrock with the runtime's IAM role. Requires Bedrock model access in your account. Override the model with `BEDROCK_MODEL_ID` (default: `us.anthropic.claude-sonnet-5`); see [Amazon Bedrock model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
 ```bash
 MODEL_PROVIDER=bedrock
@@ -209,7 +209,7 @@ Each entry creates an EventBridge schedule that invokes the agent automatically.
 - **`company`** (required): Company name to search
 - **`title`** (optional): Job title filter
 - **`location`** (optional): Location filter
-- **`schedule`** (optional): EventBridge expression — `cron(...)` or `rate(...)`. Defaults to `rate(7 days)`
+- **`schedule`** (optional): EventBridge expression, `cron(...)` or `rate(...)`. Defaults to `rate(7 days)`
 
 Then redeploy:
 
@@ -219,7 +219,7 @@ cd cdk && npm run cdk:deploy
 
 The agent sends SNS notifications when it finds open positions, so pair this with `NOTIFICATION_EMAILS` for automated alerts.
 
-Scheduled invokes are async — the runtime acks immediately (EventBridge Scheduler's call times out after ~30s) and results arrive via SNS email or CloudWatch logs. Failed invokes land in an SQS dead-letter queue that alarms to the same SNS topic; failures inside the agent send their own SNS alert. To spread load, each schedule fires within a 2-hour window after its scheduled time, not at the exact minute.
+Scheduled invokes are async: the runtime acks immediately (EventBridge Scheduler's call times out after ~30s) and results arrive via SNS email or CloudWatch logs. Failed invokes go to an SQS dead-letter queue that alarms to the same SNS topic; failures inside the agent send their own SNS alert. To spread load, each schedule fires within a 2-hour window after its scheduled time, not at the exact minute.
 
 ## Clean Up
 

@@ -108,50 +108,16 @@ npm run cdk:deploy   # Deploy to AWS
 - **Formatter**: Prettier
 - **Linter**: ESLint
 - **Testing**: Vitest with snapshot testing
-- **Imports**: Use explicit imports, avoid wildcards
-
-**Good TypeScript imports:**
-
-```typescript
-// ✅ Good
-import { Stack, StackProps, CfnOutput, Duration } from 'aws-cdk-lib'
-import { Runtime, AgentRuntimeArtifact } from 'aws-cdk-lib/aws-bedrockagentcore'
-
-// ❌ Avoid
-import * as cdk from 'aws-cdk-lib'
-```
+- **Imports**: Use explicit imports (`import { Stack } from 'aws-cdk-lib'`), never wildcards (`import * as cdk`)
 
 ## Project Structure
 
 ### Adding New Job Search Tools
 
 1. **Create tool file** in `agent/src/tools/` (see `sns_tools.py` for an existing example)
-2. **Implement with `@tool` decorator** and proper type hints for job search functionality
+2. **Implement with `@tool` decorator** and proper type hints
 3. **Export in `__init__.py`**
 4. **Add tests** in `agent/tests/test_tools/`
-
-Example job search tool structure:
-
-```python
-from strands import tool
-
-@tool
-def search_job_board(company_name: str, position_type: str) -> dict:
-    """Search job board API for company positions."""
-    return {
-        "company": company_name,
-        "jobs": [{"title": "...", "link": "...", "posted_date": "..."}]
-    }
-```
-
-### Current Tool Usage
-
-The agent uses community tools from `strands-agents-tools`, plus one custom tool:
-
-- `tavily_search` - For searching the web for career pages and job listings
-- `tavily_extract` - For fetching page content from URLs found by search
-- `current_time` - For timestamping search results
-- `send_job_alert` - Custom tool in `agent/src/tools/sns_tools.py` that publishes SNS notifications (conditionally loaded when `SNS_TOPIC_ARN` is set)
 
 ### Testing Guidelines
 
@@ -159,7 +125,7 @@ The agent uses community tools from `strands-agents-tools`, plus one custom tool
 
 - Mirror source structure in `tests/` directory
 - Test both success and error cases
-- Test this project's logic, not framework behavior — skip tests that only restate constants or assert things the language/CDK guarantees
+- Test this project's logic, not framework behavior; skip tests that only restate constants or assert things the language/CDK guarantees
 
 **CDK tests:**
 
@@ -175,13 +141,7 @@ The agent uses community tools from `strands-agents-tools`, plus one custom tool
 git checkout -b feature/your-feature-name
 ```
 
-### 2. Make Your Changes
-
-- Follow the code standards outlined above
-- Add tests for new functionality
-- Update documentation as needed
-
-### 3. Run Quality Checks
+### 2. Run Quality Checks
 
 **For Python changes:**
 
@@ -197,21 +157,15 @@ cd cdk
 npm run build && npm test && npm run lint
 ```
 
-### 4. Commit Your Changes
+### 3. Commit Your Changes
 
 Write commit messages as short plain sentences describing the change, e.g. "Add async invoke path for eventbridge universal target".
 
-### 5. Push and Create Pull Request
+### 4. Push and Create Pull Request
 
 ```bash
 git push origin feature/your-feature-name
 ```
-
-Create a pull request with:
-
-- Clear description of changes
-- Reference to any related issues
-- Screenshots/examples if applicable
 
 ## CI/CD Pipeline
 
@@ -236,14 +190,7 @@ All checks must pass before merging.
 
 ## Community Tools
 
-We use `strands-agents-tools` for common functionality:
-
-```python
-from strands_tools import current_time
-from strands_tools.tavily import tavily_extract, tavily_search
-```
-
-When adding tools, consider if they should be:
+We use `strands-agents-tools` for common functionality. When adding tools, consider if they should be:
 
 - **Custom tools** (domain-specific to your use case)
 - **Community contributions** (general-purpose, consider contributing upstream)
@@ -251,11 +198,9 @@ When adding tools, consider if they should be:
 ## Getting Help
 
 - **Issues**: Create GitHub issues for bugs, feature requests, or questions
-- **Documentation**: Check README.md and DEPLOYMENT.md for guidance
 
 ## Code of Conduct
 
 - Be respectful and inclusive
 - Focus on constructive feedback
 - Help others learn and grow
-- Follow our coding standards consistently

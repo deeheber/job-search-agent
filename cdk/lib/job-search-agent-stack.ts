@@ -69,7 +69,6 @@ export class JobSearchAgentStack extends Stack {
       })
     )
 
-    // KMS Decrypt for SSM parameter encryption
     agentRole.addToPolicy(
       new PolicyStatement({
         sid: 'KMSDecrypt',

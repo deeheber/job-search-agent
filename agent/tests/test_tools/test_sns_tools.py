@@ -65,7 +65,7 @@ def test_send_failure_alert_publishes_to_topic() -> None:
 
 
 def test_send_failure_alert_swallows_publish_errors() -> None:
-    """Never raises — failure alerts are best-effort."""
+    """Never raises; failure alerts are best-effort."""
     with (
         patch.dict(os.environ, {"SNS_TOPIC_ARN": "arn:aws:sns:us-west-2:123456789012:t"}),
         patch("src.tools.sns_tools.boto3") as mock_boto3,
