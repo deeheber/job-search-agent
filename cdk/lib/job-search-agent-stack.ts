@@ -78,6 +78,9 @@ export class JobSearchAgentStack extends Stack {
           StringEquals: {
             'kms:ViaService': `ssm.${this.region}.amazonaws.com`,
           },
+          'ForAnyValue:StringEquals': {
+            'kms:ResourceAliases': 'alias/aws/ssm',
+          },
         },
       })
     )
@@ -95,7 +98,7 @@ export class JobSearchAgentStack extends Stack {
 
     const agentArtifact = AgentRuntimeArtifact.fromAsset(path.join(__dirname, '../../agent'), {
       platform: Platform.LINUX_ARM64,
-      // https://github.com/aws/aws-cdk-cli/issues/650
+      // multi-region: keeps the asset hash unique per account/region
       extraHash: `${this.account}-${this.region}`,
     })
 

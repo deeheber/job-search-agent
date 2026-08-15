@@ -84,6 +84,9 @@ describe('JobSearchAgentStack', () => {
                 StringEquals: {
                   'kms:ViaService': 'ssm.us-west-2.amazonaws.com',
                 },
+                'ForAnyValue:StringEquals': {
+                  'kms:ResourceAliases': 'alias/aws/ssm',
+                },
               },
             }),
             Match.objectLike({
