@@ -90,6 +90,9 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
             {
               "Action": "kms:Decrypt",
               "Condition": {
+                "ForAnyValue:StringEquals": {
+                  "kms:ResourceAliases": "alias/aws/ssm",
+                },
                 "StringEquals": {
                   "kms:ViaService": "ssm.us-west-2.amazonaws.com",
                 },
@@ -424,6 +427,9 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
             {
               "Action": "kms:Decrypt",
               "Condition": {
+                "ForAnyValue:StringEquals": {
+                  "kms:ResourceAliases": "alias/aws/ssm",
+                },
                 "StringEquals": {
                   "kms:ViaService": "ssm.us-west-2.amazonaws.com",
                 },
