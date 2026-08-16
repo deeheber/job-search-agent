@@ -4,26 +4,13 @@ The TypeScript side that deploys everything to AWS. This creates the AgentCore R
 
 ## Prerequisites
 
-Store your API keys in SSM Parameter Store before deploying: an Anthropic key ([console.anthropic.com](https://console.anthropic.com)) for the model and a Tavily key ([tavily.com](https://tavily.com), free tier available) for web search:
-
-```bash
-aws ssm put-parameter \
-  --name "/job-search-agent/anthropic-api-key" \
-  --value "sk-ant-xxxxx" \
-  --type SecureString
-
-aws ssm put-parameter \
-  --name "/job-search-agent/tavily-api-key" \
-  --value "tvly-xxxxx" \
-  --type SecureString
-```
-
-The Anthropic parameter isn't needed when deploying with `MODEL_PROVIDER=bedrock`.
+The stack reads the Anthropic and Tavily API keys from SSM Parameter Store, so store them before deploying: see [Store the API Keys](../DEPLOYMENT.md#1-store-the-api-keys). The Anthropic parameter isn't needed when deploying with `MODEL_PROVIDER=bedrock`.
 
 ## Deploy
 
 ```bash
 npm install
+npx cdk bootstrap   # first deploy in this account/region only
 npm run cdk:deploy
 ```
 

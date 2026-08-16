@@ -1,18 +1,13 @@
 #!/bin/bash
 
-# Python Quality Check Script
-# Run from the agent directory
+echo "Starting Python quality checks..."
 
-echo "🔍 Starting Python quality checks..."
-
-# Check if we're in the right directory
 if [ ! -f "pyproject.toml" ]; then
     echo "❌ Error: Not in agent directory. Please run from agent/ folder."
     exit 1
 fi
 
-# Run quality checks
-echo "🧪 Running tests..."
+echo "Running tests..."
 if uv run pytest; then
     echo "✅ Tests passed"
 else
@@ -20,7 +15,7 @@ else
     exit 1
 fi
 
-echo "🔍 Running type checking..."
+echo "Running type checking..."
 if uv run mypy src/; then
     echo "✅ Type checking passed"
 else
@@ -28,7 +23,7 @@ else
     exit 1
 fi
 
-echo "🔧 Running linting with autofix..."
+echo "Running linting with autofix..."
 if uv run ruff check --fix .; then
     echo "✅ Linting passed (issues auto-fixed)"
 else
@@ -36,7 +31,7 @@ else
     exit 1
 fi
 
-echo "🎨 Formatting code..."
+echo "Formatting code..."
 if uv run black .; then
     echo "✅ Code formatted successfully"
 else
@@ -44,4 +39,4 @@ else
     exit 1
 fi
 
-echo "🎉 All quality checks passed!"
+echo "✅ All quality checks passed!"

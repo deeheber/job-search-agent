@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Get the job search agent running on AWS in minutes. Curious what it costs to run? See [COST.md](COST.md).
+What it costs to run: [COST.md](COST.md).
 
 ## What You Need
 
@@ -15,23 +15,7 @@ Check [Amazon Bedrock AgentCore regions](https://docs.aws.amazon.com/bedrock-age
 
 ## Try It Locally First
 
-Always test before deploying. Set up your API keys and start the agent:
-
-```bash
-cd agent
-echo "ANTHROPIC_API_KEY=sk-ant-xxxxx" > .env
-echo "TAVILY_API_KEY=tvly-xxxxx" >> .env
-uv sync
-uv run --env-file .env python src/agentcore_app.py
-```
-
-In another terminal, send a test request (`"sync": true` waits for the result; omit it for async):
-
-```bash
-curl -X POST http://localhost:8080/invocations \
-  -H "Content-Type: application/json" \
-  -d '{"company": "Stripe", "title": "Engineer", "sync": true}'
-```
+Run the agent on your machine and send it a test request before deploying: see [agent/README.md](agent/README.md#running-locally).
 
 ## Deploy to AWS
 
@@ -140,39 +124,11 @@ Then redeploy: `npm run cdk:deploy`
 3. Test locally: `uv run --env-file .env python src/agentcore_app.py`
 4. Deploy: `cd cdk && npm run cdk:deploy`
 
-The quality check runs pytest, mypy, ruff, and black. It'll catch most problems before deployment.
+The quality check runs pytest, mypy, ruff, and black.
 
 ## Add Custom Tools
 
-The agent uses community tools (`tavily_search`, `tavily_extract`, `current_time`) plus a custom `send_job_alert` tool in `agent/src/tools/`. To add your own:
-
-```python
-# agent/src/tools/job_search_tools.py
-from strands import tool
-
-@tool
-def parse_greenhouse_api(company_id: str) -> dict:
-    """Fetch jobs from Greenhouse API."""
-    # Your implementation
-    return {"jobs": [...]}
-```
-
-Export it in `agent/src/tools/__init__.py`:
-
-```python
-from .job_search_tools import parse_greenhouse_api
-from .sns_tools import send_failure_alert, send_job_alert
-
-__all__ = ["parse_greenhouse_api", "send_failure_alert", "send_job_alert"]
-```
-
-Add it to the tool list in `get_agent()` in `agentcore_app.py`:
-
-```python
-from tools import parse_greenhouse_api
-
-tools: list[object] = [current_time, tavily_search, tavily_extract, parse_greenhouse_api]
-```
+See [agent/README.md](agent/README.md#adding-custom-tools).
 
 ## CI/CD with GitHub Actions
 

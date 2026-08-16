@@ -18,11 +18,6 @@ How to set up a development environment and get changes merged.
 
 1. **Fork and clone the repository**
 
-   ```bash
-   git clone https://github.com/your-username/job-search-agent.git
-   cd job-search-agent
-   ```
-
 2. **Set up the Python environment**
 
    ```bash
@@ -60,30 +55,17 @@ uv run --env-file .env python src/agentcore_app.py
 **Quality checks (recommended before committing):**
 
 ```bash
-./quality-check.sh  # Runs all checks with auto-fixes
-```
-
-**Manual quality validation:**
-
-```bash
-uv run pytest && uv run mypy src/ && uv run ruff check --fix . && uv run black .
+./quality-check.sh  # pytest, mypy, ruff, black, with auto-fixes
 ```
 
 ### CDK Infrastructure Development
 
-**Building and testing:**
-
 ```bash
 cd cdk
 npm run build
-npm test
-```
-
-**Linting and formatting:**
-
-```bash
-npm run lint
-npm run format
+npm test          # Vitest, including snapshots
+npm run fix       # Auto-fix ESLint and Prettier
+npm run check     # CI validation, makes no changes
 ```
 
 **Deploying to AWS:**
@@ -115,10 +97,7 @@ Project conventions live in `AGENTS.md`.
 
 ### Adding New Job Search Tools
 
-1. **Create tool file** in `agent/src/tools/` (see `sns_tools.py` for an existing example)
-2. **Implement with `@tool` decorator** and proper type hints
-3. **Export in `__init__.py`**
-4. **Add tests** in `agent/tests/test_tools/`
+See [agent/README.md](agent/README.md#adding-custom-tools).
 
 ### Testing Guidelines
 
@@ -155,7 +134,7 @@ cd agent
 
 ```bash
 cd cdk
-npm run build && npm test && npm run lint
+npm run fix && npm run build && npm test && npm run check
 ```
 
 ### 3. Commit Your Changes
@@ -170,38 +149,4 @@ git push origin feature/your-feature-name
 
 ## CI/CD Pipeline
 
-Our GitHub Actions workflows will automatically:
-
-**Agent CI (`agent-ci.yml`):**
-
-- Run pytest
-- Type check with mypy
-- Lint with ruff
-- Format check with black
-
-**CDK CI/CD (`cdk-ci-cd.yml`):**
-
-- Build TypeScript
-- Run Vitest tests
-- Lint with ESLint
-- Format check with Prettier
-- Run `cdk synth`, then deploy to AWS on push to main
-
-All checks must pass before merging.
-
-## Community Tools
-
-We use `strands-agents-tools` for common functionality. When adding tools, consider if they should be:
-
-- **Custom tools** (domain-specific to your use case)
-- **Community contributions** (general-purpose, consider contributing upstream)
-
-## Getting Help
-
-- **Issues**: Create GitHub issues for bugs, feature requests, or questions
-
-## Code of Conduct
-
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Help others learn and grow
+`agent-ci.yml` and `cdk-ci-cd.yml` run the same checks as above on every PR, and `cdk-ci-cd.yml` deploys to AWS on push to main (see [CI/CD with GitHub Actions](DEPLOYMENT.md#cicd-with-github-actions) for the setup and configuration variables). All checks must pass before merging.

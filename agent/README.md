@@ -5,14 +5,8 @@ The Python side of the job search agent.
 ## Running Locally
 
 ```bash
-# First time setup
 uv sync
-
-# Add your API keys (console.anthropic.com and tavily.com)
-echo "ANTHROPIC_API_KEY=sk-ant-xxxxx" > .env
-echo "TAVILY_API_KEY=tvly-xxxxx" >> .env
-
-# Start the agent
+cp .env.example .env   # add your Anthropic and Tavily API keys
 uv run --env-file .env python src/agentcore_app.py
 ```
 
@@ -39,13 +33,7 @@ When you send a company name, the agent searches for career pages, fetches the c
 
 ## Configuration
 
-Copy `.env.example` to `.env` and add your API keys:
-
-```bash
-cp .env.example .env
-```
-
-The Anthropic API key powers the model (or set `MODEL_PROVIDER=bedrock` to use Amazon Bedrock via IAM instead). The Tavily API key is required for web search.
+`.env.example` documents every variable. The Anthropic API key powers the model (or set `MODEL_PROVIDER=bedrock` to use Amazon Bedrock via IAM instead). The Tavily API key is required for web search.
 
 For AWS deployment, the keys are stored in SSM Parameter Store instead (see [DEPLOYMENT.md](../DEPLOYMENT.md)).
 
@@ -74,19 +62,12 @@ The quality check script auto-fixes most issues. Run it before committing.
 
 ## Adding Custom Tools
 
-Custom tools live in `src/tools/` (see `sns_tools.py`). To add one:
+`src/tools/sns_tools.py` works through every step below. To add your own:
 
-```python
-from strands import tool
-
-@tool
-def parse_greenhouse_api(company_id: str) -> dict:
-    """Fetch jobs from Greenhouse API."""
-    # Your implementation
-    return {"jobs": [...]}
-```
-
-Export it in `src/tools/__init__.py` and add to the agent's tool list.
+1. Write it in a new module under `src/tools/`, decorated with `@tool` and fully type-hinted. Strands serializes the docstring into the tool schema, so its summary and `Args:` descriptions are what the model reads when deciding to call the tool.
+2. Export it from `src/tools/__init__.py` alongside the existing tools.
+3. Append it to the `tools` list in `get_agent()` in `agentcore_app.py`.
+4. Add tests in `tests/test_tools/`, mirroring `test_sns_tools.py`.
 
 ## Next Steps
 

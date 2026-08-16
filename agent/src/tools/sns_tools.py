@@ -27,9 +27,10 @@ def send_job_alert(subject: str, message: str) -> str:
         return "SNS notifications are not configured"
 
     sns = boto3.client("sns")
-    # SNS rejects subjects over 100 characters
     try:
+        # SNS rejects subjects over 100 characters
         sns.publish(TopicArn=topic_arn, Subject=subject[:100], Message=message)
+    # PEP 758 multi-exception catch; black strips the parentheses
     except BotoCoreError, ClientError:
         logger.error("Failed to publish job alert", exc_info=True)
         return "Notification failed"

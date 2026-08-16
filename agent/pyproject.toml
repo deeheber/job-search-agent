@@ -32,6 +32,7 @@ packages = ["src"]
 
 [tool.black]
 line-length = 100
+target-version = ["py314"]
 
 [tool.mypy]
 python_version = "3.14"
@@ -51,3 +52,6 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/agentcore_app.py" = ["E501"]

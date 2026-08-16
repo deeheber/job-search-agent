@@ -12,23 +12,26 @@ Built with [Strands Agents](https://strandsagents.com) and deployed to Amazon Be
 
 Prerequisites: [uv](https://docs.astral.sh/uv/) 0.12, Python 3.14, Node 24, Docker, and AWS CLI credentials; see [DEPLOYMENT.md](DEPLOYMENT.md). Running locally only needs uv and the API keys.
 
-```bash
-# Get API keys: Anthropic (https://console.anthropic.com)
-# and Tavily (https://tavily.com, free tier available)
+Get API keys from [console.anthropic.com](https://console.anthropic.com) and [tavily.com](https://tavily.com) (free tier available), then run locally:
 
-# Run locally
+```bash
 cd agent
-echo "ANTHROPIC_API_KEY=sk-ant-xxxxx" > .env
-echo "TAVILY_API_KEY=tvly-xxxxx" >> .env
+cp .env.example .env   # add your two API keys
 uv sync
 uv run --env-file .env python src/agentcore_app.py
+```
 
-# In another terminal window ("sync" waits for the result; omit it for async)
+In another terminal (`"sync"` waits for the result; omit it for async):
+
+```bash
 curl -X POST http://localhost:8080/invocations \
   -H "Content-Type: application/json" \
   -d '{"company": "Stripe", "title": "Engineer", "sync": true}'
+```
 
-# Put API keys in SSM Parameter Store
+To deploy, put the same keys in SSM Parameter Store and run CDK:
+
+```bash
 aws ssm put-parameter \
   --name "/job-search-agent/anthropic-api-key" \
   --value "sk-ant-xxxxx" \
@@ -38,9 +41,9 @@ aws ssm put-parameter \
   --value "tvly-xxxxx" \
   --type SecureString
 
-# Deploy to AWS (first deploy in an account/region: npx cdk bootstrap)
 cd ../cdk
 npm install
+npx cdk bootstrap   # first deploy in this account/region only
 npm run cdk:deploy
 ```
 
@@ -70,20 +73,11 @@ flowchart LR
     Topic -->|email| You([You])
 ```
 
-## Project Structure
+## Where To Go Next
 
-- **[agent/](agent/)** - Python agent code and local development
-- **[cdk/](cdk/)** - AWS infrastructure and deployment
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Full deployment guide
-
-## Next Steps
-
-**Want to run it locally?** See [agent/README.md](agent/README.md)
-
-**Want to see how the AWS infra is set up?** See [cdk/README.md](cdk/README.md)
-
-**Ready to deploy to AWS?** See [DEPLOYMENT.md](DEPLOYMENT.md)
-
-**Wondering what it costs to run?** See [COST.md](COST.md)
-
-**Want a more detailed write up of the background of how this came to be?** Read [this blogpost](https://danielleheberling.xyz/blog/job-search-agent/)
+- **[agent/](agent/README.md)** - Python agent code, running it locally, adding tools
+- **[cdk/](cdk/README.md)** - AWS infrastructure and what the stack creates
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Full deployment guide, scheduling, troubleshooting
+- **[COST.md](COST.md)** - What it costs to run
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Dev environment setup and PR process
+- **[Blog post](https://danielleheberling.xyz/blog/job-search-agent/)** - Background on how this came to be
