@@ -62,11 +62,11 @@ The quality check script auto-fixes most issues. Run it before committing.
 
 ## Adding Custom Tools
 
-`src/tools/sns_tools.py` is the working example — `send_job_alert` is a real custom tool wired through every step below. To add your own:
+`src/tools/sns_tools.py` works through every step below. To add your own:
 
-1. Write it in a new module under `src/tools/`, decorated with `@tool` and fully type-hinted. The docstring is not decoration: Strands serializes it into the tool schema the model sees, so the summary and `Args:` descriptions are what the model reads when deciding to call it.
+1. Write it in a new module under `src/tools/`, decorated with `@tool` and fully type-hinted. Strands serializes the docstring into the tool schema, so its summary and `Args:` descriptions are what the model reads when deciding to call the tool.
 2. Export it from `src/tools/__init__.py` alongside the existing tools.
-3. Append it to the `tools` list in `get_agent()` in `agentcore_app.py` (see how `send_job_alert` is appended there only when `SNS_TOPIC_ARN` is set).
+3. Append it to the `tools` list in `get_agent()` in `agentcore_app.py`.
 4. Add tests in `tests/test_tools/`, mirroring `test_sns_tools.py`.
 
 ## Next Steps

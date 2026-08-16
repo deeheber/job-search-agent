@@ -1,6 +1,6 @@
 # Deployment Guide
 
-How to get the job search agent running on AWS. Curious what it costs? See [COST.md](COST.md).
+What it costs to run: [COST.md](COST.md).
 
 ## What You Need
 

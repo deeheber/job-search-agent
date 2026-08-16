@@ -55,7 +55,7 @@ uv run --env-file .env python src/agentcore_app.py
 **Quality checks (recommended before committing):**
 
 ```bash
-./quality-check.sh  # pytest, mypy, ruff, black — with auto-fixes
+./quality-check.sh  # pytest, mypy, ruff, black, with auto-fixes
 ```
 
 ### CDK Infrastructure Development
