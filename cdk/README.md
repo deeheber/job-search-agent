@@ -10,6 +10,7 @@ The stack reads the Anthropic and Tavily API keys from SSM Parameter Store, so s
 
 ```bash
 npm install
+npx cdk bootstrap   # first deploy in this account/region only
 npm run cdk:deploy
 ```
 

@@ -9,7 +9,7 @@ Real numbers from running this project: about **$10–14/month**. The infrastruc
 The numbers below reflect this workload:
 
 - 5 weekly EventBridge schedules (one company per weekday), about 22 agent runs/month
-- `MODEL_PROVIDER=bedrock` with Claude Sonnet 4.6
+- `MODEL_PROVIDER=bedrock` with Claude Sonnet 4.6 (the model at the time; the current default is Sonnet 5)
 - Each agent run costs roughly **$0.45–0.65**, nearly all of it model inference
 
 ## Monthly Breakdown

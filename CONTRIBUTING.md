@@ -60,19 +60,12 @@ uv run --env-file .env python src/agentcore_app.py
 
 ### CDK Infrastructure Development
 
-**Building and testing:**
-
 ```bash
 cd cdk
 npm run build
-npm test
-```
-
-**Linting and formatting:**
-
-```bash
-npm run lint
-npm run format
+npm test          # Vitest, including snapshots
+npm run fix       # Auto-fix ESLint and Prettier
+npm run check     # CI validation, makes no changes
 ```
 
 **Deploying to AWS:**
@@ -141,7 +134,7 @@ cd agent
 
 ```bash
 cd cdk
-npm run build && npm test && npm run lint
+npm run fix && npm run build && npm test && npm run check
 ```
 
 ### 3. Commit Your Changes

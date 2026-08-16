@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Get the job search agent running on AWS in minutes. Curious what it costs to run? See [COST.md](COST.md).
+How to get the job search agent running on AWS. Curious what it costs? See [COST.md](COST.md).
 
 ## What You Need
 
@@ -124,7 +124,7 @@ Then redeploy: `npm run cdk:deploy`
 3. Test locally: `uv run --env-file .env python src/agentcore_app.py`
 4. Deploy: `cd cdk && npm run cdk:deploy`
 
-The quality check runs pytest, mypy, ruff, and black. It'll catch most problems before deployment.
+The quality check runs pytest, mypy, ruff, and black.
 
 ## Add Custom Tools
 
