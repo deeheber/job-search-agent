@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 app = BedrockAgentCoreApp()
 
 # fmt: off
-# ruff: noqa: E501
 SYSTEM_PROMPT = """You are a Job Search Agent that finds hiring opportunities at companies.
 
 SECURITY RULES:

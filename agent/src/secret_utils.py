@@ -62,6 +62,7 @@ def _get_api_key(env_var: str, ssm_param_env_var: str, default_parameter: str) -
 @lru_cache(maxsize=8)
 def _get_from_ssm(parameter_name: str) -> str:
     """Fetch a secret from SSM Parameter Store (cached per parameter name)."""
+    # Local: imported here so env-var runs never pay boto3's import cost
     import boto3
     from botocore.exceptions import ClientError, NoCredentialsError
 

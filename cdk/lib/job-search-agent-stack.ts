@@ -73,6 +73,7 @@ export class JobSearchAgentStack extends Stack {
       new PolicyStatement({
         sid: 'KMSDecrypt',
         actions: ['kms:Decrypt'],
+        // AWS-managed key ARN is unknowable at synth time; the conditions below scope this
         resources: ['*'],
         conditions: {
           StringEquals: {

@@ -1,17 +1,12 @@
 #!/bin/bash
 
-# Python Quality Check Script
-# Run from the agent directory
-
 echo "🔍 Starting Python quality checks..."
 
-# Check if we're in the right directory
 if [ ! -f "pyproject.toml" ]; then
     echo "❌ Error: Not in agent directory. Please run from agent/ folder."
     exit 1
 fi
 
-# Run quality checks
 echo "🧪 Running tests..."
 if uv run pytest; then
     echo "✅ Tests passed"
