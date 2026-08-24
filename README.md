@@ -49,6 +49,10 @@ npm run cdk:deploy
 
 That's it. The agent fetches live job postings, extracts titles and links, and returns structured results.
 
+Tavily remains the default search provider. For a single explicit opt-in to the free, anonymous
+Parallel Search MCP endpoint, add `"search_provider": "parallel"` to an invocation. See
+[agent/README.md](agent/README.md#optional-parallel-search) for configuration and privacy details.
+
 ## What It Does
 
 - Takes company name (+ optional title/location filters)
@@ -66,7 +70,8 @@ That's it. The agent fetches live job postings, extracts titles and links, and r
 flowchart LR
     Scheduler[EventBridge Scheduler] -->|async invoke| Runtime[AgentCore Runtime<br/>Strands agent]
     Scheduler -.->|failed invokes| DLQ[SQS dead-letter queue]
-    Runtime -->|search + extract| Tavily[Tavily API]
+    Runtime -->|default search + extract| Tavily[Tavily API]
+    Runtime -.->|explicit opt-in search| Parallel[Parallel Search MCP]
     Runtime -->|inference| Model[Anthropic API or Bedrock]
     Runtime -->|job alerts + failure alerts| Topic[SNS topic]
     DLQ -.->|CloudWatch alarm| Topic

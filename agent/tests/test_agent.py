@@ -2,21 +2,30 @@
 
 import asyncio
 import os
+from collections.abc import AsyncIterable
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from strands import Agent, tool
+from strands.models import Model
 from strands.models.anthropic import AnthropicModel
+from strands.types.content import Messages, SystemContentBlock
+from strands.types.streaming import StreamEvent
+from strands.types.tools import ToolChoice, ToolSpec
 
 from src.agentcore_app import (
     ANTHROPIC_MAX_TOKENS,
     DEFAULT_ANTHROPIC_MODEL_ID,
     DEFAULT_BEDROCK_MODEL_ID,
+    PARALLEL_SEARCH_MCP_ENDPOINT,
+    PARALLEL_SEARCH_PROVIDER,
     _background_tasks,
     construct_job_search_prompt,
     get_agent,
     get_model,
     invoke,
+    run_job_search,
 )
 
 
@@ -162,3 +171,193 @@ def test_invoke_sync_returns_full_result() -> None:
 
     assert result == full_result
     mock_search.assert_awaited_once_with("Stripe", "", "")
+
+
+class ToolCallingModel(Model):
+    """Deterministic model that calls web_search once, then returns text."""
+
+    def __init__(self, tool_input: dict[str, object]) -> None:
+        self.tool_input = tool_input
+        self.calls = 0
+
+    def update_config(self, **model_config: Any) -> None:
+        pass
+
+    def get_config(self) -> dict[str, object]:
+        return {}
+
+    async def structured_output(self, *args: Any, **kwargs: Any) -> AsyncIterable[dict[str, Any]]:
+        if False:
+            yield {}
+        raise NotImplementedError
+
+    async def stream(
+        self,
+        messages: Messages,
+        tool_specs: list[ToolSpec] | None = None,
+        system_prompt: str | None = None,
+        *,
+        tool_choice: ToolChoice | None = None,
+        system_prompt_content: list[SystemContentBlock] | None = None,
+        invocation_state: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterable[StreamEvent]:
+        self.calls += 1
+        yield {"messageStart": {"role": "assistant"}}
+        if self.calls == 1:
+            yield {
+                "contentBlockStart": {
+                    "start": {"toolUse": {"toolUseId": "search-1", "name": "web_search"}}
+                }
+            }
+            yield {
+                "contentBlockDelta": {
+                    "delta": {"toolUse": {"input": __import__("json").dumps(self.tool_input)}}
+                }
+            }
+            yield {"contentBlockStop": {}}
+            yield {"messageStop": {"stopReason": "tool_use"}}
+        else:
+            yield {"contentBlockDelta": {"delta": {"text": "Parallel result used"}}}
+            yield {"contentBlockStop": {}}
+            yield {"messageStop": {"stopReason": "end_turn"}}
+
+
+class MockParallelClient:
+    """MCP client double whose tool behaves like a connected hosted session."""
+
+    def __init__(self, calls: list[dict[str, object]]) -> None:
+        self.calls = calls
+        self.active = False
+        self.entered = False
+        self.exited = False
+
+    def __enter__(self) -> MockParallelClient:
+        self.active = True
+        self.entered = True
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.active = False
+        self.exited = True
+
+    def list_tools_sync(self) -> list[object]:
+        client = self
+
+        @tool
+        def web_search(objective: str, search_queries: list[str]) -> dict[str, object]:
+            """Search the public web using an objective and search queries."""
+            assert client.active, "MCP session closed before the agent's tool call"
+            call: dict[str, object] = {
+                "objective": objective,
+                "search_queries": search_queries,
+            }
+            client.calls.append(call)
+            return {
+                "results": [
+                    {
+                        "url": "https://example.com/jobs/1",
+                        "title": "Engineer",
+                        "excerpts": ["An open engineering position."],
+                    },
+                    {
+                        "url": "https://example.com/jobs/2",
+                        "excerpts": ["A second public position."],
+                    },
+                ]
+            }
+
+        return [web_search]
+
+
+def test_parallel_opt_in_runs_real_agent_with_live_session_and_public_fields_only() -> None:
+    """The MCP context spans the actual Strands agent's complete invocation."""
+    calls: list[dict[str, object]] = []
+    client = MockParallelClient(calls)
+    tool_input: dict[str, object] = {
+        "objective": "Find public Acme software engineer jobs in Remote",
+        "search_queries": ["Acme software engineer jobs Remote"],
+    }
+    model = ToolCallingModel(tool_input)
+
+    with (
+        patch("src.agentcore_app.create_parallel_mcp_client", return_value=client),
+        patch("src.agentcore_app.get_model", return_value=model),
+        patch("src.agentcore_app.get_tavily_api_key", return_value="mock-tavily-key"),
+    ):
+        result = asyncio.run(
+            run_job_search("Acme", "Software Engineer", "Remote", PARALLEL_SEARCH_PROVIDER)
+        )
+
+    assert result["status"] == "success"
+    assert client.entered and client.exited and not client.active
+    assert calls == [tool_input]
+    serialized_calls = str(calls).lower()
+    for private_value in (
+        "resume text",
+        "applicant profile",
+        "person@example.com",
+        "secret-token",
+        "authorization",
+    ):
+        assert private_value not in serialized_calls
+    assert set(calls[0]) == {"objective", "search_queries"}
+
+
+def test_default_search_does_not_create_parallel_client() -> None:
+    """Omitting search_provider retains Tavily and performs no Parallel setup or network work."""
+    with (
+        patch("src.agentcore_app.create_parallel_mcp_client") as create_client,
+        patch("src.agentcore_app.get_tavily_api_key", return_value="mock-tavily-key"),
+        patch("src.agentcore_app.get_anthropic_api_key", return_value="mock-anthropic-key"),
+        patch.object(Agent, "invoke_async", new=AsyncMock(return_value="Tavily result")),
+    ):
+        result = asyncio.run(run_job_search("Acme", "Engineer", "Remote"))
+
+    assert result["status"] == "success"
+    create_client.assert_not_called()
+
+
+def test_parallel_client_uses_canonical_anonymous_endpoint() -> None:
+    """The opt-in client uses only the canonical endpoint, without headers or credentials."""
+    transport_factory: object | None = None
+
+    client_options: dict[str, object] = {}
+
+    def capture_client(factory: object, **options: object) -> object:
+        nonlocal transport_factory
+        transport_factory = factory
+        client_options.update(options)
+        return object()
+
+    with (
+        patch("src.agentcore_app.MCPClient", side_effect=capture_client),
+        patch("src.agentcore_app.streamablehttp_client") as transport,
+    ):
+        from src.agentcore_app import create_parallel_mcp_client
+
+        create_parallel_mcp_client()
+        assert callable(transport_factory)
+        transport_factory()
+
+    transport.assert_called_once_with(PARALLEL_SEARCH_MCP_ENDPOINT)
+    assert client_options == {"tool_filters": {"allowed": ["web_search"]}}
+
+
+def test_parallel_ignores_private_payload_fields() -> None:
+    """Applicant fields never enter the sanitized company/title/location invocation."""
+    search = AsyncMock(return_value={"status": "success"})
+    payload = {
+        "company": "Acme",
+        "title": "Engineer",
+        "location": "Remote",
+        "search_provider": "parallel",
+        "resume": "resume text",
+        "email": "person@example.com",
+        "authorization": "secret-token",
+        "sync": True,
+    }
+    with patch("src.agentcore_app.run_job_search", search):
+        asyncio.run(invoke(payload))
+
+    search.assert_awaited_once_with("Acme", "Engineer", "Remote", "parallel")

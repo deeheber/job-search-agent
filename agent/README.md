@@ -51,6 +51,22 @@ Send JSON with a company name and optional filters:
 
 The agent returns hiring status, position titles, and application links.
 
+
+### Optional Parallel Search
+
+Tavily remains the default. To opt in for one invocation, add
+`"search_provider": "parallel"` to the input payload. This uses Parallel Search MCP at
+`https://search.parallel.ai/mcp` over Streamable HTTP; the free endpoint requires no account or
+API key. Omitting the field (or using any other value) does not connect to Parallel.
+
+When enabled, the public company name, requested job title, and requested location are used to
+build the search objective and queries sent to Parallel. Resume contents, applicant profiles, email
+addresses, contact details, credentials, the full input payload, conversation history, and requested
+URLs are not sent. Only Parallel's `web_search` tool is enabled. Search results provide URLs and
+excerpts; career-page URLs returned by search may still be
+fetched with the existing Tavily extraction tool. See the
+[Parallel Search MCP documentation](https://docs.parallel.ai/integrations/mcp/search-mcp).
+
 ## Development Workflow
 
 ```bash

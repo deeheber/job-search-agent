@@ -6,8 +6,10 @@ import os
 from typing import Any
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from mcp.client.streamable_http import streamablehttp_client
 from strands import Agent
 from strands.models.anthropic import AnthropicModel
+from strands.tools.mcp import MCPClient
 from strands_tools import current_time  # type: ignore[import-untyped]
 from strands_tools.tavily import tavily_extract, tavily_search  # type: ignore[import-untyped]
 
@@ -19,6 +21,8 @@ DEFAULT_BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-5"
 DEFAULT_ANTHROPIC_MODEL_ID = "claude-sonnet-5"
 ANTHROPIC_MAX_TOKENS = 16000
 JOB_SEARCH_TIMEOUT_SECONDS = 900
+PARALLEL_SEARCH_MCP_ENDPOINT = "https://search.parallel.ai/mcp"
+PARALLEL_SEARCH_PROVIDER = "parallel"
 
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
@@ -102,6 +106,19 @@ RECOGNIZING JOB LISTINGS:
 - If a page says "Working at GitHub is the best place..." but has no specific job titles, it's marketing
 - Always search job boards when company pages are purely marketing content"""
 
+PARALLEL_SEARCH_PROMPT = """
+
+PARALLEL SEARCH INSTRUCTIONS:
+- Use web_search instead of tavily_search when searching the web. tavily_extract remains available
+  for fetching a career-page URL returned by search.
+- Call web_search with exactly two arguments: objective and search_queries.
+- The objective and every search query may contain only the public company name, requested job
+  title, requested location, and public job-search wording.
+- Never include a resume, applicant profile, email address, contact details, credentials, the full
+  user request, prior conversation, or any other personal job-seeker data in a tool call.
+- Results contain a URL, an excerpts array, and may contain a title. Use the excerpts as evidence.
+"""
+
 SNS_NOTIFICATION_PROMPT = """
 NOTIFICATION INSTRUCTIONS:
 After completing your response, send exactly ONE notification:
@@ -137,7 +154,7 @@ def get_model() -> str | AnthropicModel:
     )
 
 
-def get_agent() -> Agent:
+def get_agent(parallel_tools: list[object] | None = None) -> Agent:
     """Create and return a Strands agent with configured tools and model."""
     # strands_tools.tavily reads the key from the TAVILY_API_KEY env var internally
     tavily_key = get_tavily_api_key()
@@ -147,6 +164,10 @@ def get_agent() -> Agent:
 
     tools: list[object] = [current_time, tavily_search, tavily_extract]
     system_prompt = SYSTEM_PROMPT
+    if parallel_tools is not None:
+        tools.extend(parallel_tools)
+        system_prompt += PARALLEL_SEARCH_PROMPT
+
     sns_topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
     if sns_topic_arn:
         tools.append(send_job_alert)
@@ -176,14 +197,31 @@ def construct_job_search_prompt(company: str, title: str = "", location: str = "
     return " ".join(prompt_parts)
 
 
-async def run_job_search(company: str, title: str, location: str) -> dict[str, Any]:
+def create_parallel_mcp_client() -> MCPClient:
+    """Create the anonymous Parallel Search MCP client without opening a connection."""
+    return MCPClient(
+        lambda: streamablehttp_client(PARALLEL_SEARCH_MCP_ENDPOINT),
+        tool_filters={"allowed": ["web_search"]},
+    )
+
+
+async def run_job_search(
+    company: str, title: str, location: str, search_provider: str = ""
+) -> dict[str, Any]:
     """Run the job search and return the result dict."""
     try:
         prompt = construct_job_search_prompt(company, title, location)
 
-        agent = get_agent()
-
-        response = await agent.invoke_async(prompt)
+        if search_provider == PARALLEL_SEARCH_PROVIDER:
+            parallel_client = create_parallel_mcp_client()
+            # MCP-backed tools require their session for the complete agent invocation, including
+            # every model/tool round trip. Opening it here also keeps the default path offline.
+            with parallel_client:
+                agent = get_agent(parallel_tools=list(parallel_client.list_tools_sync()))
+                response = await agent.invoke_async(prompt)
+        else:
+            agent = get_agent()
+            response = await agent.invoke_async(prompt)
         # content can lead with thinking blocks; str() joins only the text blocks
         response_text = str(response)
 
@@ -207,12 +245,17 @@ async def run_job_search(company: str, title: str, location: str) -> dict[str, A
 _background_tasks: set[asyncio.Task[Any]] = set()
 
 
-async def _tracked_job_search(task_id: int, company: str, title: str, location: str) -> None:
+async def _tracked_job_search(
+    task_id: int, company: str, title: str, location: str, search_provider: str = ""
+) -> None:
     """Run the job search, alerting on failure since the async caller discards the result."""
     try:
-        result = await asyncio.wait_for(
-            run_job_search(company, title, location), timeout=JOB_SEARCH_TIMEOUT_SECONDS
+        search = (
+            run_job_search(company, title, location, search_provider)
+            if search_provider == PARALLEL_SEARCH_PROVIDER
+            else run_job_search(company, title, location)
         )
+        result = await asyncio.wait_for(search, timeout=JOB_SEARCH_TIMEOUT_SECONDS)
         if result.get("status") != "success":
             send_failure_alert(company)
     except Exception:
@@ -231,6 +274,7 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     company = payload.get("company", "")
     title = payload.get("title", "")
     location = payload.get("location", "")
+    search_provider = payload.get("search_provider", "")
 
     if not company:
         return {"status": "error", "error": "Company name is required"}
@@ -238,12 +282,16 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     logger.info(f"Company: {company}, Title: {title}, Location: {location}")
 
     if payload.get("sync"):
+        if search_provider == PARALLEL_SEARCH_PROVIDER:
+            return await run_job_search(company, title, location, search_provider)
         return await run_job_search(company, title, location)
 
     # Respond before EventBridge Scheduler's ~30s call timeout DLQs the invocation.
     # Register the task before returning so /ping reports HealthyBusy while the search runs.
     task_id = app.add_async_task("job_search")
-    task = asyncio.create_task(_tracked_job_search(task_id, company, title, location))
+    task = asyncio.create_task(
+        _tracked_job_search(task_id, company, title, location, search_provider)
+    )
     _background_tasks.add(task)
     task.add_done_callback(_background_tasks.discard)
 
