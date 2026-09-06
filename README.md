@@ -62,16 +62,7 @@ That's it. The agent fetches live job postings, extracts titles and links, and r
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    Scheduler[EventBridge Scheduler] -->|async invoke| Runtime[AgentCore Runtime<br/>Strands agent]
-    Scheduler -.->|failed invokes| DLQ[SQS dead-letter queue]
-    Runtime -->|search + extract| Tavily[Tavily API]
-    Runtime -->|inference| Model[Anthropic API or Bedrock]
-    Runtime -->|job alerts + failure alerts| Topic[SNS topic]
-    DLQ -.->|CloudWatch alarm| Topic
-    Topic -->|email| You([You])
-```
+![Job Search Agent architecture](docs/architecture.jpg)
 
 ## Where To Go Next
 
