@@ -39,7 +39,7 @@ Get your keys at [console.anthropic.com](https://console.anthropic.com) and [tav
 
 ### 2. Set Up Email Notifications (Optional)
 
-To receive email alerts when companies are hiring, add emails to `agent/.env` (comma-separated for multiple):
+To receive an email after every search (hiring, no new matches, or search failed), add emails to `agent/.env` (comma-separated for multiple):
 
 ```bash
 NOTIFICATION_EMAILS=your-email@example.com,teammate@example.com
@@ -145,7 +145,7 @@ Set these as GitHub repository **variables** (Settings > Secrets and variables >
 
 | Variable | Description | Default |
 |---|---|---|
-| `NOTIFICATION_EMAILS` | Comma-separated emails for SNS hiring alerts | _(none)_ |
+| `NOTIFICATION_EMAILS` | Comma-separated emails for SNS search-result alerts | _(none)_ |
 | `SCHEDULES` | JSON array of scheduled searches (see [Scheduled Searches](#set-up-scheduled-searches-optional)) | _(none)_ |
 | `MODEL_PROVIDER` | Model provider: `anthropic` or `bedrock` | `anthropic` |
 | `ANTHROPIC_MODEL_ID` | Anthropic API model (when provider is `anthropic`) | `claude-sonnet-5` |
@@ -173,9 +173,9 @@ Then redeploy:
 cd cdk && npm run cdk:deploy
 ```
 
-The agent sends SNS notifications when it finds open positions, so pair this with `NOTIFICATION_EMAILS` for automated alerts.
+The agent sends an SNS notification after every search (hiring, no new matches, or search failed), so pair this with `NOTIFICATION_EMAILS` for automated alerts.
 
-Scheduled invokes are async: the runtime acks immediately (EventBridge Scheduler's call times out after ~30s) and results arrive via SNS email or CloudWatch logs. Failed invokes go to an SQS dead-letter queue that alarms to the same SNS topic; failures inside the agent send their own SNS alert. To spread load, each schedule fires within a 2-hour window after its scheduled time, not at the exact minute.
+Scheduled invokes are async: the runtime acks immediately, since the search outlives the caller, and results arrive via SNS email or CloudWatch logs. To spread load, each schedule fires within a flexible window after its scheduled time, not at the exact minute (see `timeWindow` in `cdk/lib/job-search-agent-stack.ts`).
 
 ## Clean Up
 
