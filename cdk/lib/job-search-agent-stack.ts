@@ -151,7 +151,8 @@ export class JobSearchAgentStack extends Stack {
                 resources: [runtime.agentRuntimeArn, `${runtime.agentRuntimeArn}/*`],
               }),
             ],
-            // Retrying after a cold-start timeout just resends an already-successful invocation's alert.
+            // Retrying resends an already-successful invocation's alert; the timeout's cause
+            // (likely cold start) is unverified.
             retryAttempts: 0,
           }),
           timeWindow: TimeWindow.flexible(Duration.hours(2)),
