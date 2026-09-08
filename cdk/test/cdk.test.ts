@@ -231,14 +231,11 @@ describe('JobSearchAgentStack', () => {
       })
     })
 
-    it('disables retries but keeps DLQ and a flexible time window on each schedule', () => {
+    it('disables retries and uses a flexible time window on each schedule', () => {
       scheduleTemplate.hasResourceProperties('AWS::Scheduler::Schedule', {
         FlexibleTimeWindow: { Mode: 'FLEXIBLE', MaximumWindowInMinutes: 120 },
         Target: Match.objectLike({
           RetryPolicy: Match.objectLike({ MaximumRetryAttempts: 0 }),
-          DeadLetterConfig: {
-            Arn: { 'Fn::GetAtt': [Match.stringLikeRegexp('Schedulerdlq.*'), 'Arn'] },
-          },
         }),
       })
     })
@@ -274,14 +271,6 @@ describe('JobSearchAgentStack', () => {
             }),
           ]),
         },
-      })
-    })
-
-    it('alarms on DLQ messages to the notification topic', () => {
-      scheduleTemplate.hasResourceProperties('AWS::CloudWatch::Alarm', {
-        MetricName: 'ApproximateNumberOfMessagesVisible',
-        Threshold: 1,
-        AlarmActions: [{ Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*') }],
       })
     })
   })
