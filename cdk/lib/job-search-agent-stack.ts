@@ -168,7 +168,8 @@ export class JobSearchAgentStack extends Stack {
                 resources: [runtime.agentRuntimeArn, `${runtime.agentRuntimeArn}/*`],
               }),
             ],
-            retryAttempts: 2,
+            // Retrying after a cold-start timeout just resends an already-successful invocation's alert.
+            retryAttempts: 0,
             deadLetterQueue: dlq,
           }),
           timeWindow: TimeWindow.flexible(Duration.hours(2)),

@@ -692,7 +692,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
           },
           "RetryPolicy": {
             "MaximumEventAgeInSeconds": 86400,
-            "MaximumRetryAttempts": 2,
+            "MaximumRetryAttempts": 0,
           },
           "RoleArn": {
             "Fn::GetAtt": [
@@ -753,7 +753,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
           },
           "RetryPolicy": {
             "MaximumEventAgeInSeconds": 86400,
-            "MaximumRetryAttempts": 2,
+            "MaximumRetryAttempts": 0,
           },
           "RoleArn": {
             "Fn::GetAtt": [

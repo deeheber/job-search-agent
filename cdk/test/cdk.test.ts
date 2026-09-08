@@ -231,11 +231,11 @@ describe('JobSearchAgentStack', () => {
       })
     })
 
-    it('configures retries, DLQ, and a flexible time window on each schedule', () => {
+    it('disables retries but keeps DLQ and a flexible time window on each schedule', () => {
       scheduleTemplate.hasResourceProperties('AWS::Scheduler::Schedule', {
         FlexibleTimeWindow: { Mode: 'FLEXIBLE', MaximumWindowInMinutes: 120 },
         Target: Match.objectLike({
-          RetryPolicy: Match.objectLike({ MaximumRetryAttempts: 2 }),
+          RetryPolicy: Match.objectLike({ MaximumRetryAttempts: 0 }),
           DeadLetterConfig: {
             Arn: { 'Fn::GetAtt': [Match.stringLikeRegexp('Schedulerdlq.*'), 'Arn'] },
           },
