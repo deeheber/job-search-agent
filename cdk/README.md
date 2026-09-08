@@ -21,8 +21,8 @@ Takes a few minutes. The stack builds a Docker image from `../agent`, pushes it 
 - **AgentCore Runtime** - Serverless container that runs your agent
 - **IAM Role** - Permissions for Bedrock models, SSM parameter reads (Tavily + Anthropic API keys), KMS decrypt (for SSM), and SNS publish
 - **ECR Image** - The agent image is pushed to the shared ECR repository that `cdk bootstrap` manages (the stack doesn't create its own repository)
-- **SNS Topic** - Receives hiring notifications; email subscriptions added when `NOTIFICATION_EMAILS` is set
-- **EventBridge Schedules + SQS DLQ** _(optional)_ - Created when `SCHEDULES` is set, one schedule per entry, with a CloudWatch alarm that notifies the SNS topic when invokes go to the DLQ
+- **SNS Topic** - Receives a notification after every search (hiring, no new matches, or failed); email subscriptions added when `NOTIFICATION_EMAILS` is set
+- **EventBridge Schedules** _(optional)_ - Created when `SCHEDULES` is set, one schedule per entry
 
 The stack outputs `RuntimeId`, `RuntimeArn`, `TavilyApiKeyParameter`, `AnthropicApiKeyParameter`, and `NotificationTopicArn`.
 

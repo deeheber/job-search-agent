@@ -1,6 +1,4 @@
 import { Stack, StackProps, CfnOutput, Duration } from 'aws-cdk-lib'
-import { Alarm, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch'
-import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions'
 import { Role, ServicePrincipal, PolicyStatement } from 'aws-cdk-lib/aws-iam'
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets'
 import { Topic } from 'aws-cdk-lib/aws-sns'
@@ -15,7 +13,6 @@ import { Universal } from 'aws-cdk-lib/aws-scheduler-targets'
 import { Construct } from 'constructs'
 import { Runtime, AgentRuntimeArtifact } from 'aws-cdk-lib/aws-bedrockagentcore'
 import * as path from 'path'
-import { Queue } from 'aws-cdk-lib/aws-sqs'
 
 // SSM parameter names, created out-of-band (never by this stack); read by the agent at
 // invocation time (the Anthropic one only when MODEL_PROVIDER=anthropic)
@@ -122,20 +119,6 @@ export class JobSearchAgentStack extends Stack {
     })
 
     if (props.schedules && props.schedules.length > 0) {
-      const dlq = new Queue(this, 'Scheduler-dlq', {
-        queueName: `${this.stackName}-scheduler-dlq`,
-        retentionPeriod: Duration.days(14),
-      })
-
-      new Alarm(this, 'SchedulerDlqAlarm', {
-        alarmName: `${this.stackName}-scheduler-dlq-alarm`,
-        alarmDescription: 'Scheduled job search invocations are failing and landing in the DLQ',
-        metric: dlq.metricApproximateNumberOfMessagesVisible(),
-        threshold: 1,
-        evaluationPeriods: 1,
-        treatMissingData: TreatMissingData.NOT_BREACHING,
-      }).addAlarmAction(new SnsAction(notificationTopic))
-
       // Company-keyed IDs so reordering SCHEDULES doesn't retarget deployed schedules
       const scheduleIdCounts = new Map<string, number>()
       for (const config of props.schedules) {
@@ -168,8 +151,9 @@ export class JobSearchAgentStack extends Stack {
                 resources: [runtime.agentRuntimeArn, `${runtime.agentRuntimeArn}/*`],
               }),
             ],
-            retryAttempts: 2,
-            deadLetterQueue: dlq,
+            // Retrying resends an already-successful invocation's alert; the timeout's cause
+            // (likely cold start) is unverified.
+            retryAttempts: 0,
           }),
           timeWindow: TimeWindow.flexible(Duration.hours(2)),
           description: `Job search: ${config.company}`,

@@ -107,7 +107,7 @@ NOTIFICATION INSTRUCTIONS:
 After completing your response, send exactly ONE notification:
 1. If **Hiring Status** is Yes: use the send_job_alert tool with subject="Job Alert: [COMPANY] is hiring!" and message=your full response text
 2. If you could not complete the search because your tools kept failing: use the send_job_alert tool with subject="Job search failed: [COMPANY]" and message=a brief description of what went wrong
-3. Otherwise (search worked, no matches): do not send a notification
+3. Otherwise (search worked, no matches): use the send_job_alert tool with subject="No new matches: [COMPANY]" and message=a one-line summary of what was searched
 4. If the notification fails, still return your normal response - notification is best-effort
 5. Do NOT send more than one notification per request - never retry or send duplicate messages
 """
@@ -240,8 +240,9 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload.get("sync"):
         return await run_job_search(company, title, location)
 
-    # Respond before EventBridge Scheduler's ~30s call timeout DLQs the invocation.
-    # Register the task before returning so /ping reports HealthyBusy while the search runs.
+    # Why Scheduler's call times out is unknown; AWS doesn't document its sync call timeout,
+    # and a cold-started AgentCore runtime is suspected but not proven. HealthyBusy keeps the
+    # container alive until the search finishes with no caller attached.
     task_id = app.add_async_task("job_search")
     task = asyncio.create_task(_tracked_job_search(task_id, company, title, location))
     _background_tasks.add(task)

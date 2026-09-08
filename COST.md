@@ -22,7 +22,6 @@ The numbers below reflect this workload:
 | CloudWatch (logs/metrics) | **~$0.01–0.02** | Mostly inside the 5 GB/month free ingest tier |
 | EventBridge Scheduler | **$0** | 22 invocations vs. 14M free/month |
 | SNS (email alerts) | **$0** | First 1,000 email notifications/month free |
-| SQS (scheduler DLQ) | **$0** | First 1M requests/month free |
 | SSM Parameter Store | **$0** | Standard-tier parameters are free |
 | KMS | **$0** | AWS-managed key, within the free request tier |
 | S3 (CDK assets) | **~pennies** | Bootstrap staging bucket |

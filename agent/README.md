@@ -18,7 +18,7 @@ curl -X POST http://localhost:8080/invocations \
   -d '{"company": "Stripe", "title": "Engineer", "sync": true}'
 ```
 
-`"sync": true` returns the full result. Without it the agent replies `{"status": "accepted"}` immediately and logs the result when done. Scheduled invokes use this mode, since EventBridge Scheduler's call times out after ~30s.
+`"sync": true` returns the full result. Without it the agent replies `{"status": "accepted"}` immediately and logs the result when done. Scheduled invokes use this mode, since the search outlives the caller.
 
 ## How It Works
 

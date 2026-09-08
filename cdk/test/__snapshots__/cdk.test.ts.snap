@@ -667,14 +667,6 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
               ],
             ],
           },
-          "DeadLetterConfig": {
-            "Arn": {
-              "Fn::GetAtt": [
-                "SchedulerdlqFAB10257",
-                "Arn",
-              ],
-            },
-          },
           "Input": {
             "Fn::Join": [
               "",
@@ -692,7 +684,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
           },
           "RetryPolicy": {
             "MaximumEventAgeInSeconds": 86400,
-            "MaximumRetryAttempts": 2,
+            "MaximumRetryAttempts": 0,
           },
           "RoleArn": {
             "Fn::GetAtt": [
@@ -728,14 +720,6 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
               ],
             ],
           },
-          "DeadLetterConfig": {
-            "Arn": {
-              "Fn::GetAtt": [
-                "SchedulerdlqFAB10257",
-                "Arn",
-              ],
-            },
-          },
           "Input": {
             "Fn::Join": [
               "",
@@ -753,7 +737,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
           },
           "RetryPolicy": {
             "MaximumEventAgeInSeconds": 86400,
-            "MaximumRetryAttempts": 2,
+            "MaximumRetryAttempts": 0,
           },
           "RoleArn": {
             "Fn::GetAtt": [
@@ -764,37 +748,6 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
         },
       },
       "Type": "AWS::Scheduler::Schedule",
-    },
-    "SchedulerDlqAlarm0171B2A8": {
-      "Properties": {
-        "AlarmActions": [
-          {
-            "Ref": "JobSearchNotificationTopicA750FAD4",
-          },
-        ],
-        "AlarmDescription": "Scheduled job search invocations are failing and landing in the DLQ",
-        "AlarmName": "TestScheduleStack-scheduler-dlq-alarm",
-        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
-        "Dimensions": [
-          {
-            "Name": "QueueName",
-            "Value": {
-              "Fn::GetAtt": [
-                "SchedulerdlqFAB10257",
-                "QueueName",
-              ],
-            },
-          },
-        ],
-        "EvaluationPeriods": 1,
-        "MetricName": "ApproximateNumberOfMessagesVisible",
-        "Namespace": "AWS/SQS",
-        "Period": 300,
-        "Statistic": "Maximum",
-        "Threshold": 1,
-        "TreatMissingData": "notBreaching",
-      },
-      "Type": "AWS::CloudWatch::Alarm",
     },
     "SchedulerRoleForTargeta5797e5F63D8AB": {
       "Properties": {
@@ -860,16 +813,6 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
                 },
               ],
             },
-            {
-              "Action": "sqs:SendMessage",
-              "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "SchedulerdlqFAB10257",
-                  "Arn",
-                ],
-              },
-            },
           ],
           "Version": "2012-10-17",
         },
@@ -881,15 +824,6 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
         ],
       },
       "Type": "AWS::IAM::Policy",
-    },
-    "SchedulerdlqFAB10257": {
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "MessageRetentionPeriod": 1209600,
-        "QueueName": "TestScheduleStack-scheduler-dlq",
-      },
-      "Type": "AWS::SQS::Queue",
-      "UpdateReplacePolicy": "Delete",
     },
   },
   "Rules": {
