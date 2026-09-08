@@ -240,8 +240,9 @@ async def invoke(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload.get("sync"):
         return await run_job_search(company, title, location)
 
-    # Respond before EventBridge Scheduler's ~30s call timeout DLQs the invocation.
-    # Register the task before returning so /ping reports HealthyBusy while the search runs.
+    # Why Scheduler's call times out is unknown; AWS doesn't document its sync call timeout,
+    # and a cold-started AgentCore runtime is suspected but not proven. HealthyBusy keeps the
+    # container alive until the search finishes with no caller attached.
     task_id = app.add_async_task("job_search")
     task = asyncio.create_task(_tracked_job_search(task_id, company, title, location))
     _background_tasks.add(task)
