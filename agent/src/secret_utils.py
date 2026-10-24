@@ -77,8 +77,7 @@ def _get_from_ssm(parameter_name: str) -> str:
         return str(response["Parameter"]["Value"])
     except NoCredentialsError as e:
         raise ValueError(
-            "AWS credentials not configured. "
-            "Run 'aws configure' or set AWS environment variables."
+            "AWS credentials not configured. Run 'aws configure' or set AWS environment variables."
         ) from e
     except ClientError as e:
         error_code = e.response["Error"]["Code"]

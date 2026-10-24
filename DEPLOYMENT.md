@@ -107,12 +107,12 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 
 The agent supports two model providers, selected with `MODEL_PROVIDER` in `agent/.env`:
 
-- **`anthropic`** (default): calls the Anthropic API directly. Requires the Anthropic API key (SSM parameter above). Override the model with `ANTHROPIC_MODEL_ID` (default: `claude-sonnet-5`); see [Anthropic model IDs](https://docs.claude.com/en/docs/about-claude/models/overview).
-- **`bedrock`**: uses Amazon Bedrock with the runtime's IAM role. Requires Bedrock model access in your account. Override the model with `BEDROCK_MODEL_ID` (default: `us.anthropic.claude-sonnet-5`); see [Amazon Bedrock model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
+- **`anthropic`** (default): calls the Anthropic API directly. Requires the Anthropic API key (SSM parameter above). Override the model with `ANTHROPIC_MODEL_ID` (default: `claude-sonnet-5-5`); see [Anthropic model IDs](https://docs.claude.com/en/docs/about-claude/models/overview).
+- **`bedrock`**: uses Amazon Bedrock with the runtime's IAM role. Requires Bedrock model access in your account. Override the model with `BEDROCK_MODEL_ID` (default: `us.anthropic.claude-sonnet-5-5`); see [Amazon Bedrock model IDs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html).
 
 ```bash
 MODEL_PROVIDER=bedrock
-BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-5
+BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-5-5
 ```
 
 Then redeploy: `npm run cdk:deploy`
@@ -124,7 +124,7 @@ Then redeploy: `npm run cdk:deploy`
 3. Test locally: `uv run --env-file .env python src/agentcore_app.py`
 4. Deploy: `cd cdk && npm run cdk:deploy`
 
-The quality check runs pytest, mypy, ruff, and black.
+The quality check runs pytest, mypy, Ruff linting, and Ruff formatting.
 
 ## Add Custom Tools
 
@@ -148,8 +148,8 @@ Set these as GitHub repository **variables** (Settings > Secrets and variables >
 | `NOTIFICATION_EMAILS` | Comma-separated emails for SNS search-result alerts | _(none)_ |
 | `SCHEDULES` | JSON array of scheduled searches (see [Scheduled Searches](#set-up-scheduled-searches-optional)) | _(none)_ |
 | `MODEL_PROVIDER` | Model provider: `anthropic` or `bedrock` | `anthropic` |
-| `ANTHROPIC_MODEL_ID` | Anthropic API model (when provider is `anthropic`) | `claude-sonnet-5` |
-| `BEDROCK_MODEL_ID` | Bedrock model (when provider is `bedrock`) | `us.anthropic.claude-sonnet-5` |
+| `ANTHROPIC_MODEL_ID` | Anthropic API model (when provider is `anthropic`) | `claude-sonnet-5-5` |
+| `BEDROCK_MODEL_ID` | Bedrock model (when provider is `bedrock`) | `us.anthropic.claude-sonnet-5-5` |
 | `STACK_NAME` | CloudFormation stack name | `JobSearchAgentStack` |
 
 ## Set Up Scheduled Searches (Optional)

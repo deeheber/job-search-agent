@@ -55,7 +55,7 @@ uv run --env-file .env python src/agentcore_app.py
 **Quality checks (recommended before committing):**
 
 ```bash
-./quality-check.sh  # pytest, mypy, ruff, black, with auto-fixes
+./quality-check.sh  # pytest, mypy, Ruff lint/format, with auto-fixes
 ```
 
 ### CDK Infrastructure Development
@@ -82,7 +82,7 @@ Project conventions live in `AGENTS.md`.
 ### Python Code Style
 
 - **Line length**: 100 characters
-- **Formatter**: Black
+- **Formatter**: Ruff
 - **Linter**: Ruff with auto-fix enabled
 - **Type checker**: mypy in strict mode (`src/`)
 - **Testing**: pytest

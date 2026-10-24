@@ -32,7 +32,7 @@ else
 fi
 
 echo "Formatting code..."
-if uv run black .; then
+if uv run ruff format .; then
     echo "✅ Code formatted successfully"
 else
     echo "❌ Code formatting failed"
