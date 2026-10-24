@@ -8,8 +8,8 @@ from typing import Any
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
 from strands.models.anthropic import AnthropicModel
-from strands_tools import current_time  # type: ignore[import-untyped]
-from strands_tools.tavily import tavily_extract, tavily_search  # type: ignore[import-untyped]
+from strands_tools import current_time
+from strands_tools.tavily import tavily_extract, tavily_search
 
 from secret_utils import get_anthropic_api_key, get_tavily_api_key
 from tools import send_failure_alert, send_job_alert

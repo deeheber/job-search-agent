@@ -1,6 +1,6 @@
-FROM public.ecr.aws/docker/library/python:3.14-slim
+FROM public.ecr.aws/docker/library/python:3.14.9-slim
 
-COPY --from=ghcr.io/astral-sh/uv:0.12 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.5 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 

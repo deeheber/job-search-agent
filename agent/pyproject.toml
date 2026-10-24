@@ -6,26 +6,28 @@ build-backend = "hatchling.build"
 name = "job-search-agent"
 version = "2.0.0"
 description = "A Strands AI agent"
-requires-python = ">=3.14"
+requires-python = ">=3.14.9"
 dependencies = [
-    "strands-agents[otel,anthropic]~=1.48",
-    "strands-agents-tools~=0.8",
-    "bedrock-agentcore~=1.18",
-    "aws-opentelemetry-distro~=0.18",
-    "boto3~=1.43",
+    "strands-agents[otel,anthropic]~=1.62",
+    "strands-agents-tools~=0.8.10",
+    "bedrock-agentcore~=1.25",
+    "aws-opentelemetry-distro~=0.21",
+    "boto3~=1.43.118",
 ]
 
 [dependency-groups]
 dev = [
     "pytest~=9.1",
-    "ruff~=0.15",
-    "mypy~=2.3",
-    "black~=26.5",
-    "boto3-stubs[ssm,sns]~=1.43",
+    "ruff~=0.17",
+    "mypy~=2.4",
+    "black~=26.10",
+    "boto3-stubs[ssm,sns]~=1.43.118",
 ]
 
 [tool.uv]
-required-version = "~=0.12.0"
+required-version = "~=0.13.5"
+# Strands caps MCP below the fixed 2.2 release; use the patched 1.x line.
+constraint-dependencies = ["mcp>=1.30,<2"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
