@@ -20,7 +20,6 @@ dev = [
     "pytest~=9.1",
     "ruff~=0.17",
     "mypy~=2.4",
-    "black~=26.10",
     "boto3-stubs[ssm,sns]~=1.43.118",
 ]
 
@@ -31,10 +30,6 @@ constraint-dependencies = ["mcp>=1.30,<2"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
-
-[tool.black]
-line-length = 100
-target-version = ["py314"]
 
 [tool.mypy]
 python_version = "3.14"
@@ -51,6 +46,7 @@ pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]

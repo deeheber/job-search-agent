@@ -54,7 +54,7 @@ The agent returns hiring status, position titles, and application links.
 ## Development Workflow
 
 ```bash
-./quality-check.sh    # Run all checks (pytest, mypy, ruff, black)
+./quality-check.sh    # Run tests, type checks, Ruff lint and format
 uv run pytest         # Just the tests
 ```
 

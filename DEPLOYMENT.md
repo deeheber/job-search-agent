@@ -124,7 +124,7 @@ Then redeploy: `npm run cdk:deploy`
 3. Test locally: `uv run --env-file .env python src/agentcore_app.py`
 4. Deploy: `cd cdk && npm run cdk:deploy`
 
-The quality check runs pytest, mypy, ruff, and black.
+The quality check runs pytest, mypy, Ruff linting, and Ruff formatting.
 
 ## Add Custom Tools
 
