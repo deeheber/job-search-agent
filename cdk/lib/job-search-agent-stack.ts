@@ -85,6 +85,16 @@ export class JobSearchAgentStack extends Stack {
       })
     )
 
+    agentRole.addToPolicy(
+      new PolicyStatement({
+        sid: 'UnifiedTraceLogGroupPolicy',
+        actions: ['logs:PutResourcePolicy'],
+        resources: [
+          `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/${runtimeName}-*`,
+        ],
+      })
+    )
+
     const notificationTopic = new Topic(this, 'JobSearchNotificationTopic', {
       topicName: `${this.stackName}-notify`,
       displayName: 'Job Search Agent Notifications',
@@ -101,16 +111,6 @@ export class JobSearchAgentStack extends Stack {
       // multi-region: keeps the asset hash unique per account/region
       extraHash: `${this.account}-${this.region}`,
     })
-
-    agentRole.addToPolicy(
-      new PolicyStatement({
-        sid: 'UnifiedTraceLogGroupPolicy',
-        actions: ['logs:PutResourcePolicy'],
-        resources: [
-          `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/${runtimeName}-*`,
-        ],
-      })
-    )
 
     const runtime = new Runtime(this, 'JobSearchAgentRuntime', {
       runtimeName,

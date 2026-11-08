@@ -90,18 +90,43 @@ describe('JobSearchAgentStack', () => {
               },
             }),
             Match.objectLike({
+              Sid: 'UnifiedTraceLogGroupPolicy',
+              Action: 'logs:PutResourcePolicy',
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestJobSearchAgentStack_JobSearchAgent-*',
+            }),
+            Match.objectLike({
               Action: 'sns:Publish',
               Effect: 'Allow',
               Resource: {
                 Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
               },
             }),
+          ]),
+        },
+      })
+    })
+
+    it('scopes trace permissions to the normalized runtime name for a hyphenated stack', () => {
+      const traceApp = new App()
+      const traceStack = new JobSearchAgentStack(traceApp, 'Test-Trace-Stack', {
+        env: { account: '123456789012', region: 'us-west-2' },
+      })
+      const traceTemplate = Template.fromStack(traceStack)
+
+      traceTemplate.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
+        AgentRuntimeName: 'Test_Trace_Stack_JobSearchAgent',
+      })
+      traceTemplate.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
             Match.objectLike({
               Sid: 'UnifiedTraceLogGroupPolicy',
               Action: 'logs:PutResourcePolicy',
               Effect: 'Allow',
               Resource:
-                'arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestJobSearchAgentStack_JobSearchAgent-*',
+                'arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/Test_Trace_Stack_JobSearchAgent-*',
             }),
           ]),
         },
@@ -150,9 +175,9 @@ describe('JobSearchAgentStack', () => {
       })
     })
 
-    it('passes model overrides and scopes trace permissions for a hyphenated stack name', () => {
+    it('passes model provider and model ID overrides to the runtime', () => {
       const providerApp = new App()
-      const providerStack = new JobSearchAgentStack(providerApp, 'Test-Provider-Stack', {
+      const providerStack = new JobSearchAgentStack(providerApp, 'TestProviderStack', {
         modelProvider: 'bedrock',
         bedrockModelID: 'custom-bedrock-model',
         anthropicModelID: 'claude-opus-5',
@@ -161,25 +186,11 @@ describe('JobSearchAgentStack', () => {
       const providerTemplate = Template.fromStack(providerStack)
 
       providerTemplate.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
-        AgentRuntimeName: 'Test_Provider_Stack_JobSearchAgent',
         EnvironmentVariables: Match.objectLike({
           MODEL_PROVIDER: 'bedrock',
           BEDROCK_MODEL_ID: 'custom-bedrock-model',
           ANTHROPIC_MODEL_ID: 'claude-opus-5',
         }),
-      })
-      providerTemplate.hasResourceProperties('AWS::IAM::Policy', {
-        PolicyDocument: {
-          Statement: Match.arrayWith([
-            Match.objectLike({
-              Sid: 'UnifiedTraceLogGroupPolicy',
-              Action: 'logs:PutResourcePolicy',
-              Effect: 'Allow',
-              Resource:
-                'arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/Test_Provider_Stack_JobSearchAgent-*',
-            }),
-          ]),
-        },
       })
     })
   })

@@ -102,17 +102,17 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
               "Sid": "KMSDecrypt",
             },
             {
+              "Action": "logs:PutResourcePolicy",
+              "Effect": "Allow",
+              "Resource": "arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestJobSearchAgentStack_JobSearchAgent-*",
+              "Sid": "UnifiedTraceLogGroupPolicy",
+            },
+            {
               "Action": "sns:Publish",
               "Effect": "Allow",
               "Resource": {
                 "Ref": "JobSearchNotificationTopicA750FAD4",
               },
-            },
-            {
-              "Action": "logs:PutResourcePolicy",
-              "Effect": "Allow",
-              "Resource": "arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestJobSearchAgentStack_JobSearchAgent-*",
-              "Sid": "UnifiedTraceLogGroupPolicy",
             },
             {
               "Action": [
@@ -446,17 +446,17 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
               "Sid": "KMSDecrypt",
             },
             {
+              "Action": "logs:PutResourcePolicy",
+              "Effect": "Allow",
+              "Resource": "arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestScheduleStack_JobSearchAgent-*",
+              "Sid": "UnifiedTraceLogGroupPolicy",
+            },
+            {
               "Action": "sns:Publish",
               "Effect": "Allow",
               "Resource": {
                 "Ref": "JobSearchNotificationTopicA750FAD4",
               },
-            },
-            {
-              "Action": "logs:PutResourcePolicy",
-              "Effect": "Allow",
-              "Resource": "arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestScheduleStack_JobSearchAgent-*",
-              "Sid": "UnifiedTraceLogGroupPolicy",
             },
             {
               "Action": [

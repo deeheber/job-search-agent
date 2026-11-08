@@ -104,7 +104,6 @@ aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent
 ```
 
 Unified trace storage requires [CloudWatch Transaction Search](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) to be enabled in the deployment account and Region.
-Historical spans remain in the shared `aws/spans` log group.
 
 ## Change the Model or Provider
 
