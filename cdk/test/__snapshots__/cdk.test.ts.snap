@@ -109,6 +109,12 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
               },
             },
             {
+              "Action": "logs:PutResourcePolicy",
+              "Effect": "Allow",
+              "Resource": "arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestJobSearchAgentStack_JobSearchAgent-*",
+              "Sid": "UnifiedTraceLogGroupPolicy",
+            },
+            {
               "Action": [
                 "logs:DescribeLogStreams",
                 "logs:CreateLogGroup",
@@ -284,6 +290,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
             "Ref": "JobSearchNotificationTopicA750FAD4",
           },
           "TAVILY_API_KEY_SSM_PARAMETER": "/job-search-agent/tavily-api-key",
+          "UNIFIED_TRACES_DESTINATION_ENABLED": "true",
         },
         "LifecycleConfiguration": {},
         "NetworkConfiguration": {
@@ -444,6 +451,12 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
               "Resource": {
                 "Ref": "JobSearchNotificationTopicA750FAD4",
               },
+            },
+            {
+              "Action": "logs:PutResourcePolicy",
+              "Effect": "Allow",
+              "Resource": "arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestScheduleStack_JobSearchAgent-*",
+              "Sid": "UnifiedTraceLogGroupPolicy",
             },
             {
               "Action": [
@@ -621,6 +634,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
             "Ref": "JobSearchNotificationTopicA750FAD4",
           },
           "TAVILY_API_KEY_SSM_PARAMETER": "/job-search-agent/tavily-api-key",
+          "UNIFIED_TRACES_DESTINATION_ENABLED": "true",
         },
         "LifecycleConfiguration": {},
         "NetworkConfiguration": {

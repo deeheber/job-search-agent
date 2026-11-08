@@ -96,6 +96,13 @@ describe('JobSearchAgentStack', () => {
                 Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
               },
             }),
+            Match.objectLike({
+              Sid: 'UnifiedTraceLogGroupPolicy',
+              Action: 'logs:PutResourcePolicy',
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestJobSearchAgentStack_JobSearchAgent-*',
+            }),
           ]),
         },
       })
@@ -123,6 +130,7 @@ describe('JobSearchAgentStack', () => {
           AWS_REGION: 'us-west-2',
           AWS_DEFAULT_REGION: 'us-west-2',
           LOG_LEVEL: 'INFO',
+          UNIFIED_TRACES_DESTINATION_ENABLED: 'true',
           MODEL_PROVIDER: 'anthropic',
           TAVILY_API_KEY_SSM_PARAMETER: '/job-search-agent/tavily-api-key',
           ANTHROPIC_API_KEY_SSM_PARAMETER: '/job-search-agent/anthropic-api-key',
@@ -142,9 +150,9 @@ describe('JobSearchAgentStack', () => {
       })
     })
 
-    it('passes model provider and model ID overrides to the runtime', () => {
+    it('passes model overrides and scopes trace permissions for a hyphenated stack name', () => {
       const providerApp = new App()
-      const providerStack = new JobSearchAgentStack(providerApp, 'TestProviderStack', {
+      const providerStack = new JobSearchAgentStack(providerApp, 'Test-Provider-Stack', {
         modelProvider: 'bedrock',
         bedrockModelID: 'custom-bedrock-model',
         anthropicModelID: 'claude-opus-5',
@@ -153,11 +161,25 @@ describe('JobSearchAgentStack', () => {
       const providerTemplate = Template.fromStack(providerStack)
 
       providerTemplate.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
+        AgentRuntimeName: 'Test_Provider_Stack_JobSearchAgent',
         EnvironmentVariables: Match.objectLike({
           MODEL_PROVIDER: 'bedrock',
           BEDROCK_MODEL_ID: 'custom-bedrock-model',
           ANTHROPIC_MODEL_ID: 'claude-opus-5',
         }),
+      })
+      providerTemplate.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Sid: 'UnifiedTraceLogGroupPolicy',
+              Action: 'logs:PutResourcePolicy',
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/Test_Provider_Stack_JobSearchAgent-*',
+            }),
+          ]),
+        },
       })
     })
   })
