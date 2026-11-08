@@ -6,8 +6,8 @@ How to set up a development environment and get changes merged.
 
 ### Prerequisites
 
-- **Python 3.14** (see `.python-version`)
-- **[uv](https://docs.astral.sh/uv/)** for Python package management
+- **Python 3.15** (see `agent/.python-version`)
+- **[uv](https://docs.astral.sh/uv/) 0.13.7** for Python package management
 - **Node.js 24** (see `.nvmrc`)
 - **Docker** (for deployment)
 - **AWS CLI** configured with appropriate permissions

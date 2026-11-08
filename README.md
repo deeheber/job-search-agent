@@ -10,7 +10,7 @@ Built with [Strands Agents](https://strandsagents.com) and deployed to Amazon Be
 
 ## Quick Start
 
-Prerequisites: [uv](https://docs.astral.sh/uv/) 0.12, Python 3.14, Node 24, Docker, and AWS CLI credentials; see [DEPLOYMENT.md](DEPLOYMENT.md). Running locally only needs uv and the API keys.
+Prerequisites: [uv](https://docs.astral.sh/uv/) 0.13.7, Python 3.15, Node 24, Docker, and AWS CLI credentials; see [DEPLOYMENT.md](DEPLOYMENT.md). Running locally only needs uv and the API keys.
 
 Get API keys from [console.anthropic.com](https://console.anthropic.com) and [tavily.com](https://tavily.com) (free tier available), then run locally:
 

@@ -52,11 +52,27 @@ jobs:
           CDK_DEFAULT_ACCOUNT: "000000000000"
           CDK_DEFAULT_REGION: us-west-2
 
+  smoke-agent-arm64:
+    concurrency:
+      group: smoke-agent-arm64-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Smoke test ARM64 container
+        run: bash agent/smoke-test.sh
+
   deploy:
     concurrency:
       group: deploy-cdk
       cancel-in-progress: false
-    needs: test-cdk
+    needs: [test-cdk, smoke-agent-arm64]
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04-arm
     permissions:

@@ -1,6 +1,6 @@
 # Agent Development
 
-The Python side of the job search agent.
+Requires Python 3.15 and uv 0.13.7.
 
 ## Running Locally
 
@@ -56,6 +56,7 @@ The agent returns hiring status, position titles, and application links.
 ```bash
 ./quality-check.sh    # Run tests, type checks, Ruff lint and format
 uv run pytest         # Just the tests
+bash smoke-test.sh    # Build and check the ARM64 container without API credentials
 ```
 
 The quality check script auto-fixes most issues. Run it before committing.

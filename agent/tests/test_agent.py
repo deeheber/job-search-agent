@@ -3,7 +3,7 @@
 import asyncio
 import os
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from strands.models.anthropic import AnthropicModel
@@ -17,6 +17,7 @@ from src.agentcore_app import (
     get_agent,
     get_model,
     invoke,
+    run_job_search,
 )
 
 
@@ -162,3 +163,14 @@ def test_invoke_sync_returns_full_result() -> None:
 
     assert result == full_result
     mock_search.assert_awaited_once_with("Stripe", "", "")
+
+
+def test_search_returns_error_when_agent_fails() -> None:
+    """Agent failures return a generic error without exposing provider details."""
+    agent = Mock(invoke_async=AsyncMock(side_effect=RuntimeError("provider unavailable")))
+
+    with patch("src.agentcore_app.get_agent", return_value=agent):
+        result = asyncio.run(run_job_search("Example", "", ""))
+
+    agent.invoke_async.assert_awaited_once()
+    assert result == {"status": "error", "error": "Internal processing error"}

@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "job-search-agent"
 version = "2.0.0"
 description = "A Strands AI agent"
-requires-python = ">=3.14.9"
+requires-python = ">=3.15.2"
 dependencies = [
     "strands-agents[otel,anthropic]~=1.62",
     "strands-agents-tools~=0.8.10",
@@ -24,7 +24,7 @@ dev = [
 ]
 
 [tool.uv]
-required-version = "~=0.13.5"
+required-version = "~=0.13.7"
 # Strands caps MCP below the fixed 2.2 release; use the patched 1.x line.
 constraint-dependencies = ["mcp>=1.30,<2"]
 
@@ -32,7 +32,7 @@ constraint-dependencies = ["mcp>=1.30,<2"]
 packages = ["src"]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.15"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -46,7 +46,7 @@ pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py314"
+target-version = "py315"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
