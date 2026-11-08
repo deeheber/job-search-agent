@@ -28,6 +28,7 @@ def local_environment() -> Iterator[None]:
 
 
 def test_search_with_anthropic() -> None:
+    """Parse a mocked HTTP stream through the real Anthropic SDK and agent."""
     events = [
         {
             "type": "message_start",
@@ -85,6 +86,7 @@ def test_search_with_anthropic() -> None:
 
 
 def test_search_with_bedrock_executes_time_tool() -> None:
+    """Execute a real tool and send its result back through the Bedrock adapter."""
     client = Mock()
     client.converse_stream.side_effect = [
         {

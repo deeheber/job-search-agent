@@ -166,6 +166,7 @@ def test_invoke_sync_returns_full_result() -> None:
 
 
 def test_search_returns_error_when_agent_fails() -> None:
+    """Agent failures return a generic error without exposing provider details."""
     agent = Mock(invoke_async=AsyncMock(side_effect=RuntimeError("provider unavailable")))
 
     with patch("src.agentcore_app.get_agent", return_value=agent):
