@@ -296,6 +296,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
         "NetworkConfiguration": {
           "NetworkMode": "PUBLIC",
         },
+        "PlatformVersion": "V2",
         "ProtocolConfiguration": "HTTP",
         "RoleArn": {
           "Fn::GetAtt": [
@@ -640,6 +641,7 @@ exports[`JobSearchAgentStack > CloudFormation Template Snapshot > matches the ex
         "NetworkConfiguration": {
           "NetworkMode": "PUBLIC",
         },
+        "PlatformVersion": "V2",
         "ProtocolConfiguration": "HTTP",
         "RoleArn": {
           "Fn::GetAtt": [
