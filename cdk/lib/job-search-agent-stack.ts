@@ -11,7 +11,7 @@ import {
 } from 'aws-cdk-lib/aws-scheduler'
 import { Universal } from 'aws-cdk-lib/aws-scheduler-targets'
 import { Construct } from 'constructs'
-import { Runtime, AgentRuntimeArtifact } from 'aws-cdk-lib/aws-bedrockagentcore'
+import { Runtime, AgentRuntimeArtifact, PlatformVersion } from 'aws-cdk-lib/aws-bedrockagentcore'
 import * as path from 'path'
 
 // SSM parameter names, created out-of-band (never by this stack); read by the agent at
@@ -115,6 +115,7 @@ export class JobSearchAgentStack extends Stack {
     const runtime = new Runtime(this, 'JobSearchAgentRuntime', {
       runtimeName,
       agentRuntimeArtifact: agentArtifact,
+      platformVersion: PlatformVersion.V2,
       executionRole: agentRole,
       description: 'Job search agent with web search, page extraction, and time',
       environmentVariables: {

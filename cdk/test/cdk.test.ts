@@ -142,6 +142,7 @@ describe('JobSearchAgentStack', () => {
     it('creates AgentCore runtime with proper configuration', () => {
       template.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
         AgentRuntimeName: 'TestJobSearchAgentStack_JobSearchAgent',
+        PlatformVersion: 'V2',
         Description: 'Job search agent with web search, page extraction, and time',
         RoleArn: {
           'Fn::GetAtt': [Match.stringLikeRegexp('AgentCoreRole.*'), 'Arn'],
