@@ -6,8 +6,8 @@ What it costs to run: [COST.md](COST.md).
 
 - AWS CLI configured (`aws configure`)
 - Docker running locally
-- Node.js 24 and Python 3.14
-- [uv](https://docs.astral.sh/uv/) for Python package management
+- Node.js 24 and Python 3.15
+- [uv](https://docs.astral.sh/uv/) 0.13.7 for Python package management
 - Anthropic API key (sign up at [console.anthropic.com](https://console.anthropic.com)), or Bedrock model access in your AWS account when using `MODEL_PROVIDER=bedrock`
 - Tavily API key (sign up at [tavily.com](https://tavily.com) - free tier available)
 

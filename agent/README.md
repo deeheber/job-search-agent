@@ -1,6 +1,6 @@
 # Agent Development
 
-The Python side of the job search agent.
+Requires Python 3.15 and uv 0.13.7.
 
 ## Running Locally
 
