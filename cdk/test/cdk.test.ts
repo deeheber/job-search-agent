@@ -90,11 +90,43 @@ describe('JobSearchAgentStack', () => {
               },
             }),
             Match.objectLike({
+              Sid: 'UnifiedTraceLogGroupPolicy',
+              Action: 'logs:PutResourcePolicy',
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/TestJobSearchAgentStack_JobSearchAgent-*',
+            }),
+            Match.objectLike({
               Action: 'sns:Publish',
               Effect: 'Allow',
               Resource: {
                 Ref: Match.stringLikeRegexp('JobSearchNotificationTopic.*'),
               },
+            }),
+          ]),
+        },
+      })
+    })
+
+    it('scopes trace permissions to the normalized runtime name for a hyphenated stack', () => {
+      const traceApp = new App()
+      const traceStack = new JobSearchAgentStack(traceApp, 'Test-Trace-Stack', {
+        env: { account: '123456789012', region: 'us-west-2' },
+      })
+      const traceTemplate = Template.fromStack(traceStack)
+
+      traceTemplate.hasResourceProperties('AWS::BedrockAgentCore::Runtime', {
+        AgentRuntimeName: 'Test_Trace_Stack_JobSearchAgent',
+      })
+      traceTemplate.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Sid: 'UnifiedTraceLogGroupPolicy',
+              Action: 'logs:PutResourcePolicy',
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:logs:us-west-2:123456789012:log-group:/aws/bedrock-agentcore/runtimes/Test_Trace_Stack_JobSearchAgent-*',
             }),
           ]),
         },
@@ -123,6 +155,7 @@ describe('JobSearchAgentStack', () => {
           AWS_REGION: 'us-west-2',
           AWS_DEFAULT_REGION: 'us-west-2',
           LOG_LEVEL: 'INFO',
+          UNIFIED_TRACES_DESTINATION_ENABLED: 'true',
           MODEL_PROVIDER: 'anthropic',
           TAVILY_API_KEY_SSM_PARAMETER: '/job-search-agent/tavily-api-key',
           ANTHROPIC_API_KEY_SSM_PARAMETER: '/job-search-agent/anthropic-api-key',

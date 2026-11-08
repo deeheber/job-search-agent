@@ -103,6 +103,8 @@ aws logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runt
 aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent-<id>-DEFAULT --follow
 ```
 
+Unified trace storage requires [CloudWatch Transaction Search](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) to be enabled in the deployment account and Region.
+
 ## Change the Model or Provider
 
 The agent supports two model providers, selected with `MODEL_PROVIDER` in `agent/.env`:

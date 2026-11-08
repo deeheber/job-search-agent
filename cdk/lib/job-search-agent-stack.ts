@@ -38,6 +38,8 @@ export class JobSearchAgentStack extends Stack {
   constructor(scope: Construct, id: string, props: AgentStackProps) {
     super(scope, id, props)
 
+    const runtimeName = `${this.stackName.replace(/-/g, '_')}_JobSearchAgent`
+
     const agentRole = new Role(this, 'AgentCoreRole', {
       roleName: `${this.stackName}-AgentCoreRole`,
       assumedBy: new ServicePrincipal('bedrock-agentcore.amazonaws.com'),
@@ -83,6 +85,16 @@ export class JobSearchAgentStack extends Stack {
       })
     )
 
+    agentRole.addToPolicy(
+      new PolicyStatement({
+        sid: 'UnifiedTraceLogGroupPolicy',
+        actions: ['logs:PutResourcePolicy'],
+        resources: [
+          `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/${runtimeName}-*`,
+        ],
+      })
+    )
+
     const notificationTopic = new Topic(this, 'JobSearchNotificationTopic', {
       topicName: `${this.stackName}-notify`,
       displayName: 'Job Search Agent Notifications',
@@ -101,7 +113,7 @@ export class JobSearchAgentStack extends Stack {
     })
 
     const runtime = new Runtime(this, 'JobSearchAgentRuntime', {
-      runtimeName: `${this.stackName.replace(/-/g, '_')}_JobSearchAgent`,
+      runtimeName,
       agentRuntimeArtifact: agentArtifact,
       executionRole: agentRole,
       description: 'Job search agent with web search, page extraction, and time',
@@ -109,6 +121,7 @@ export class JobSearchAgentStack extends Stack {
         AWS_REGION: this.region,
         AWS_DEFAULT_REGION: this.region,
         LOG_LEVEL: 'INFO',
+        UNIFIED_TRACES_DESTINATION_ENABLED: 'true',
         MODEL_PROVIDER: props.modelProvider ?? 'anthropic',
         TAVILY_API_KEY_SSM_PARAMETER: TAVILY_API_KEY_SSM_PARAMETER,
         ANTHROPIC_API_KEY_SSM_PARAMETER: ANTHROPIC_API_KEY_SSM_PARAMETER,
