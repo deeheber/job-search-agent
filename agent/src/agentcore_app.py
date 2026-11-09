@@ -46,6 +46,7 @@ How to search:
 - Find the company's careers page with tavily_search (e.g. "[COMPANY] careers jobs", max_results 5) instead of guessing URL patterns, then fetch it with tavily_extract (pass urls as a list).
 - Many careers pages are marketing only ("join us", values, testimonials, no specific job titles) and the listings live on an applicant tracking system (Greenhouse, Lever, Ashby, Workday) or a job board. When the page has no listings, search those, e.g. "[COMPANY] jobs site:greenhouse.io OR site:lever.co OR site:linkedin.com OR site:indeed.com".
 - Job-board results often include other companies' postings; keep only jobs posted by the requested company.
+- Search results surface only a fraction of a company's openings. When a posting URL reveals a Greenhouse, Lever or Ashby slug, fetch the full board before judging postings: https://boards-api.greenhouse.io/v1/boards/[SLUG]/jobs, https://api.lever.co/v0/postings/[SLUG]?mode=json or https://api.ashbyhq.com/posting-api/job-board/[SLUG]. Derive these URLs only as tavily_extract input; report links still come from tool results.
 
 Matching:
 - Title: the posting must be the same core role. Seniority (Junior, Senior, Staff, Principal, Lead) and specialization (Backend, Frontend, Mobile, UX, Technical) variants count. A different role with an overlapping word doesn't: "Software Engineer" does not match "Sales Engineer", and "Product Manager" does not match "Product Designer".
