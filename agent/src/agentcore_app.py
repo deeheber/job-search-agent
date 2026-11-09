@@ -184,7 +184,10 @@ def get_agent() -> Agent:
             raise RuntimeError("Tavily MCP server is missing required search tools")
         return agent
     except Exception:
-        tavily_client.stop(None, None, None)
+        try:
+            tavily_client.stop(None, None, None)
+        except Exception:
+            logger.exception("Failed to stop Tavily MCP client")
         raise
 
 
@@ -226,8 +229,9 @@ async def run_job_search(company: str, title: str, location: str) -> dict[str, A
     try:
         prompt = construct_job_search_prompt(company, title, location)
 
-        async with agent_session() as agent:
-            response = await agent.invoke_async(prompt)
+        async with asyncio.timeout(JOB_SEARCH_TIMEOUT_SECONDS):
+            async with agent_session() as agent:
+                response = await agent.invoke_async(prompt)
         # content can lead with thinking blocks; str() joins only the text blocks
         response_text = str(response)
 
@@ -254,9 +258,7 @@ _background_tasks: set[asyncio.Task[Any]] = set()
 async def _tracked_job_search(task_id: int, company: str, title: str, location: str) -> None:
     """Run the job search, alerting on failure since the async caller discards the result."""
     try:
-        result = await asyncio.wait_for(
-            run_job_search(company, title, location), timeout=JOB_SEARCH_TIMEOUT_SECONDS
-        )
+        result = await run_job_search(company, title, location)
         if result.get("status") != "success":
             send_failure_alert(company)
     except Exception:
