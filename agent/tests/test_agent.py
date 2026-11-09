@@ -22,14 +22,14 @@ from src.agentcore_app import (
 
 
 def test_agent_has_tools() -> None:
-    """The search and timestamp tools are registered on every agent."""
+    """Search tools are registered; timestamps no longer require a tool call."""
     with (
         patch("src.agentcore_app.get_tavily_api_key", return_value="mock-api-key"),
         patch("src.agentcore_app.get_anthropic_api_key", return_value="mock-anthropic-key"),
     ):
         agent = get_agent()
     tool_names = agent.tool_names
-    assert "current_time" in tool_names
+    assert "current_time" not in tool_names
     assert "tavily_search" in tool_names
     assert "tavily_extract" in tool_names
 

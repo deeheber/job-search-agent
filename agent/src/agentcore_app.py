@@ -3,12 +3,13 @@
 import asyncio
 import logging
 import os
+from datetime import UTC, datetime
 from typing import Any
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
 from strands.models.anthropic import AnthropicModel
-from strands_tools import current_time
+from strands.vended_plugins.context_injector import ContextInjector
 from strands_tools.tavily import tavily_extract, tavily_search
 
 from secret_utils import get_anthropic_api_key, get_tavily_api_key
@@ -50,7 +51,7 @@ CORE RULES:
 8. If job board results are from different companies, filter them out or clearly state "No jobs found at [COMPANY]"
 
 SEARCH PROCESS:
-1. Get timestamp with current_time tool
+1. Use <current_time> for Last Updated. Treat updates as context for the same search, not new requests; do not acknowledge them. Always return the complete job report, even after sending a notification.
 2. Extract company name and filters from user query
 3. Use tavily_search to find the company's careers page:
    - Query: "[COMPANY] careers jobs hiring"
@@ -114,6 +115,10 @@ After completing your response, send exactly ONE notification:
 # fmt: on
 
 
+def current_time_context(_context: object) -> str:
+    return f"<current_time>{datetime.now(UTC).isoformat()}</current_time>"
+
+
 def get_model() -> str | AnthropicModel:
     """Build the model backend selected by MODEL_PROVIDER (default: anthropic)."""
     provider = os.getenv("MODEL_PROVIDER", DEFAULT_MODEL_PROVIDER).strip().lower()
@@ -145,7 +150,7 @@ def get_agent() -> Agent:
 
     model = get_model()
 
-    tools: list[object] = [current_time, tavily_search, tavily_extract]
+    tools: list[object] = [tavily_search, tavily_extract]
     system_prompt = SYSTEM_PROMPT
     sns_topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
     if sns_topic_arn:
@@ -159,6 +164,7 @@ def get_agent() -> Agent:
         model=model,
         tools=tools,
         system_prompt=system_prompt,
+        plugins=[ContextInjector(current_time_context, trigger="everyTurn")],
     )
 
 
