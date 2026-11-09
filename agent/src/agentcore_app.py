@@ -3,15 +3,20 @@
 import asyncio
 import logging
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
 from strands.models.anthropic import AnthropicModel
-from strands_tools import current_time
-from strands_tools.tavily import tavily_extract, tavily_search
+from strands.tools.executors import SequentialToolExecutor
+from strands.tools.mcp import MCPClient, ToolFilters
+from strands.vended_plugins.context_injector import ContextInjector
 
 from secret_utils import get_anthropic_api_key, get_tavily_api_key
+from tavily_retry import TAVILY_TOOL_NAMES, TavilyRetry
 from tools import send_failure_alert, send_job_alert
 
 DEFAULT_MODEL_PROVIDER = "anthropic"
@@ -50,13 +55,13 @@ CORE RULES:
 8. If job board results are from different companies, filter them out or clearly state "No jobs found at [COMPANY]"
 
 SEARCH PROCESS:
-1. Get timestamp with current_time tool
+1. Use <current_time> for Last Updated. Treat updates as context for the same search, not new requests; do not acknowledge them. Always return the complete job report, even after sending a notification.
 2. Extract company name and filters from user query
 3. Use tavily_search to find the company's careers page:
    - Query: "[COMPANY] careers jobs hiring"
    - Set max_results to 5
 4. From search results, identify the actual career page URL (look for URLs containing "careers", "jobs", or similar)
-5. Use tavily_extract to fetch the career page content
+5. Use tavily_extract to fetch the career page content, passing urls as a list
 6. If career page has no job listings, use tavily_search for job boards:
    - Query: "[COMPANY] jobs site:indeed.com OR site:linkedin.com OR site:greenhouse.io"
 7. Parse all responses for actual job listings with real URLs
@@ -114,6 +119,10 @@ After completing your response, send exactly ONE notification:
 # fmt: on
 
 
+def current_time_context(_context: object) -> str:
+    return f"<current_time>{datetime.now(UTC).isoformat()}</current_time>"
+
+
 def get_model() -> str | AnthropicModel:
     """Build the model backend selected by MODEL_PROVIDER (default: anthropic)."""
     provider = os.getenv("MODEL_PROVIDER", DEFAULT_MODEL_PROVIDER).strip().lower()
@@ -137,15 +146,20 @@ def get_model() -> str | AnthropicModel:
     )
 
 
+def get_tavily_client() -> MCPClient:
+    return MCPClient(
+        url="https://mcp.tavily.com/mcp/",
+        headers={"Authorization": f"Bearer {get_tavily_api_key()}"},
+        tool_filters=ToolFilters(allowed=list(TAVILY_TOOL_NAMES)),
+    )
+
+
 def get_agent() -> Agent:
     """Create and return a Strands agent with configured tools and model."""
-    # strands_tools.tavily reads the key from the TAVILY_API_KEY env var internally
-    tavily_key = get_tavily_api_key()
-    os.environ["TAVILY_API_KEY"] = tavily_key
-
     model = get_model()
+    tavily_client = get_tavily_client()
 
-    tools: list[object] = [current_time, tavily_search, tavily_extract]
+    tools: list[object] = [tavily_client]
     system_prompt = SYSTEM_PROMPT
     sns_topic_arn = os.environ.get("SNS_TOPIC_ARN", "").strip()
     if sns_topic_arn:
@@ -155,11 +169,45 @@ def get_agent() -> Agent:
     else:
         logger.info("SNS_TOPIC_ARN not configured, notifications disabled")
 
-    return Agent(
-        model=model,
-        tools=tools,
-        system_prompt=system_prompt,
-    )
+    try:
+        agent = Agent(
+            model=model,
+            tools=tools,
+            tool_executor=SequentialToolExecutor(),
+            system_prompt=system_prompt,
+            plugins=[
+                TavilyRetry(),
+                ContextInjector(current_time_context, trigger="everyTurn"),
+            ],
+        )
+        if not TAVILY_TOOL_NAMES.issubset(agent.tool_names):
+            raise RuntimeError("Tavily MCP server is missing required search tools")
+        return agent
+    except Exception:
+        try:
+            tavily_client.stop(None, None, None)
+        except Exception:
+            logger.exception("Failed to stop Tavily MCP client")
+        raise
+
+
+@asynccontextmanager
+async def agent_session() -> AsyncIterator[Agent]:
+    """Keep blocking MCP setup and teardown off the runtime's event loop."""
+    creation = asyncio.create_task(asyncio.to_thread(get_agent))
+    try:
+        yield await asyncio.shield(creation)
+    finally:
+        # A cancelled search must still release a client whose setup finishes later.
+        try:
+            agent = await creation
+        except Exception:
+            pass  # The setup error already propagates from the shielded await.
+        else:
+            try:
+                await asyncio.to_thread(agent.cleanup)
+            except Exception:
+                logger.exception("Failed to clean up search agent")
 
 
 def construct_job_search_prompt(company: str, title: str = "", location: str = "") -> str:
@@ -181,9 +229,9 @@ async def run_job_search(company: str, title: str, location: str) -> dict[str, A
     try:
         prompt = construct_job_search_prompt(company, title, location)
 
-        agent = get_agent()
-
-        response = await agent.invoke_async(prompt)
+        async with asyncio.timeout(JOB_SEARCH_TIMEOUT_SECONDS):
+            async with agent_session() as agent:
+                response = await agent.invoke_async(prompt)
         # content can lead with thinking blocks; str() joins only the text blocks
         response_text = str(response)
 
@@ -210,9 +258,7 @@ _background_tasks: set[asyncio.Task[Any]] = set()
 async def _tracked_job_search(task_id: int, company: str, title: str, location: str) -> None:
     """Run the job search, alerting on failure since the async caller discards the result."""
     try:
-        result = await asyncio.wait_for(
-            run_job_search(company, title, location), timeout=JOB_SEARCH_TIMEOUT_SECONDS
-        )
+        result = await run_job_search(company, title, location)
         if result.get("status") != "success":
             send_failure_alert(company)
     except Exception:

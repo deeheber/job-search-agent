@@ -72,7 +72,7 @@ Save these for testing.
 Use the AWS CLI with your RuntimeArn:
 
 ```bash
-RUNTIME_ARN="arn:aws:bedrock-agentcore:us-west-2:123456789012:agent-runtime/..."
+RUNTIME_ARN="arn:aws:bedrock-agentcore:us-west-2:123456789012:runtime/JobSearchAgentStack_JobSearchAgent-abc123def4"
 
 aws bedrock-agentcore invoke-agent-runtime \
   --agent-runtime-arn $RUNTIME_ARN \
@@ -85,7 +85,7 @@ cat response.json
 
 Or use the AWS Console: Bedrock AgentCore → Runtimes → `JobSearchAgentStack_JobSearchAgent` → Test tab.
 
-Try these payloads (keep `"sync": true` to see the result in the response; without it the agent returns `{"status": "accepted"}` and logs the result instead):
+Try these payloads (keep `"sync": true` to see the result in the response; without it the agent returns `{"status": "accepted"}` and completes the search in the background):
 
 - `{"company": "Stripe", "sync": true}`
 - `{"company": "Netflix", "title": "Engineer", "location": "remote", "sync": true}`
@@ -103,7 +103,7 @@ aws logs describe-log-groups --log-group-name-prefix /aws/bedrock-agentcore/runt
 aws logs tail /aws/bedrock-agentcore/runtimes/JobSearchAgentStack_JobSearchAgent-<id>-DEFAULT --follow
 ```
 
-Unified trace storage requires [CloudWatch Transaction Search](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) to be enabled in the deployment account and Region.
+Runtime logs show task status. Full responses appear in agent traces in the `spans` stream in the same log group. Unified trace storage requires [CloudWatch Transaction Search](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) to be enabled in the deployment account and Region.
 
 ## Change the Model or Provider
 
@@ -177,7 +177,7 @@ cd cdk && npm run cdk:deploy
 
 The agent sends an SNS notification after every search (hiring, no new matches, or search failed), so pair this with `NOTIFICATION_EMAILS` for automated alerts.
 
-Scheduled invokes are async: the runtime acks immediately, since the search outlives the caller, and results arrive via SNS email or CloudWatch logs. To spread load, each schedule fires within a flexible window after its scheduled time, not at the exact minute (see `timeWindow` in `cdk/lib/job-search-agent-stack.ts`).
+Scheduled invokes are async: the runtime acks immediately, since the search outlives the caller, and results arrive via SNS email or agent traces. To spread load, each schedule fires within a flexible window after its scheduled time, not at the exact minute (see `timeWindow` in `cdk/lib/job-search-agent-stack.ts`).
 
 ## Clean Up
 

@@ -1,7 +1,7 @@
 import asyncio
 import json
 from collections.abc import Iterator
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import Mock, patch
 
@@ -13,7 +13,7 @@ from src.agentcore_app import run_job_search
 
 
 @pytest.fixture(autouse=True)
-def local_environment() -> Iterator[None]:
+def local_environment(tavily_client: Mock) -> Iterator[None]:
     with patch.dict(
         "os.environ",
         {
@@ -85,8 +85,10 @@ def test_search_with_anthropic() -> None:
     }
 
 
-def test_search_with_bedrock_executes_time_tool() -> None:
-    """Execute a real tool and send its result back through the Bedrock adapter."""
+def test_search_with_bedrock_refreshes_timestamp_after_tool_call() -> None:
+    """The model gets current UTC context on both the initial and tool-result turns."""
+
+    timestamps = [datetime(2026, 11, 8, 12, minute, tzinfo=UTC) for minute in (0, 1)]
     client = Mock()
     client.converse_stream.side_effect = [
         {
@@ -96,14 +98,14 @@ def test_search_with_bedrock_executes_time_tool() -> None:
                     "contentBlockStart": {
                         "contentBlockIndex": 0,
                         "start": {
-                            "toolUse": {"toolUseId": "clock", "name": "current_time"},
+                            "toolUse": {"toolUseId": "search", "name": "tavily_search"},
                         },
                     }
                 },
                 {
                     "contentBlockDelta": {
                         "contentBlockIndex": 0,
-                        "delta": {"toolUse": {"input": "{}"}},
+                        "delta": {"toolUse": {"input": '{"query":"Example jobs"}'}},
                     }
                 },
                 {"contentBlockStop": {"contentBlockIndex": 0}},
@@ -122,12 +124,20 @@ def test_search_with_bedrock_executes_time_tool() -> None:
     with (
         patch.dict("os.environ", {"MODEL_PROVIDER": "bedrock"}),
         patch("boto3.session.Session.client", return_value=client),
+        patch("src.agentcore_app.datetime") as clock,
     ):
+        clock.now.side_effect = timestamps
         result = asyncio.run(run_job_search("Example", "", ""))
 
     assert result["status"] == "success"
     assert result["response"].strip() == "No jobs found"
     messages = client.converse_stream.call_args.kwargs["messages"]
-    tool_result = messages[-1]["content"][0]["toolResult"]
-    assert tool_result["toolUseId"] == "clock"
-    assert datetime.fromisoformat(tool_result["content"][0]["text"]).tzinfo is not None
+    tool_result = next(
+        block["toolResult"] for block in messages[-1]["content"] if "toolResult" in block
+    )
+    assert tool_result["toolUseId"] == "search"
+    assert tool_result["content"][0]["text"] == "No jobs found"
+    for call, timestamp in zip(client.converse_stream.call_args_list, timestamps, strict=True):
+        assert f"<current_time>{timestamp.isoformat()}</current_time>" in json.dumps(
+            call.kwargs["messages"]
+        )

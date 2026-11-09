@@ -29,6 +29,7 @@ import platform
 import sys
 import time
 from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
 from urllib.request import Request, urlopen
 
 assert platform.python_version() == sys.argv[1], platform.python_version()
@@ -56,10 +57,49 @@ with urlopen(request, timeout=10) as response:
     assert json.load(response) == {"status": "error", "error": "Company name is required"}
 print("/invocations: expected validation error")
 
-from strands_tools.current_time import current_time
+import asyncio
+import re
 
-assert datetime.fromisoformat(current_time()).tzinfo is not None
-print("current_time: passed")
+sys.path.insert(0, "/app/src")
+from agentcore_app import get_agent
+from strands import tool
+from strands.tools.mcp import MCPClient
+
+@tool(name="tavily_search")
+def search(query: str) -> str:
+    """Search for jobs."""
+    return "No jobs found"
+
+@tool(name="tavily_extract")
+def extract(urls: list[str]) -> str:
+    """Extract career page content."""
+    return "No jobs found"
+
+tavily = Mock(spec=MCPClient)
+tavily.load_tools = AsyncMock(return_value=[search, extract])
+
+client = Mock()
+client.converse_stream.return_value = {"stream": [
+    {"messageStart": {"role": "assistant"}},
+    {"contentBlockDelta": {"contentBlockIndex": 0, "delta": {"text": "ok"}}},
+    {"contentBlockStop": {"contentBlockIndex": 0}},
+    {"messageStop": {"stopReason": "end_turn"}},
+]}
+with (
+    patch("agentcore_app.get_tavily_client", return_value=tavily),
+    patch("agentcore_app.get_model", return_value="test-model"),
+    patch("boto3.session.Session.client", return_value=client),
+):
+    agent = get_agent()
+    try:
+        asyncio.run(agent.invoke_async("Check the timestamp"))
+    finally:
+        agent.cleanup()
+messages = json.dumps(client.converse_stream.call_args.kwargs["messages"])
+timestamp = re.search(r"<current_time>(.*?)</current_time>", messages).group(1)
+assert datetime.fromisoformat(timestamp).utcoffset().total_seconds() == 0
+assert "current_time" not in agent.tool_names
+print("timestamp context: passed")
 PY
 
 for (( attempt=0; attempt<15; attempt++ )); do

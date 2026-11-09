@@ -52,7 +52,7 @@ That's it. The agent fetches live job postings, extracts titles and links, and r
 ## What It Does
 
 - Takes company name (+ optional title/location filters)
-- Searches career pages and job boards via Tavily API
+- Searches career pages and job boards via Tavily's hosted MCP server
 - Returns hiring status with position details
 - Optionally sends an email via SNS after every search: hiring, no new matches, or search failed
 - Scheduled searches via EventBridge for automated monitoring
