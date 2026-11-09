@@ -29,7 +29,7 @@ import platform
 import sys
 import time
 from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 from urllib.request import Request, urlopen
 
 assert platform.python_version() == sys.argv[1], platform.python_version()
@@ -62,6 +62,21 @@ import re
 
 sys.path.insert(0, "/app/src")
 from agentcore_app import get_agent
+from strands import tool
+from strands.tools.mcp import MCPClient
+
+@tool(name="tavily_search")
+def search(query: str) -> str:
+    """Search for jobs."""
+    return "No jobs found"
+
+@tool(name="tavily_extract")
+def extract(urls: list[str]) -> str:
+    """Extract career page content."""
+    return "No jobs found"
+
+tavily = Mock(spec=MCPClient)
+tavily.load_tools = AsyncMock(return_value=[search, extract])
 
 client = Mock()
 client.converse_stream.return_value = {"stream": [
@@ -71,7 +86,7 @@ client.converse_stream.return_value = {"stream": [
     {"messageStop": {"stopReason": "end_turn"}},
 ]}
 with (
-    patch("agentcore_app.get_tavily_api_key", return_value="smoke-test"),
+    patch("agentcore_app.get_tavily_client", return_value=tavily),
     patch("agentcore_app.get_model", return_value="test-model"),
     patch("boto3.session.Session.client", return_value=client),
 ):

@@ -9,7 +9,6 @@ description = "A Strands AI agent"
 requires-python = ">=3.15.2"
 dependencies = [
     "strands-agents[otel,anthropic]~=1.62",
-    "strands-agents-tools~=0.8.10",
     "bedrock-agentcore~=1.25",
     "aws-opentelemetry-distro~=0.21",
     "boto3~=1.43.118",

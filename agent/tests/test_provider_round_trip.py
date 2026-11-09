@@ -8,13 +8,12 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 from anthropic import AsyncAnthropic
-from strands import tool
 
 from src.agentcore_app import run_job_search
 
 
 @pytest.fixture(autouse=True)
-def local_environment() -> Iterator[None]:
+def local_environment(tavily_client: Mock) -> Iterator[None]:
     with patch.dict(
         "os.environ",
         {
@@ -89,11 +88,6 @@ def test_search_with_anthropic() -> None:
 def test_search_with_bedrock_refreshes_timestamp_after_tool_call() -> None:
     """The model gets current UTC context on both the initial and tool-result turns."""
 
-    @tool(name="tavily_search")
-    def search(query: str) -> str:
-        """Search for jobs."""
-        return "No jobs found"
-
     timestamps = [datetime(2026, 11, 8, 12, minute, tzinfo=UTC) for minute in (0, 1)]
     client = Mock()
     client.converse_stream.side_effect = [
@@ -130,7 +124,6 @@ def test_search_with_bedrock_refreshes_timestamp_after_tool_call() -> None:
     with (
         patch.dict("os.environ", {"MODEL_PROVIDER": "bedrock"}),
         patch("boto3.session.Session.client", return_value=client),
-        patch("src.agentcore_app.tavily_search", search),
         patch("src.agentcore_app.datetime") as clock,
     ):
         clock.now.side_effect = timestamps

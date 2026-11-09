@@ -4,7 +4,7 @@ The TypeScript side that deploys everything to AWS. This creates the AgentCore R
 
 ## Prerequisites
 
-The stack reads the Anthropic and Tavily API keys from SSM Parameter Store, so store them before deploying: see [Store the API Keys](../DEPLOYMENT.md#1-store-the-api-keys). The Anthropic parameter isn't needed when deploying with `MODEL_PROVIDER=bedrock`.
+The agent loads [Anthropic and Tavily keys](../DEPLOYMENT.md#1-store-the-api-keys) from SSM Parameter Store when invoked. With `MODEL_PROVIDER=bedrock`, only Tavily's key is needed.
 
 ## Deploy
 

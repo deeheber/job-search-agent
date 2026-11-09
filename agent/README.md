@@ -18,11 +18,11 @@ curl -X POST http://localhost:8080/invocations \
   -d '{"company": "Stripe", "title": "Engineer", "sync": true}'
 ```
 
-`"sync": true` returns the full result. Without it the agent replies `{"status": "accepted"}` immediately and logs the result when done. Scheduled invokes use this mode, since the search outlives the caller.
+`"sync": true` returns the full result. Without it the agent replies `{"status": "accepted"}` immediately and runs the search in the background. Scheduled invokes use this mode, since the search outlives the caller.
 
 ## How It Works
 
-The agent uses community tools from `strands-agents-tools`, plus one custom tool:
+The agent uses Tavily's hosted MCP server for search and extraction, plus one custom tool:
 
 - **tavily_search** - Searches the web for career pages and job listings
 - **tavily_extract** - Fetches page content from URLs found by search
@@ -37,6 +37,10 @@ When you send a company name, the agent searches for career pages, fetches the c
 `.env.example` documents every variable. The Anthropic API key powers the model (or set `MODEL_PROVIDER=bedrock` to use Amazon Bedrock via IAM instead). The Tavily API key is required for web search.
 
 For AWS deployment, the keys are stored in SSM Parameter Store instead (see [DEPLOYMENT.md](../DEPLOYMENT.md)).
+
+The Tavily key authenticates with `https://mcp.tavily.com/mcp/`.
+
+Each search allows two retries for Tavily 429s, after 30 and 60 seconds plus up to five seconds of jitter. Another 429 stops Tavily calls for that search.
 
 ## Input Format
 
